@@ -14,6 +14,15 @@ Provides common communication and management features used by all subprojects of
 
 ## How to use
 ### Adding to project
+Init git submodules:
+```
+$ git submodule init
+```
+```
+$ git submodule update
+```
+
+CMake:
 ```
 add_dependencies(YourProject libCom)
 target_link_libraries(YourProject libCom)
