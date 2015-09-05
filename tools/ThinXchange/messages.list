@@ -1,2 +1,0 @@
-###
-message.template.h -D filename=sometest.thx -o sometest.h

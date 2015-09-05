@@ -2,6 +2,7 @@
 import cog
 import generator as g
 name = filename[:-4]
+filename = base_path+filename
 ]]]
 [[[end]]]
 [[[cog
@@ -16,8 +17,8 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
-#include <Buffer.h>
-#include <ThinXchange/conversions.h>
+#include "Buffer.h"
+#include "conversions.h"
 
 
 [[[cog

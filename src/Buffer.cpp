@@ -2,22 +2,14 @@
 #include "SecureUniquePtr.h"
 #include "Buffer.h"
 
-Buffer::Buffer(uint32_t reserved) : mData(reserved), mReserved(reserved) {
-    //mData = new uint8_t[reserved];
-}
+Buffer::Buffer(uint32_t reserved) : mData(reserved), mReserved(reserved) { }
 
 Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer.mReserved), mUsed(buffer.mUsed), mOffset(0) {
-    // TODO copy the buffer
-
     // copy whole old buffer into new one. But drop the already skipped bytes (mOffset)
-    //memcpy(newData, (mData+mOffset), mUsed);
     memcpy(mData().get(), &buffer.mData()[buffer.mOffset], mUsed);
 }
 
-Buffer::~Buffer() {
-    // TODO secure delete
-    //delete[] mData;
-}
+Buffer::~Buffer() { }
 
 void Buffer::append(const void *data, uint32_t len) {
 
@@ -46,14 +38,10 @@ void Buffer::consume(uint32_t n) {
 void Buffer::increase(uint32_t newSize) {
     // reallocate
     mReserved = newSize;
-    //uint8_t *newData = new uint8_t[mReserved];
     SecureUniquePtr<uint8_t[]> newData(mReserved);
 
     // copy whole old buffer into new one. But drop the already skipped bytes (mOffset)
-    //memcpy(newData, (mData+mOffset), mUsed);
     memcpy(newData().get(), &mData()[mOffset], mUsed);
-    // TODO secure delete
-    //delete[] mData;
 
     mData = std::move(newData);
     mOffset = 0;

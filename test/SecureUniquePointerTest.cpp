@@ -2,7 +2,7 @@
 // Created by steffen on 21.07.15.
 //
 
-#include "AutoPtrTest.h"
+#include "SecureUniquePointerTest.h"
 
 TEST_F(AutoPtrTest, ScopeInt) {
     int *dataPtr = nullptr;

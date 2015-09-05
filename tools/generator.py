@@ -23,6 +23,8 @@ def do(filename):
             if arr is not None and type not in arr_supported:
                 raise Exception(type+" is not supported as array type!")
             yield (type, id, i[type], arr)
+    #return filename
 
 
-print(list(do("sometest.thx")))
+#print(list(do("sometest.thx")))
+#print(do(filename))

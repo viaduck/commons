@@ -15,8 +15,7 @@ volatile void *spc_memset(volatile void *dst, unsigned char c, size_t len);
 template<typename T>
 class SecureUniquePtr {
 public:
-    SecureUniquePtr() : ptr(new T()){
-    }
+    SecureUniquePtr() : ptr(new T()) { }
 
     ~SecureUniquePtr() {
         spc_memset(ptr.get(), 0xDE, sizeof(T));
@@ -44,8 +43,7 @@ private:
 template<typename T>
 class SecureUniquePtr<T[]> {
 public:
-    SecureUniquePtr(size_t size) : mSize(size), ptr(new T[size]){
-    }
+    SecureUniquePtr(size_t size) : mSize(size), ptr(new T[size]) { }
 
     SecureUniquePtr(SecureUniquePtr<T[]> && other) {
         ptr = std::move(other.ptr);
