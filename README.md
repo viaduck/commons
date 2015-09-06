@@ -16,6 +16,9 @@ Provides common communication and management features used by all subprojects of
 ### Adding to project
 Init git submodules:
 ```
+$ git submodule add <repo url> <path>
+```
+```
 $ git submodule init
 ```
 ```
@@ -24,9 +27,11 @@ $ git submodule update
 
 CMake:
 ```
+add_subdirectory(<path-to-libcom>)
 add_dependencies(YourProject libCom)
 target_link_libraries(YourProject libCom)
 ```
+<path-to-libcom> was supplied in submodules initialization
 
 ### Binary protocol
 To add new mesages and their specifications, create a new file in `protocol/` describing the message (available data types and structures
