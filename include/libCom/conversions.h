@@ -5,8 +5,9 @@
 #ifndef PUSHCLIENT_CONVERSIONS_H
 #define PUSHCLIENT_CONVERSIONS_H
 
-#include <netinet/in.h>
-
+extern "C" {
+    #include "libCom/conversions_crossplatform.h"
+};
 
 // -- network -> host --
 inline uint8_t ntoh_uint8_t(uint8_t v) {

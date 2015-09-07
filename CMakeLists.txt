@@ -18,7 +18,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_BINARY_DIR}/inc
 
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp)
 set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h  ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions_crossplatform.h)
 
 # targets
 ## get list of messages that must be generated
@@ -30,7 +30,7 @@ add_custom_command(
     OUTPUT ${GENERATED_PROTOCOL}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/protocol.messages ${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/protocol.messages
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/protocol.messages ${CMAKE_CURRENT_SOURCE_DIR}/protocol/*.thx
 )
 
 ## and the target
@@ -39,6 +39,9 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 # build
 add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
 add_dependencies(libCom protocol_generation)
+if (WIN32)
+    target_link_libraries(libCom ws2_32)
+endif()
 
 # tests
 add_subdirectory(test)

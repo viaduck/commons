@@ -34,6 +34,29 @@ public:
             mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
     }
 
+
+    [[[cog
+    vars = list(g.do(filename))
+
+    cog.out(name+"(const Buffer &buffer")
+    for v in vars:
+        if v[3] is not None:
+            cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
+        else:
+            cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
+    cog.out(") : {name}(buffer)".format(name=name)+" {\n")
+    offset = 0
+    for v in vars:
+        if v[3] is not None:
+            cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
+            offset += v[2]*v[3]     # sizeof type * array element count
+        else:
+            cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
+            offset += v[2]
+    ]]]
+    [[[end]]]
+    }
+
     const Buffer &buffer() const {
         return mBuffer;
     }
@@ -41,7 +64,6 @@ public:
     // ++++++++ ///
 
     [[[cog
-    vars = list(g.do(filename))
 
     offset = 0
     for v in vars:
