@@ -19,10 +19,7 @@ Init git submodules:
 $ git submodule add <repo url> <path>
 ```
 ```
-$ git submodule init
-```
-```
-$ git submodule update
+git submodule update --init --recursive
 ```
 
 CMake:
