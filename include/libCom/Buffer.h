@@ -28,6 +28,8 @@ public:
     const void *const_data() const;
     const void *const_data(uint32_t p) const;
 
+    void use(uint32_t used);
+
 private:
     SecureUniquePtr<uint8_t[]> mData;
     uint32_t mReserved;

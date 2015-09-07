@@ -66,3 +66,8 @@ const void *Buffer::const_data() const {
 const void *Buffer::const_data(uint32_t p) const {
     return const_cast<const uint8_t *>(&mData()[mOffset+p]);
 }
+
+void Buffer::use(uint32_t used) {
+    if (mReserved >= used+mUsed)
+        mUsed += used;
+}
