@@ -27,6 +27,9 @@ $ git submodule update
 
 CMake:
 ```
+include_directories(<path-to-libcom>/include/)
+```
+```
 add_subdirectory(<path-to-libcom>)
 add_dependencies(YourProject libCom)
 target_link_libraries(YourProject libCom)
