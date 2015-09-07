@@ -2,7 +2,7 @@
 // Created by steffen on 13.08.15.
 //
 
-#include "Buffer.h"
+#include "libCom/Buffer.h"
 #include "sometest.h"
 #include "ContainerTest.h"
 #include "custom_assert.h"

@@ -17,8 +17,8 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
-#include "Buffer.h"
-#include "conversions.h"
+#include "libCom/Buffer.h"
+#include "libCom/conversions.h"
 
 
 [[[cog
