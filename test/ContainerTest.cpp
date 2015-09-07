@@ -2,6 +2,7 @@
 // Created by steffen on 13.08.15.
 //
 
+#include <netinet/in.h>
 #include "libCom/Buffer.h"
 #include "sometest.h"
 #include "ContainerTest.h"
