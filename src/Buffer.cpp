@@ -1,6 +1,6 @@
 #include <string.h>
-#include "SecureUniquePtr.h"
-#include "Buffer.h"
+#include "libCom/SecureUniquePtr.h"
+#include "libCom/Buffer.h"
 
 Buffer::Buffer(uint32_t reserved) : mData(reserved), mReserved(reserved) { }
 

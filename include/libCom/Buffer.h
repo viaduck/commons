@@ -1,7 +1,7 @@
 #ifndef PUSHCLIENT_BUFFER_H
 #define PUSHCLIENT_BUFFER_H
 
-#include <SecureUniquePtr.h>
+#include <libCom/SecureUniquePtr.h>
 #include <cinttypes>
 
 
