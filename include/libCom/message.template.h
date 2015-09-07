@@ -19,6 +19,7 @@ cog.outl("#define {name}_H".format(name=name))
 
 #include "libCom/Buffer.h"
 #include "libCom/conversions.h"
+#include <cstring>
 
 
 [[[cog
