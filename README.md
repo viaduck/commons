@@ -11,6 +11,9 @@ Provides common communication and management features used by all subprojects of
 - Compiler and linker platform supported by Cmake
 - Python 3
 - cogapp (python package)
+### for openssl on windows:
+- mingw, msys
+- activestate perl
 
 ## How to use
 ### Adding to project
@@ -19,7 +22,7 @@ Init git submodules:
 $ git submodule add <repo url> <path>
 ```
 ```
-git submodule update --init --recursive
+$ git submodule update --init --recursive
 ```
 
 CMake:
