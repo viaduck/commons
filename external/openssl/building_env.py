@@ -3,7 +3,7 @@
 # - on windows: uses msys' bash for command execution (openssl's scripts need an UNIX-like environment with perl)
 
 from subprocess import PIPE, Popen
-from sys import argv
+from sys import argv, exit
 import os
 
 env = os.environ
@@ -26,9 +26,13 @@ if os_s == "WIN32":
 binary_openssl_dir_source = argv[offset]+"/"             # downloaded openssl source dir
 l.extend(argv[offset+1:])                             # routed commands
 
+proc = None
 if os_s == "WIN32":
     # we must emulate a UNIX environment to build openssl using mingw
-    with Popen(bash, env=env, cwd=binary_openssl_dir_source, stdin=PIPE, universal_newlines=True) as proc:
-        proc.stdin.write(" ".join(l))
+    proc = Popen(bash, env=env, cwd=binary_openssl_dir_source, stdin=PIPE, universal_newlines=True)
+    proc.communicate(input=" ".join(l)+" || exit $?")
 else:
-    Popen(" ".join(l), shell=True, env=env, cwd=binary_openssl_dir_source)
+    proc = Popen(" ".join(l)+" || exit $?", shell=True, env=env, cwd=binary_openssl_dir_source)
+    proc.communicate()
+
+exit(proc.returncode)
