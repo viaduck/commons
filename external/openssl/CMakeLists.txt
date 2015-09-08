@@ -1,4 +1,4 @@
-set(OPENSSL_BRANCH OpenSSL_1_0_2-stable)
+set(OPENSSL_BRANCH OpenSSL_1_0_2d)
 set(NUM_JOBS 5)
 
 set(OS "UNIX")
@@ -22,6 +22,16 @@ elseif(NOT UNIX)
     message(FATAL_ERROR "Unsupported platform, sorry")
 endif()
 
+find_package(Git)
+if (NOT GIT_FOUND)
+    message(FATAL_ERROR "Please specify git path")
+endif()
+
+# save old git values for core.autocrlf and core.eol
+execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.autocrlf OUTPUT_VARIABLE GIT_CORE_AUTOCRLF)
+execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.eol OUTPUT_VARIABLE GIT_CORE_EOL)
+
+
 # python helper script for corrent building environment
 set(BUILD_ENV_TOOL ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/building_env.py ${OS} ${MSYS_BASH} ${MINGW_MAKE})
 
@@ -31,7 +41,7 @@ ExternalProject_Add(openssl
     GIT_TAG ${OPENSSL_BRANCH}
 
     CONFIGURE_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ./config --prefix=${CMAKE_CURRENT_BINARY_DIR} no-cast no-md2 no-md4 no-mdc2 no-rc4 no-rc5 no-engines
-        no-idea no-mdc2 no-rc5 no-camellia no-ripemd no-ssl2 no-ssl3 no-heartbeats no-gost no-sha0 no-deprecated no-capieng no-decc-init no-comp no-dtls no-psk no-srp
+        no-idea no-mdc2 no-rc5 no-camellia no-ripemd no-ssl2 no-ssl3 no-heartbeats no-gost no-sha0 no-deprecated no-capieng no-decc-init no-comp no-dtls no-psk no-srp no-dso
     # no-dsa no-rc2 no-des break tests, therefore we need them
 
     UPDATE_COMMAND ""
@@ -47,6 +57,28 @@ ExternalProject_Add(openssl
     LOG_CONFIGURE 1
     LOG_BUILD 1
     LOG_TEST 1
+)
+
+# set git config values to openssl requirements (no impact on linux though)
+ExternalProject_Add_Step(openssl setGitConfig
+    COMMAND ${GIT_EXECUTABLE} config --global core.autocrlf false
+    COMMAND ${GIT_EXECUTABLE} config --global core.eol lf
+    DEPENDEES
+    DEPENDERS download
+    ALWAYS ON
+)
+
+# set git config values to previous values
+ExternalProject_Add_Step(openssl restoreGitConfig
+    # unset first (is required, since old value could be omitted, which wouldn't take any effect in "set"
+    COMMAND ${GIT_EXECUTABLE} config --global --unset core.autocrlf
+    COMMAND ${GIT_EXECUTABLE} config --global --unset core.eol
+    # set, don't abort if it fails (due to variables being empty)
+    COMMAND ${GIT_EXECUTABLE} config --global core.autocrlf ${GIT_CORE_AUTOCRLF} | true
+    COMMAND ${GIT_EXECUTABLE} config --global core.eol ${GIT_CORE_EOL} | true
+    DEPENDEES download
+    DEPENDERS configure
+    ALWAYS ON
 )
 
 add_library(ssl STATIC IMPORTED GLOBAL)
