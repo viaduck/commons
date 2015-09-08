@@ -26,7 +26,7 @@ if os_s == "WIN32":
 binary_openssl_dir_source = argv[offset]+"/"             # downloaded openssl source dir
 l.extend(argv[offset+1:])                             # routed commands
 
-if os_s == "WIN32"
+if os_s == "WIN32":
     # we must emulate a UNIX environment to build openssl using mingw
     with Popen(bash, env=env, cwd=binary_openssl_dir_source, stdin=PIPE, universal_newlines=True) as proc:
         proc.stdin.write(" ".join(l))

@@ -8,7 +8,7 @@ if (WIN32)
     if (MINGW)
         message(WARNING "Building on windows might fail")
         set(OS "WIN32")
-        find_program(MSYS_BASH "bash.exe" PATHS "C:/Msys/" PATH_SUFFIXES "/1.0/bin/" "/bin/"
+        find_program(MSYS_BASH "bash.exe" PATHS "C:/Msys/" "C:/MinGW/msys/" PATH_SUFFIXES "/1.0/bin/" "/bin/"
                 DOC "Path to MSYS installation")
         if (NOT MSYS_BASH)
             message(FATAL_ERROR "Specify MSYS installation path")
