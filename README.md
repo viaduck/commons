@@ -11,7 +11,7 @@ Provides common communication and management features used by all subprojects of
 - Compiler and linker platform supported by Cmake
 - Python 3
 - cogapp (python package)
-### for openssl on windows:
+for openssl on windows:
 - mingw, msys
 - activestate perl
 
