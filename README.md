@@ -14,7 +14,6 @@ Provides common communication and management features used by all subprojects of
 
 ### For OpenSSL on Windows:
 - mingw, msys
-- activestate perl
 
 ## How to use
 ### Adding to project
