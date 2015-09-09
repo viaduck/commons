@@ -35,6 +35,13 @@ execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.eol OUTPUT_
 # python helper script for corrent building environment
 set(BUILD_ENV_TOOL ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/building_env.py ${OS} ${MSYS_BASH} ${MINGW_MAKE})
 
+# on windows we need to replace path to perl since CreateProcess(..) cannot handle unix paths
+if (WIN32)
+    set(PERL_PATH_FIX_INSTALL sed -i -- 's/\\/usr\\/bin\\/perl/perl/g' Makefile)
+else()
+    set(PERL_PATH_FIX_INSTALL true)
+endif()
+
 include(ExternalProject)
 ExternalProject_Add(openssl
     GIT_REPOSITORY git://git.openssl.org/openssl.git
@@ -52,7 +59,8 @@ ExternalProject_Add(openssl
     TEST_BEFORE_INSTALL 1
     TEST_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} test
 
-    INSTALL_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} install
+    INSTALL_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${PERL_PATH_FIX_INSTALL}
+        COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} install
 
     LOG_CONFIGURE 1
     LOG_BUILD 1
