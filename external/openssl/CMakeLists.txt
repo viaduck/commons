@@ -68,14 +68,29 @@ ExternalProject_Add_Step(openssl setGitConfig
     ALWAYS ON
 )
 
+# set, don't abort if it fails (due to variables being empty). To realize this we must only call git if the configs
+# are set globally, otherwise do a no-op command ("echo 1", since "true" is not available everywhere)
+if (GIT_CORE_AUTOCRLF)
+    set (GIT_CORE_AUTOCRLF_CMD ${GIT_EXECUTABLE} config --global core.autocrlf ${GIT_CORE_AUTOCRLF})
+else()
+    set (GIT_CORE_AUTOCRLF_CMD echo 1)
+endif()
+if (GIT_CORE_EOL)
+    set (GIT_CORE_EOL_CMD "${GIT_EXECUTABLE} config --global core.eol ${GIT_CORE_EOL}")
+else()
+    set (GIT_CORE_EOL_CMD echo 1)
+endif()
+##
+
 # set git config values to previous values
 ExternalProject_Add_Step(openssl restoreGitConfig
     # unset first (is required, since old value could be omitted, which wouldn't take any effect in "set"
     COMMAND ${GIT_EXECUTABLE} config --global --unset core.autocrlf
     COMMAND ${GIT_EXECUTABLE} config --global --unset core.eol
-    # set, don't abort if it fails (due to variables being empty)
-    COMMAND ${GIT_EXECUTABLE} config --global core.autocrlf ${GIT_CORE_AUTOCRLF} | true
-    COMMAND ${GIT_EXECUTABLE} config --global core.eol ${GIT_CORE_EOL} | true
+
+    COMMAND ${GIT_CORE_AUTOCRLF_CMD}
+    COMMAND ${GIT_CORE_EOL_CMD}
+
     DEPENDEES download
     DEPENDERS configure
     ALWAYS ON
