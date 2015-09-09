@@ -1,5 +1,6 @@
 set(OPENSSL_BRANCH OpenSSL_1_0_2d)
 set(NUM_JOBS 5)
+set(BUILD_OPENSSL OFF CACHE BOOL "Automated OpenSSL building" PARENT_SCOPE)
 
 set(OS "UNIX")
 
@@ -28,8 +29,8 @@ if (NOT GIT_FOUND)
 endif()
 
 # save old git values for core.autocrlf and core.eol
-execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.autocrlf OUTPUT_VARIABLE GIT_CORE_AUTOCRLF)
-execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.eol OUTPUT_VARIABLE GIT_CORE_EOL)
+execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.autocrlf OUTPUT_VARIABLE GIT_CORE_AUTOCRLF OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${GIT_EXECUTABLE} config --global --get core.eol OUTPUT_VARIABLE GIT_CORE_EOL OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 
 # python helper script for corrent building environment
@@ -43,29 +44,48 @@ else()
 endif()
 
 include(ExternalProject)
-ExternalProject_Add(openssl
-    GIT_REPOSITORY git://git.openssl.org/openssl.git
-    GIT_TAG ${OPENSSL_BRANCH}
+if (BUILD_OPENSSL)
+    ExternalProject_Add(openssl
+        GIT_REPOSITORY git://git.openssl.org/openssl.git
+        GIT_TAG ${OPENSSL_BRANCH}
 
-    CONFIGURE_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ./config --prefix=${CMAKE_CURRENT_BINARY_DIR} no-cast no-md2 no-md4 no-mdc2 no-rc4 no-rc5 no-engines
-        no-idea no-mdc2 no-rc5 no-camellia no-ripemd no-ssl2 no-ssl3 no-heartbeats no-gost no-sha0 no-deprecated no-capieng no-decc-init no-comp no-dtls no-psk no-srp no-dso
-    # no-dsa no-rc2 no-des break tests, therefore we need them
+        CONFIGURE_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ./config --prefix=${CMAKE_CURRENT_BINARY_DIR} no-cast no-md2 no-md4 no-mdc2 no-rc4 no-rc5 no-engines
+            no-idea no-mdc2 no-rc5 no-camellia no-ripemd no-ssl2 no-ssl3 no-heartbeats no-gost no-sha0 no-deprecated no-capieng no-decc-init no-comp no-dtls no-psk no-srp no-dso
+        # no-dsa no-rc2 no-des break tests, therefore we need them
 
-    UPDATE_COMMAND ""
+        BUILD_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} depend
+            COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} -j ${NUM_JOBS}
 
-    BUILD_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} depend
-        COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} -j ${NUM_JOBS}
+        TEST_BEFORE_INSTALL 1
+        TEST_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} test
 
-    TEST_BEFORE_INSTALL 1
-    TEST_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} test
+        INSTALL_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${PERL_PATH_FIX_INSTALL}
+            COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} install
 
-    INSTALL_COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${PERL_PATH_FIX_INSTALL}
-        COMMAND ${BUILD_ENV_TOOL} <SOURCE_DIR> ${CMAKE_MAKE_PROGRAM} install
+        LOG_CONFIGURE 1
+        LOG_BUILD 1
+        LOG_TEST 1
+        LOG_INSTALL 1
+    )
+else()
+    ExternalProject_Add(openssl
+        GIT_REPOSITORY git://git.openssl.org/openssl.git
+        GIT_TAG ${OPENSSL_BRANCH}
 
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_TEST 1
-)
+        CONFIGURE_COMMAND ""
+        UPDATE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        TEST_COMMAND ""
+
+        TEST_BEFORE_INSTALL 1
+
+        LOG_CONFIGURE 1
+        LOG_BUILD 1
+        LOG_TEST 1
+        LOG_INSTALL 1
+    )
+endif()
 
 # set git config values to openssl requirements (no impact on linux though)
 ExternalProject_Add_Step(openssl setGitConfig
@@ -73,7 +93,7 @@ ExternalProject_Add_Step(openssl setGitConfig
     COMMAND ${GIT_EXECUTABLE} config --global core.eol lf
     DEPENDEES
     DEPENDERS download
-    ALWAYS ON
+    ALWAYS OFF
 )
 
 # set, don't abort if it fails (due to variables being empty). To realize this we must only call git if the configs
@@ -84,7 +104,7 @@ else()
     set (GIT_CORE_AUTOCRLF_CMD echo 1)
 endif()
 if (GIT_CORE_EOL)
-    set (GIT_CORE_EOL_CMD "${GIT_EXECUTABLE} config --global core.eol ${GIT_CORE_EOL}")
+    set (GIT_CORE_EOL_CMD ${GIT_EXECUTABLE} config --global core.eol ${GIT_CORE_EOL})
 else()
     set (GIT_CORE_EOL_CMD echo 1)
 endif()
