@@ -22,6 +22,7 @@ if os_s == "WIN32":
 
     # include path of msys binaries (perl, cd etc.) and building tools (gcc, ld etc.)
     env['PATH'] += ";".join([msys_path, mingw_path])
+    env['MAKEFLAGS'] = ''            # otherwise: internal error: invalid --jobserver-fds string `gmake_semaphore_1824'
 
 binary_openssl_dir_source = argv[offset]+"/"             # downloaded openssl source dir
 l.extend(argv[offset+1:])                             # routed commands
