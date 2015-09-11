@@ -16,9 +16,9 @@ config_compiler_and_linker()
 # includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_BINARY_DIR}/include/)
 
-set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp)
+set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/BlockCache.cpp)
 set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h  ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions_crossplatform.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h  ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h)
 
 # targets
 ## get list of messages that must be generated
