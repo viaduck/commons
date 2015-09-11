@@ -37,8 +37,7 @@ bool BlockCache::write(const uint32_t id, const uint32_t address) {
             }
 
         // if this is a least block
-        if (block.generation == mLeast)
-            while (mGenMap.find(mLeast) == mGenMap.end())       // look if there aren't any other blocks with same generation
+        if (block.generation == mLeast && mGenMap.find(mLeast) == mGenMap.end())       // look if there aren't any other blocks with same generation
                 mLeast++;                   // if so, adjust lowest generation
 
         block.generation++;
