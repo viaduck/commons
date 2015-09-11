@@ -93,7 +93,7 @@ ExternalProject_Add_Step(openssl setGitConfig
     COMMAND ${GIT_EXECUTABLE} config --global core.eol lf
     DEPENDEES
     DEPENDERS download
-    ALWAYS OFF
+    ALWAYS ON
 )
 
 # set, don't abort if it fails (due to variables being empty). To realize this we must only call git if the configs
