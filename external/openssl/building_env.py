@@ -20,6 +20,10 @@ if os_s == "WIN32":
     msys_path = os.path.dirname(bash)
     mingw_path = os.path.dirname(argv[3])
 
+    # append ; to PATH if needed
+    if not env['PATH'].endswith(";"):
+        env['PATH'] += ";"
+
     # include path of msys binaries (perl, cd etc.) and building tools (gcc, ld etc.)
     env['PATH'] += ";".join([msys_path, mingw_path])
     env['MAKEFLAGS'] = ''            # otherwise: internal error: invalid --jobserver-fds string `gmake_semaphore_1824'
