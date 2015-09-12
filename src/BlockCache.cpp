@@ -7,21 +7,25 @@
 
 BlockInfo::BlockInfo() : address(0) { }
 
-BlockInfo::BlockInfo(const uint32_t address) : address(address) { }
+template<class T>
+BlockInfo::BlockInfo(const T address) : address(address) { }
 
 // ##
 
 BlockCache::BlockCache(const uint32_t capacity) : mCapacity(capacity) { }
 
-const uint32_t BlockCache::read(const uint32_t id) const {
-    return mMap.find(id) != mMap.end() ? mMap.find(id)->second.address : 0;
+template<class K, class V>
+const V BlockCache::read(const K id) const {
+    return mMap.find(id) != mMap.end() ? mMap.find(id)->second.address : V();
 }
 
-const uint16_t BlockCache::generation(const uint32_t id) const {
+template<class K, class V>
+const uint16_t BlockCache::generation(const K id) const {
     return mMap.find(id) != mMap.end() ? mMap.find(id)->second.generation : 0;
 }
 
-bool BlockCache::write(const uint32_t id, const uint32_t address) {
+template<class K, class V>
+bool BlockCache::write(const K id, const V address) {
     // element is present
     auto e = mMap.find(id);
     if (e != mMap.end()) {
@@ -30,7 +34,7 @@ bool BlockCache::write(const uint32_t id, const uint32_t address) {
         // find all elements with same generation
         auto range = mGenMap.equal_range(block.generation);
         // sadly we cannot use "for (auto &el: range)" here..
-        for (std::unordered_multimap<uint16_t , uint32_t>::iterator it = range.first; it != range.second; ++it)
+        for (std::unordered_multimap<uint16_t , K>::iterator it = range.first; it != range.second; ++it)
             if ((*it).second == id) {       // if this is our block, remove it from the generation map...
                 mGenMap.erase(it);
                 break;

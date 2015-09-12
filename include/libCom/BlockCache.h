@@ -8,16 +8,18 @@
 #include <unordered_map>
 #include <cinttypes>
 
+template<class T>
 class BlockInfo {
 
 public:
     BlockInfo();
-    BlockInfo(const uint32_t address);
+    BlockInfo(const T address);
 
-    uint32_t address;
+    T address;
     uint16_t generation = 1;
 };
 
+template<class K, class V>
 class BlockCache {
 
 public:
@@ -28,14 +30,14 @@ public:
      * @param id Block's id
      * @return Block's address or 0 if no such block is present
      */
-    const uint32_t read(const uint32_t id) const;
+    const V read(const K id) const;
 
     /**
      * Returns an item's current generation
      * @param id Block's id
      * @return Generation or 0 if no such block is present
      */
-    const uint16_t generation(const uint32_t id) const;
+    const uint16_t generation(const K id) const;
 
     /**
      * Writes a block into the cache
@@ -43,7 +45,7 @@ public:
      * @param address Block's address
      * @return True if there was enough (no block removed), false if not
      */
-    bool write(const uint32_t id, const uint32_t address);
+    bool write(const K id, const V address);
 
     /**
      * Returns the current cache size
@@ -60,6 +62,15 @@ public:
     }
 
     /**
+     * Clears the Cache
+     */
+    void clear() {
+        mMap.clear();
+        mGenMap.clear();
+        mLeast = 0;
+    }
+
+    /**
      * Default maximum number of elements within the cache
      */
     const static uint32_t DEFAULT_CAPACITY = 4096;
@@ -68,8 +79,8 @@ private:
     /**
      * Maps: id -> BlockInfo
      */
-    std::unordered_map<uint32_t, BlockInfo> mMap;
-    std::unordered_multimap<uint16_t, uint32_t> mGenMap;        // generation -> id
+    std::unordered_map<K, BlockInfo<V>> mMap;
+    std::unordered_multimap<uint16_t, K> mGenMap;        // generation -> id
 
     /**
      * The lowest generation
