@@ -30,6 +30,8 @@ public:
 
     void use(uint32_t used);
 
+    void clear();
+
 private:
     SecureUniquePtr<uint8_t[]> mData;
     uint32_t mReserved;

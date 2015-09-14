@@ -71,3 +71,8 @@ void Buffer::use(uint32_t used) {
     if (mReserved >= used+mUsed)
         mUsed += used;
 }
+
+void Buffer::clear() {
+    mUsed = 0;
+    mOffset = 0;
+}
