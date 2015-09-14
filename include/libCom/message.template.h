@@ -58,7 +58,11 @@ public:
     [[[end]]]
     }
 
-    const Buffer &buffer() const {
+    const Buffer &const_buffer() const {
+        return mBuffer;
+    }
+
+    Buffer &buffer() {
         return mBuffer;
     }
 
