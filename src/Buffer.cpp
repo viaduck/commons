@@ -1,4 +1,5 @@
 #include <string.h>
+#include <libCom/BufferRange.h>
 #include "libCom/SecureUniquePtr.h"
 #include "libCom/Buffer.h"
 
@@ -65,6 +66,10 @@ const void *Buffer::const_data() const {
 
 const void *Buffer::const_data(uint32_t p) const {
     return const_cast<const uint8_t *>(&mData()[mOffset+p]);
+}
+
+const BufferRange Buffer::const_data(uint32_t offset, uint32_t size) const {
+    return BufferRange(*this, size, offset);
 }
 
 void Buffer::use(uint32_t used) {

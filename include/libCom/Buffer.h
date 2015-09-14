@@ -4,6 +4,9 @@
 #include <libCom/SecureUniquePtr.h>
 #include <cinttypes>
 
+class BufferRange;
+
+#include "libCom/BufferRange.h"
 
 class Buffer {
 public:
@@ -27,6 +30,8 @@ public:
 
     const void *const_data() const;
     const void *const_data(uint32_t p) const;
+
+    const BufferRange const_data(uint32_t offset, uint32_t size) const;
 
     void use(uint32_t used);
 

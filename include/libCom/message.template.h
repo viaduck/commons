@@ -80,7 +80,10 @@ public:
                      "}}\n"
                      "inline {type} {name}() {{\n"
                      "    return static_cast<{type}>(mBuffer.data({offset}));\n"
-                     "}}\n".format(type=v[0]+"*", name=v[1], offset=offset))
+                     "}}\n"
+                     "const BufferRange {name}_range() const {{\n"
+                     "    return BufferRange(mBuffer, sizeof({type_raw})*{count}, {offset});\n"
+                     "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3]))
             offset += v[2]*v[3]     # sizeof type * array element count
         else:
         # non-pointer types
