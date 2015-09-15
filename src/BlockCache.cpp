@@ -2,6 +2,7 @@
 // Created by steffen on 10.09.15.
 //
 
+#include <libCom/BufferRange.h>
 #include "libCom/BlockCache.h"
 
 template<class T>
@@ -66,3 +67,9 @@ bool BlockCache<K, V>::write(const K id, const V address) {
     }
     return true;
 }
+
+
+#include "libCom/BufferRange.h"
+
+template class BlockCache<BufferRange, unsigned int>;
+template class BlockCache<unsigned int, unsigned int>;

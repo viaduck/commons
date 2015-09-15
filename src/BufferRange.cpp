@@ -4,7 +4,7 @@
 BufferRange::BufferRange(const Buffer &buffer, uint32_t size, uint32_t offset) : mBuffer(buffer), mSize(size), mOffset(offset) { }
 
 
-bool BufferRange::operator==(const BufferRange &other) {
+bool BufferRange::operator==(const BufferRange &other) const{
     if (other.mSize != mSize)
         return false;
 
