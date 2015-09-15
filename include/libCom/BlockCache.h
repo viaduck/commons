@@ -33,6 +33,13 @@ public:
     const V read(const K id) const;
 
     /**
+     * Checks if a K exists in cache
+     * @param id K
+     * @return True if K exists, False if not
+     */
+    const bool contains(const K id) const;
+
+    /**
      * Returns an item's current generation
      * @param id K
      * @return Generation or 0 if no such block is present

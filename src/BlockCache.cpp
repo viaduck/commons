@@ -21,6 +21,11 @@ const V BlockCache<K, V>::read(const K id) const {
 }
 
 template<class K, class V>
+const bool BlockCache<K, V>::contains(const K id) const {
+    return mMap.find(id) != mMap.end();
+}
+
+template<class K, class V>
 const uint16_t BlockCache<K, V>::generation(const K id) const {
     return mMap.find(id) != mMap.end() ? mMap.find(id)->second.generation : 0;
 }
@@ -68,7 +73,8 @@ bool BlockCache<K, V>::write(const K id, const V address) {
     return true;
 }
 
-void BlockCache::clear() {
+template<class K, class V>
+void BlockCache<K, V>::clear() {
     mMap.clear();
     mGenMap.clear();
     mLeast = 0;
