@@ -81,10 +81,10 @@ public:
                      "inline {type} {name}() {{\n"
                      "    return static_cast<{type}>(mBuffer.data({offset}));\n"
                      "}}\n"
-                     "const BufferRange {name}_range() const {{\n"
+                     "const BufferRange {name}_range() {{\n"
                      "    return BufferRange(mBuffer, {name}_size(), {offset});\n"
                      "}}\n"
-                     "static inline const uint32_t {name}_size() const {{\n"
+                     "static inline const uint32_t {name}_size() {{\n"
                      "    return sizeof({type_raw})*{count};\n"
                      "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3]))
             offset += v[2]*v[3]     # sizeof type * array element count
@@ -96,7 +96,7 @@ public:
                      "inline void {name}({type} v) {{\n"
                      "    *static_cast<{type}*>(mBuffer.data({offset})) = {conversion}(v);\n"
                      "}}\n"
-                     "static inline const uint32_t {name}_size() const {{\n"
+                     "static inline const uint32_t {name}_size() {{\n"
                      "    return sizeof({type});\n"
                      "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton_"+v[0]))
             offset += v[2]
