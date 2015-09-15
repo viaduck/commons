@@ -36,6 +36,11 @@ void Buffer::consume(uint32_t n) {
     mUsed -= n;
 }
 
+void Buffer::reset() {
+    mUsed += mOffset;
+    mOffset = 0;
+}
+
 void Buffer::increase(uint32_t newSize) {
     // reallocate
     mReserved = newSize;

@@ -18,6 +18,9 @@ public:
     // consumes some bytes from the beginning
     void consume(uint32_t n);
 
+    // resets mOffset to 0, increases mUsed by mOffset
+    void reset();
+
     // increase buffer size
     void increase(uint32_t newSize);
 
