@@ -26,23 +26,23 @@ public:
     BlockCache(const uint32_t capacity = DEFAULT_CAPACITY);
 
     /**
-     * Returns the block's address associated with that id
-     * @param id Block's id
-     * @return Block's address or 0 if no such block is present
+     * Returns V associated with that K
+     * @param id K
+     * @return V of this K or object V with default constructor
      */
     const V read(const K id) const;
 
     /**
      * Returns an item's current generation
-     * @param id Block's id
+     * @param id K
      * @return Generation or 0 if no such block is present
      */
     const uint16_t generation(const K id) const;
 
     /**
-     * Writes a block into the cache
-     * @param id Block's id
-     * @param address Block's address
+     * Writes a K with its V into the cache
+     * @param id K
+     * @param address V
      * @return True if there was enough (no block removed), false if not
      */
     bool write(const K id, const V address);
@@ -64,11 +64,7 @@ public:
     /**
      * Clears the Cache
      */
-    void clear() {
-        mMap.clear();
-        mGenMap.clear();
-        mLeast = 0;
-    }
+    void clear();
 
     /**
      * Default maximum number of elements within the cache
@@ -77,10 +73,13 @@ public:
 
 private:
     /**
-     * Maps: id -> BlockInfo
+     * Maps: K -> BlockInfo
      */
     std::unordered_map<K, BlockInfo<V>> mMap;
-    std::unordered_multimap<uint16_t, K> mGenMap;        // generation -> id
+    /**
+     * Maps: Generation -> K
+     */
+    std::unordered_multimap<uint16_t, K> mGenMap;
 
     /**
      * The lowest generation

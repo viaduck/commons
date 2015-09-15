@@ -68,6 +68,12 @@ bool BlockCache<K, V>::write(const K id, const V address) {
     return true;
 }
 
+void BlockCache::clear() {
+    mMap.clear();
+    mGenMap.clear();
+    mLeast = 0;
+}
+
 
 #include "libCom/BufferRange.h"
 
