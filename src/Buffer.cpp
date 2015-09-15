@@ -1,7 +1,5 @@
 #include <string.h>
 #include <libCom/BufferRange.h>
-#include "libCom/SecureUniquePtr.h"
-#include "libCom/Buffer.h"
 
 Buffer::Buffer(uint32_t reserved) : mData(reserved), mReserved(reserved) { }
 
@@ -12,7 +10,7 @@ Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer
 
 Buffer::~Buffer() { }
 
-void Buffer::append(const void *data, uint32_t len) {
+BufferRange Buffer::append(const void *data, uint32_t len) {
 
     if (mOffset+mUsed+len > mReserved) {
         increase(mOffset+mUsed+len + mReserved*2);
@@ -23,10 +21,12 @@ void Buffer::append(const void *data, uint32_t len) {
         memcpy(&mData()[mOffset+mUsed], data, len);
     }
     mUsed += len;
+
+    return BufferRange(*this, len, mUsed-len);
 }
 
-void Buffer::append(const char *data, uint32_t len) {
-    append(static_cast<const void *>(data), len);
+BufferRange Buffer::append(const char *data, uint32_t len) {
+    return append(static_cast<const void *>(data), len);
 }
 
 void Buffer::consume(uint32_t n) {

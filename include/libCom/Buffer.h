@@ -6,16 +6,14 @@
 
 class BufferRange;
 
-//#include "libCom/BufferRange.h"
-
 class Buffer {
 public:
     Buffer(uint32_t reserved = 512);
     Buffer(const Buffer &);
     ~Buffer();
 
-    void append(const void *data, uint32_t len);
-    void append(const char *data, uint32_t len);
+    BufferRange append(const void *data, uint32_t len);
+    BufferRange append(const char *data, uint32_t len);
 
     // consumes some bytes from the beginning
     void consume(uint32_t n);
