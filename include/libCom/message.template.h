@@ -100,7 +100,7 @@ public:
     // ++++++++ ///
 
     [[[cog
-    cog.outl("const uint32_t SIZE = {size};".format(size=offset))
+    cog.outl("const static uint32_t SIZE = {size};".format(size=offset))
     ]]]
     [[[end]]]
 
