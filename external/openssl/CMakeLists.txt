@@ -1,6 +1,6 @@
 set(OPENSSL_BRANCH OpenSSL_1_0_2d)
 set(NUM_JOBS 5)
-set(BUILD_OPENSSL OFF CACHE BOOL "Automated OpenSSL building" PARENT_SCOPE)
+set(BUILD_OPENSSL OFF CACHE BOOL "Automated OpenSSL building")
 
 set(OS "UNIX")
 
