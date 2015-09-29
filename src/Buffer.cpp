@@ -44,6 +44,10 @@ void Buffer::reset(uint32_t offsetDiff) {
 }
 
 void Buffer::increase(uint32_t newSize) {
+    // no need to increase, since buffer is as big as requested
+    if (newSize <= mReserved)
+        return;
+
     // reallocate
     mReserved = newSize;
     SecureUniquePtr<uint8_t[]> newData(mReserved);
