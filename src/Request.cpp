@@ -89,15 +89,22 @@ bool Request::read(Buffer &buffer) {
     if (!initDone)
         return false;
 
-	int res;
-	char buf[512];
+    int res;
+    uint8_t iters = 0;
+    buffer.increase(buffer.size() + 512 * 4);     // must be big enough to hold at least 512 bytes (*4 for 4 iterations)
 
     // TODO read timeout, non-blocking?
-	while ((res = SSL_read(ssl, buf, 512)) > 0) {
-		buffer.append(buf, res);
+	while ((res = SSL_read(ssl, buffer.data(buffer.size()), 512)) > 0) {
+		buffer.use(static_cast<uint32_t>(res));
 
         if (res != 512)
             break;
+
+        iters++;
+        if (iters == 4) {      // buffer is not big enough for another iteration -> increase it (another 4 iterations)
+            buffer.increase(buffer.size() + 512 * 4);
+            iters = 0;
+        }
 	}
 
 	return res >= 0;
