@@ -1,0 +1,5 @@
+uint8_t(32)     internalName
+uint8_t(20)     pubkeyHash
+uint8_t(2500)   key
+uint8_t(10)     friendFile
+uint8_t(10)     historyFile
