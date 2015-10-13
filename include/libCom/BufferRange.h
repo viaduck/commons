@@ -8,7 +8,7 @@
 class BufferRange {
 
 public:
-    BufferRange(const Buffer &buffer, uint32_t size, uint32_t offset);
+    BufferRange(const Buffer &buffer, const uint32_t size, const uint32_t offset);
 
     bool operator==(const BufferRange &other) const;
 
