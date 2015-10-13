@@ -15,7 +15,10 @@ void global_initOpenSSL() {
 	}
 #endif
 
+#ifndef LIBCOM_OPENSSL_HOOK_NO_READD_ALGOS
     OpenSSL_add_all_algorithms();
+#endif
+
     SSL_library_init();
     SSL_load_error_strings();
 
