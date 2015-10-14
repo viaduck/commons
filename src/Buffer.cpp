@@ -43,7 +43,7 @@ void Buffer::reset(uint32_t offsetDiff) {
     mOffset -= offsetDiff;
 }
 
-void Buffer::increase(uint32_t newSize) {
+void Buffer::increase(const uint32_t newSize) {
     // no need to increase, since buffer is as big as requested
     if (newSize <= mReserved)
         return;
@@ -57,6 +57,13 @@ void Buffer::increase(uint32_t newSize) {
 
     mData = std::move(newData);
     mOffset = 0;
+}
+
+void Buffer::increase(const uint32_t newSize, const uint8_t value) {
+    increase(newSize);
+    // initialize with supplied value
+    for (uint32_t i = mUsed; i < (newSize-mUsed); ++i)
+        static_cast<uint8_t *>(data())[i] = value;
 }
 
 const uint32_t Buffer::size() const {

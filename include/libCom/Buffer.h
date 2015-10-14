@@ -17,17 +17,17 @@ public:
     ~Buffer();
 
     virtual BufferRange append(const void *data, uint32_t len);
-
     virtual BufferRange append(const char *data, uint32_t len);
 
-    virtual // consumes some bytes from the beginning
-    void consume(uint32_t n);
+    // consumes some bytes from the beginning
+    virtual void consume(uint32_t n);
 
     // resets mOffset by offsetDiff, increases mUsed by offsetDiff
     void reset(uint32_t offsetDiff = 0);
 
     // increase buffer size
-    void increase(uint32_t newSize);
+    void increase(const uint32_t newSize);
+    void increase(const uint32_t newSize, const uint8_t value);
 
     const uint32_t size() const;
 
