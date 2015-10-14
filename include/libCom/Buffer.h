@@ -5,17 +5,22 @@
 #include <cinttypes>
 
 class BufferRange;
+class DevNull;
 
 class Buffer {
 public:
+    static DevNull DEV_NULL;
+
+
     Buffer(uint32_t reserved = 512);
     Buffer(const Buffer &);
     ~Buffer();
 
-    BufferRange append(const void *data, uint32_t len);
-    BufferRange append(const char *data, uint32_t len);
+    virtual BufferRange append(const void *data, uint32_t len);
 
-    // consumes some bytes from the beginning
+    virtual BufferRange append(const char *data, uint32_t len);
+
+    virtual // consumes some bytes from the beginning
     void consume(uint32_t n);
 
     // resets mOffset by offsetDiff, increases mUsed by offsetDiff
@@ -34,7 +39,7 @@ public:
 
     const BufferRange const_data(uint32_t offset, uint32_t size) const;
 
-    void use(uint32_t used);
+    virtual void use(uint32_t used);
 
     void clear();
 
@@ -44,5 +49,8 @@ private:
     uint32_t mUsed = 0;
     uint32_t mOffset = 0;
 };
+
+// fix IDE quick fix tooltip, there is no other reason in doing this besides that
+#include "DevNull.h"
 
 #endif //PUSHCLIENT_BUFFER_H
