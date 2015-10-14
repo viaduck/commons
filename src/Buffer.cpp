@@ -62,7 +62,7 @@ void Buffer::increase(const uint32_t newSize) {
 void Buffer::increase(const uint32_t newSize, const uint8_t value) {
     increase(newSize);
     // initialize with supplied value
-    for (uint32_t i = mUsed; i < (newSize-mUsed); ++i)
+    for (uint32_t i = mUsed; i < newSize; ++i)
         static_cast<uint8_t *>(data())[i] = value;
 }
 
