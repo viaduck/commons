@@ -113,12 +113,15 @@ public:
                      "inline {type} {name}() {{\n"
                      "    return static_cast<{type}>(mBuffer.data({offset}));\n"
                      "}}\n"
+                     "inline {type} {name}(const {type} v) {{\n"
+                     "    memcpy(mBuffer.data({offset}), v, {size});\n"
+                     "}}\n"
                      "const BufferRange {name}_range() {{\n"
                      "    return BufferRange(mBuffer, {name}_size(), {offset});\n"
                      "}}\n"
                      "static inline const uint32_t {name}_size() {{\n"
                      "    return sizeof({type_raw})*{count};\n"
-                     "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3]))
+                     "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3], size=v[2]*v[3]))
             offset += v[2]*v[3]     # sizeof type * array element count
         else:
         # non-pointer types
