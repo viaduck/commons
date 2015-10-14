@@ -25,6 +25,10 @@ public:
         return mOffset;
     }
 
+    inline const void *const_data() const {
+        return const_buffer().const_data()+offset();
+    }
+
 private:
     const Buffer &mBuffer;
     const uint32_t mSize;
