@@ -26,7 +26,7 @@ public:
     }
 
     inline const void *const_data() const {
-        return const_buffer().const_data()+offset();
+        return const_buffer().const_data(offset());
     }
 
 private:
