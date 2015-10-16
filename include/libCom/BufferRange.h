@@ -39,7 +39,7 @@ private:
 namespace std {
 
     template<>
-    struct hash<BufferRange> {
+    struct hash<const BufferRange> {
         std::size_t operator()(const BufferRange &k) const {
             using std::size_t;
             using std::hash;
