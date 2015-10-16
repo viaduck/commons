@@ -73,6 +73,12 @@ public:
     void increase(const uint32_t newCapacity, const uint8_t value);
 
     /**
+     * Adds padded bytes with specified value to the Buffer, so that Buffer is newSize long. Padded bytes are marked as used.
+     * @param value Byte value of padded bytes
+     */
+    void padd(const uint32_t newSize, const uint8_t value);
+
+    /**
      * Returns the Buffer's size.
      */
     const uint32_t size() const;
