@@ -31,7 +31,7 @@ if os_s == "WIN32":
 binary_openssl_dir_source = argv[offset]+"/"             # downloaded openssl source dir
 l.extend(argv[offset+1:])                             # routed commands
 
-l[0] = '"'+l[0]'"'
+l[0] = '"'+l[0]+'"'
 
 proc = None
 if os_s == "WIN32":

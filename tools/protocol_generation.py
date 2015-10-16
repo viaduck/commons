@@ -11,7 +11,7 @@ with open(argv[1], "r") as f:
         if line[:1] == "#":
             continue
         line = line.strip()
-        l = ['"'+executable'"', "-m cogapp", "-d", "-I tools/", "-D filename="+line.replace(".h", ".thx"), "-D base_path="+protocol_dir, "-o "+argv[2]+"/include/"+line, "include/libCom/message.template.h"]
+        l = ['"'+executable+'"', "-m cogapp", "-d", "-I tools/", "-D filename="+line.replace(".h", ".thx"), "-D base_path="+protocol_dir, "-o "+argv[2]+"/include/"+line, "include/libCom/message.template.h"]
         call(" ".join(l), shell=True)
 
 #print(outp, end="")
