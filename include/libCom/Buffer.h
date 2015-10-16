@@ -9,38 +9,108 @@ class DevNull;
 
 class Buffer {
 public:
+    /**
+     * Static allocated DevNull Buffer object for all your garbage!
+     */
     static DevNull DEV_NULL;
 
-
+    /**
+     * Creates a Buffer object with an internal buffer of reserved size.
+     * @param reserved Initial buffer capacity in bytes. Defaults to 512
+     */
     Buffer(uint32_t reserved = 512);
-    Buffer(const Buffer &);
+
+    /**
+     * Creates a Buffer object from another Buffer (deep-copy).
+     * @param buffer A reference to the buffer to be copied
+     */
+    Buffer(const Buffer &buffer);
+
+    /**
+     * Destructor
+     */
     ~Buffer();
 
+    /**
+     * Appends a bunch of data to the Buffer; increases it's capacity if necessary.
+     *
+     * Capacity is at least double the capacity before.
+     * @param data Data pointer
+     * @param len Length of data (in bytes)
+     */
     virtual BufferRange append(const void *data, uint32_t len);
+    /**
+     * Overloaded variant of append(const void *data, uint32_t len) which accepts char* for convenience.
+     * @param data Data pointer
+     * @param len Length of data (in bytes)
+     */
     virtual BufferRange append(const char *data, uint32_t len);
 
-    // consumes some bytes from the beginning
+    /**
+     * Consumes n bytes from the beginning, moving the Buffer's beginning.
+     * These bytes are considered garbage, which means, the caller can NOT rely on their existence in memory anymore.
+     * They might be overwritten by any buffer re-arranging operation.
+     * @param n The number of bytes to consume
+     */
     virtual void consume(uint32_t n);
 
-    // resets mOffset by offsetDiff, increases mUsed by offsetDiff
+    /**
+     * Reduces consumed bytes count by offsetDiff, increases count of used bytes by offsetDiff.
+     * @param offsetDiff The offset difference in bytes
+     */
     void reset(uint32_t offsetDiff = 0);
 
     // increase buffer size
-    void increase(const uint32_t newSize);
-    void increase(const uint32_t newSize, const uint8_t value);
+    /**
+     * Increases buffer capacity to newCapacity. Does nothing if buffer has this capacity already.
+     * @param newCapacity New capacity in bytes
+     */
+    void increase(const uint32_t newCapacity);
+    /**
+     * Overloaded variant of increase(const uint32_t newCapacity) which initializes newly allocated memory to value.
+     * @param value Byte value of newly allocated (free) memory
+     */
+    void increase(const uint32_t newCapacity, const uint8_t value);
 
+    /**
+     * Returns the Buffer's size.
+     */
     const uint32_t size() const;
 
-    void *data();
-    void *data(uint32_t p);
+    /**
+     * Returns a direct (mutable) data pointer to the beginning (+ p) of Buffer's memory.
+     * BE CAREFUL when reading/writing from/to this pointer because the CALLER has to ensure, no memory region outside
+     * the Buffer's range is accessed!
+     * @param p Start at p-th byte. Defaults to 0.
+     */
+    void *data(uint32_t p = 0);
 
-    const void *const_data() const;
-    const void *const_data(uint32_t p) const;
+    /**
+     * Returns a constant (immutable) data pointer to the beginning (+ p) of Buffer's memory.
+     * BE CAREFUL when reading from this pointer because the CALLER has to ensure, no memory region outside the Buffer's
+     * range is accessed!
+     * @param p Start at p-th byte. Defaults to 0.
+     */
+    const void *const_data(uint32_t p = 0) const;
 
+    /**
+     * Returns a BufferRange object from offset with size.
+     *
+     * WARNING: This function does not check if the specified range exists!
+     * @param offset The byte to start the BufferRange from
+     * @param size BufferRange's size
+     */
     const BufferRange const_data(uint32_t offset, uint32_t size) const;
 
-    virtual void use(uint32_t used);
+    /**
+     * Marks n bytes used. This increases Buffer's size.
+     * @param n Number of bytes
+     */
+    virtual void use(uint32_t n);
 
+    /**
+     * Clears the buffer. This resets used and consumed bytes counts.
+     */
     void clear();
 
 private:
