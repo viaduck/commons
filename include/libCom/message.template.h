@@ -29,7 +29,9 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 public:
     [[[cog
-        cog.outl(name+"() : mBuffer(Buffer(SIZE)) { }")
+        cog.outl(name+"() : mBuffer(Buffer(SIZE)) {\n"
+                 "     mBuffer.use(SIZE);\n"
+                 " }")
     ]]]
     [[[end]]]
 
@@ -39,6 +41,7 @@ public:
     [[[end]]]
         if (mBuffer.size() < SIZE)
             mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
+        mBuffer.use(SIZE);
     }
 
 
