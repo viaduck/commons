@@ -45,8 +45,8 @@ void Buffer::reset(uint32_t offsetDiff) {
 
 const uint32_t Buffer::increase(const uint32_t newCapacity) {
     // no need to increase, since buffer is as big as requested
-    if (newCapacity <= mReserved)
-        return mReserved;
+    if (newCapacity <= (mReserved-mOffset))
+        return (mReserved-mOffset);
 
     // reallocate
     mReserved = newCapacity;
