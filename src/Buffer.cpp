@@ -1,6 +1,8 @@
 #include <string.h>
 #include <libCom/BufferRange.h>
 
+DevNull Buffer::DEV_NULL;
+
 Buffer::Buffer(uint32_t reserved) : mData(reserved), mReserved(reserved) { }
 
 Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer.mReserved), mUsed(buffer.mUsed), mOffset(0) {
