@@ -64,13 +64,15 @@ public:
     /**
      * Increases buffer capacity to newCapacity. Does nothing if buffer has this capacity already.
      * @param newCapacity New capacity in bytes
+     * @return New capacity
      */
-    void increase(const uint32_t newCapacity);
+    const uint32_t increase(const uint32_t newCapacity);
     /**
      * Overloaded variant of increase(const uint32_t newCapacity) which initializes newly allocated memory to value.
      * @param value Byte value of newly allocated (free) memory
+     * @return New capacity
      */
-    void increase(const uint32_t newCapacity, const uint8_t value);
+    const uint32_t increase(const uint32_t newCapacity, const uint8_t value);
 
     /**
      * Adds padded bytes with specified value to the Buffer, so that Buffer is newSize long. Padded bytes are marked as used.
