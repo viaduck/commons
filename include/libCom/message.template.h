@@ -39,9 +39,10 @@ public:
         cog.outl(name+"(Buffer &buffer) : mBuffer(buffer) {")
     ]]]
     [[[end]]]
-        if (mBuffer.size() < SIZE)
+        if (mBuffer.size() < SIZE) {
             mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
-        mBuffer.use(SIZE);
+            mBuffer.use(SIZE);
+        }
     }
 
 
@@ -99,6 +100,14 @@ public:
 
     Buffer &buffer() {
         return mBuffer;
+    }
+
+    void setBuffer(Buffer &newBuffer) {
+        mBuffer = newBuffer;
+        if (mBuffer.size() < SIZE) {
+            mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
+            mBuffer.use(SIZE);
+        }
     }
 
     // ++++++++ ///
