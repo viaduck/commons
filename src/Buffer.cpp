@@ -45,13 +45,16 @@ void Buffer::reset(uint32_t offsetDiff) {
     mOffset -= offsetDiff;
 }
 
-const uint32_t Buffer::increase(const uint32_t newCapacity) {
+const uint32_t Buffer::increase(const uint32_t newCapacity, const bool by) {
+    uint32_t capa = newCapacity;
+    if (by)
+        capa += size();
     // no need to increase, since buffer is as big as requested
-    if (newCapacity <= (mReserved-mOffset))
+    if (capa <= (mReserved-mOffset))
         return (mReserved-mOffset);
 
     // reallocate
-    mReserved = newCapacity;
+    mReserved = capa;
     SecureUniquePtr<uint8_t[]> newData(mReserved);
 
     // copy whole old buffer into new one. But drop the already skipped bytes (mOffset)
@@ -63,10 +66,10 @@ const uint32_t Buffer::increase(const uint32_t newCapacity) {
     return mReserved;
 }
 
-const uint32_t Buffer::increase(const uint32_t newCapacity, const uint8_t value) {
-    uint32_t r = increase(newCapacity);
+const uint32_t Buffer::increase(const uint32_t newCapacity, const uint8_t value, const bool by) {
+    uint32_t r = increase(newCapacity, by);
     // initialize with supplied value
-    for (uint32_t i = mUsed; i < newCapacity; ++i)
+    for (uint32_t i = mUsed; i < r; ++i)
         static_cast<uint8_t *>(data())[i] = value;
 
     return r;
