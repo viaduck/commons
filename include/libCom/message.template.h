@@ -125,7 +125,7 @@ public:
                      "inline {type} {name}() {{\n"
                      "    return static_cast<{type}>(mBuffer.data({offset}));\n"
                      "}}\n"
-                     "inline {type} {name}(const {type} v, const uint32_t size) {{\n"
+                     "inline void {name}(const {type} v, const uint32_t size) {{\n"
                      "    if (size < {size}) return;\n"
                      "    memcpy(mBuffer.data({offset}), v, {size});\n"
                      "}}\n"
