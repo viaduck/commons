@@ -13,6 +13,9 @@ add_subdirectory(external)
 include(external/includes.cmake)
 config_compiler_and_linker()
 
+include(external/openssl-cmake/openssl-config.cmake)
+config_openssl()
+
 # includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_BINARY_DIR}/external/openssl/include/)
 
@@ -43,7 +46,7 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 # build
 add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
 add_dependencies(libCom protocol_generation)
-add_dependencies(libCom openssl)
+add_dependencies(libCom ssl crypto)
 target_link_libraries(libCom ssl crypto)
 if (WIN32)
     target_link_libraries(libCom ws2_32)
