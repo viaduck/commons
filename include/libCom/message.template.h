@@ -102,14 +102,6 @@ public:
         return mBuffer;
     }
 
-    void setBuffer(Buffer &newBuffer) {
-        mBuffer = newBuffer;
-        if (mBuffer.size() < SIZE) {
-            mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
-            mBuffer.use(SIZE);
-        }
-    }
-
     // ++++++++ ///
 
     [[[cog
