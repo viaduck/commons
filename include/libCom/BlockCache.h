@@ -12,10 +12,25 @@ template<class T>
 class BlockInfo {
 
 public:
+    /**
+     * Creates a BlockInfo object with address set to 0.
+     */
     BlockInfo() : address(0) { };
+
+    /**
+     * Creates a BlockInfo object with specified address.
+     * @param address Address
+     */
     BlockInfo(const T address) : address(address) { }
 
+    /**
+     * Address
+     */
     T address;
+
+    /**
+     * Generation
+     */
     uint16_t generation = 1;
 };
 
@@ -23,12 +38,17 @@ template<class K, class V>
 class BlockCache {
 
 public:
+    /**
+     * Creates a BlockCache with fixed capacity.
+     * The capacity CANNOT change!
+     * @param capacity Cache's fixed capacity (default: BlockCache::DEFAULT_CAPACITY)
+     */
     BlockCache(const uint32_t capacity = DEFAULT_CAPACITY) : mCapacity(capacity) { }
 
     /**
      * Returns V associated with that K
      * @param id K
-     * @return V of this K or object V with default constructor
+     * @return V of this K or object V with default constructor if not found
      */
     const V read(const K id) const {
         return mMap.find(id) != mMap.end() ? mMap.find(id)->second.address : V();
@@ -37,7 +57,7 @@ public:
     /**
      * Checks if a K exists in cache
      * @param id K
-     * @return True if K exists, False if not
+     * @return True if K exists, false if not
      */
     const bool contains(const K id) const {
         return mMap.find(id) != mMap.end();
