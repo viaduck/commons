@@ -22,20 +22,63 @@
 #define SOCKET_ERROR (-1)
 #endif
 
+/**
+ * Platform independent TCP-SSL client
+ */
 class Request {
 protected:
+	/**
+	 * Hostname to connect to
+	 */
 	std::string host;
+
+	/**
+	 * Port to connect to
+	 */
 	u_short port;
+
+	/**
+	 * Use IPv6 (true) or IPv4 (false)
+	 */
 	bool ipv6;
 
+	/**
+	 * Initializes SSL for connection
+	 * @param fd Socket descriptor
+	 */
 	int initSsl(int fd);
 
 public:
+	/**
+	 * Creates a Request to host with port
+	 * @param host Hostname to connect to
+	 * @param port Port to connect to
+	 * @param IPv6 Use IPv6 (true) or not (false; default)
+	 */
 	Request(std::string host, u_short port, bool IPv6=false);
+
+	/**
+	 * Free OpenSSL resources
+	 */
 	~Request();
 
+	/**
+	 * Connect to host
+	 */
 	int init();
+
+	/**
+	 * Read from remote into the buffer
+	 * @param buffer Buffer receiving the read data
+	 * @return Success (true) or not (false)
+	 */
 	bool read(Buffer &buffer);
+
+	/**
+	 * Write from buffer to remote
+	 * @param buffer Buffer to send to remote
+	 * @return Success (true) or not (false)
+	 */
 	bool write(const Buffer &buffer);
 
 private:
