@@ -110,6 +110,21 @@ bool Request::read(Buffer &buffer) {
 	return res >= 0;
 }
 
+int32_t Request::read(Buffer &buffer, const uint32_t size) {
+    if (!initDone)
+        return -1;
+
+    int res;
+    buffer.increase(size, true);     // must be big enough to hold at least 512 bytes (*4 for 4 iterations)
+
+    // TODO read timeout, non-blocking?
+    res = SSL_read(ssl, buffer.data(buffer.size()), size);
+    if (res > 0)
+        buffer.use(static_cast<uint32_t>(res));
+
+    return res;
+}
+
 bool Request::write(const Buffer &buffer) {
     return initDone && SSL_write(ssl, buffer.const_data(), buffer.size()) == buffer.size();
 }

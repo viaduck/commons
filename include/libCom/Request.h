@@ -74,6 +74,14 @@ public:
 	 */
 	bool read(Buffer &buffer);
 
+    /**
+	 * Read at most size bytes from remote into the buffer
+	 * @param buffer Buffer receiving the read data
+     * @param size Maximum bytes to read
+	 * @return >0: Actual bytes read. 0: (clean) shutdown. <0: error occurred
+	 */
+	int32_t read(Buffer &buffer, const uint32_t size);
+
 	/**
 	 * Write from buffer to remote
 	 * @param buffer Buffer to send to remote
