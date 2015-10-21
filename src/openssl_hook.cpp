@@ -4,7 +4,7 @@
 #include "libCom/openssl_hook.h"
 
 void global_initOpenSSL() {
-    if (opensslInitiliazed)
+    if (opensslInitialized)
         return;
 
 #ifdef __WIN32
@@ -22,7 +22,7 @@ void global_initOpenSSL() {
     SSL_library_init();
     SSL_load_error_strings();
 
-    opensslInitiliazed = true;
+    opensslInitialized = true;
 }
 
 void global_shutdownOpenSSL() {
