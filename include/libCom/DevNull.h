@@ -4,6 +4,9 @@
 
 #include "Buffer.h"
 
+/**
+ * Subclass of Buffer which noops some operations, behaving like a /dev/null
+ */
 class DevNull : public Buffer {
 
 public:
