@@ -1,2 +1,2 @@
 add_subdirectory(googletest)
-add_subdirectory(openssl)
+add_subdirectory(openssl-cmake)
