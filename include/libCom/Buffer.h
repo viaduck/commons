@@ -60,7 +60,6 @@ public:
      */
     void reset(uint32_t offsetDiff = 0);
 
-    // increase buffer size
     /**
      * Increases buffer capacity to newCapacity. Does nothing if buffer has this capacity already.
      * @param newCapacity New capacity in bytes
