@@ -17,6 +17,10 @@
 
 #include <openssl/ssl.h>
 
+// ensure windows compatibility
+#ifndef SOCKET_ERROR
+#define SOCKET_ERROR (-1)
+#endif
 
 class Request {
 protected:

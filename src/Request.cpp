@@ -62,9 +62,9 @@ int Request::initSsl(int fd) {
 }
 
 int Request::init() {
-    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    SOCKET fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (fd == -1) {
+    if (fd == SOCKET_ERROR) {
         return -1;
     }
 
@@ -111,8 +111,5 @@ bool Request::read(Buffer &buffer) {
 }
 
 bool Request::write(const Buffer &buffer) {
-    if (!initDone)
-        return false;
-    else
-        return SSL_write(ssl, buffer.const_data(), buffer.size()) > 0;
+    return initDone && SSL_write(ssl, buffer.const_data(), buffer.size()) == buffer.size();
 }

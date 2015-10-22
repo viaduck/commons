@@ -1,2 +1,6 @@
 Account.h
 VirtualEntity.h
+SentMessage.h
+RecvMessage.h
+RecvMessageResponse.h
+OuterMessage.h

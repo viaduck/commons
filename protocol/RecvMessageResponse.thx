@@ -1,0 +1,4 @@
+uint8_t     status
+uint32_t    lastMessageID
+uint32_t    nMsg
+uint32_t    nTotalMsg
