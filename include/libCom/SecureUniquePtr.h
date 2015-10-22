@@ -61,7 +61,6 @@ private:
 /**
  * Wrapper around std::unique_ptr<T[]> which features secure memory erasing. This is the array version.
  */
-templat
 template<typename T>
 class SecureUniquePtr<T[]> {
 public:
