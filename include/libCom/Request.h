@@ -19,6 +19,7 @@
 
 // ensure windows compatibility
 #ifndef SOCKET_ERROR
+#define SOCKET int
 #define SOCKET_ERROR (-1)
 #endif
 
