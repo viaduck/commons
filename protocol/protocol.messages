@@ -1,6 +1,7 @@
-Account.h
-VirtualEntity.h
-SentMessage.h
-RecvMessage.h
-RecvMessageResponse.h
-OuterMessage.h
+database/Account.h
+database/VirtualEntity.h
+network/MsgHeader.h
+network/MsgRecvResp.h
+network/MsgResp.h
+network/OuterMessage.h
+network/MsgKeyResp.h

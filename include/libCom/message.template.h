@@ -1,7 +1,9 @@
 [[[cog
 import cog
 import generator as g
-name = filename[:-4]
+from os.path import basename, splitext
+
+name = splitext(basename(filename[:-4]))[0]
 filename = base_path+filename
 ]]]
 [[[end]]]
@@ -30,7 +32,7 @@ cog.outl("#define {name}_H".format(name=name))
 public:
     [[[cog
         cog.outl(name+"() : mBuffer(Buffer(SIZE)) {\n"
-                 "     mBuffer.use(SIZE);\n"
+                 "     mBuffer.padd(SIZE, 0);\n"
                  " }")
     ]]]
     [[[end]]]

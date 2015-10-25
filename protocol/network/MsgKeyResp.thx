@@ -1,0 +1,2 @@
+uint8_t     status
+uint32_t    keyID
