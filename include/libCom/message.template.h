@@ -31,7 +31,7 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 public:
     [[[cog
-        cog.outl(name+"() : mBuffer(Buffer(SIZE)) {\n"
+        cog.outl(name+"() : mBuffer(*(new Buffer(SIZE))), mAllocated(true) {\n"
                  "     mBuffer.padd(SIZE, 0);\n"
                  " }")
     ]]]
@@ -45,6 +45,14 @@ public:
             mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
             mBuffer.use(SIZE);
         }
+    }
+
+    [[[cog
+    cog.outl("~"+name+"() {")
+    ]]]
+    [[[end]]]
+        if (mAllocated)
+            delete &mBuffer;
     }
 
 
@@ -154,7 +162,8 @@ public:
     [[[end]]]
 
 private:
-    Buffer mBuffer;
+    Buffer &mBuffer;
+    const bool mAllocated = false;
 };
 
 [[[cog
