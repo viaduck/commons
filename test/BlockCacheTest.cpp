@@ -6,7 +6,7 @@
 #include "BlockCacheTest.h"
 
 TEST_F(BlockCacheTest, WriteNoExceedCapacity) {
-    BlockCache cache(10);
+    BlockCache<uint32_t, uint32_t> cache(10);
     ASSERT_EQ(10, cache.capacity());
 
     cache.write(1, 10);
@@ -32,7 +32,7 @@ TEST_F(BlockCacheTest, WriteNoExceedCapacity) {
 }
 
 TEST_F(BlockCacheTest, WriteReadNoExceedCapacity) {
-    BlockCache cache(10);
+    BlockCache<uint32_t, uint32_t> cache(10);
     ASSERT_EQ(10, cache.capacity());
 
     // write
@@ -71,7 +71,7 @@ TEST_F(BlockCacheTest, WriteReadNoExceedCapacity) {
 }
 
 TEST_F(BlockCacheTest, WriteExceedCapacity) {
-    BlockCache cache(5);
+    BlockCache<uint32_t, uint32_t> cache(5);
     ASSERT_EQ(5, cache.capacity());
 
     cache.write(1, 10);
@@ -95,7 +95,7 @@ TEST_F(BlockCacheTest, WriteExceedCapacity) {
 }
 
 TEST_F(BlockCacheTest, WriteReadExceedCapacity) {
-    BlockCache cache(5);
+    BlockCache<uint32_t, uint32_t> cache(5);
     ASSERT_EQ(5, cache.capacity());
 
     cache.write(1, 10);
@@ -124,7 +124,7 @@ TEST_F(BlockCacheTest, WriteReadExceedCapacity) {
 }
 
 TEST_F(BlockCacheTest, GenerationNoExceedCapacity) {
-    BlockCache cache(10);
+    BlockCache<uint32_t, uint32_t> cache(10);
     ASSERT_EQ(10, cache.capacity());
 
     cache.write(1, 10);
@@ -175,7 +175,7 @@ TEST_F(BlockCacheTest, GenerationNoExceedCapacity) {
 }
 
 TEST_F(BlockCacheTest, GenerationExceedCapacity) {
-    BlockCache cache(5);
+    BlockCache<uint32_t, uint32_t> cache(5);
     ASSERT_EQ(5, cache.capacity());
 
     cache.write(1, 10);
