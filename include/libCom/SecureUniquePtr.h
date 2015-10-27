@@ -25,7 +25,9 @@ public:
      * Securely overwrite memory used by std::unique_ptr<T>
      */
     ~SecureUniquePtr() {
+#ifdef OPTION_SECURE_UNIQUEPTR
         sec_memset(ptr.get(), 0xDE, sizeof(T));
+#endif
     }
 
     /**

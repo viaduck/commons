@@ -10,6 +10,12 @@ find_package(PythonInterp 3 REQUIRED)       # use Python 3 - Python2 is not comp
 # compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
+# user settable settings
+set(OPTION_SECURE_UNIQUEPTR ON CACHE BOOL "Erase memory on unique ptr deletion")
+if (OPTION_SECURE_UNIQUEPTR)
+    add_definitions(-DOPTION_SECURE_UNIQUEPTR)
+endif()
+
 # externals
 add_subdirectory(external)
 include(external/includes.cmake)
