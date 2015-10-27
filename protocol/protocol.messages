@@ -5,3 +5,4 @@ network/MsgRecvResp.h
 network/MsgResp.h
 network/OuterMessage.h
 network/MsgKeyResp.h
+test/sometest.h

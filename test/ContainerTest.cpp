@@ -4,7 +4,7 @@
 
 #include <netinet/in.h>
 #include "libCom/Buffer.h"
-#include "sometest.h"
+#include "test/sometest.h"
 #include "ContainerTest.h"
 #include "custom_assert.h"
 
