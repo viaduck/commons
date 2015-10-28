@@ -1,8 +1,0 @@
-database/Account.h
-database/VirtualEntity.h
-network/MsgHeader.h
-network/MsgRecvResp.h
-network/MsgResp.h
-network/OuterMessage.h
-network/MsgKeyResp.h
-test/sometest.h

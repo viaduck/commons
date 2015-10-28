@@ -4,11 +4,14 @@ import os
 
 outp = ""
 include_dir = os.getcwd()+"/include/"
-with open(argv[1], "r") as f:
-    for line in f:
-        if line[:1] == "#":
-            continue
-        line = line.strip()
-        outp += include_dir+line+";"
+for root, dirs, files in os.walk(argv[1]):
+    for file in files:
+        fname, ext = os.path.splitext(file)
+        if ext == '.thx':
+            fname = os.path.join(root, fname)
+            fname = os.path.relpath(fname, argv[1])
+
+            fname = include_dir+fname
+            outp += fname+".h;"
 
 print(outp[:-1], end="")
