@@ -49,7 +49,7 @@ public:
 
     // copy constructor
     [[[cog
-        cog.outl(name+"("+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
+        cog.outl(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
     ]]]
     [[[end]]]
 
