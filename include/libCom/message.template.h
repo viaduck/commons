@@ -47,14 +47,11 @@ public:
         }
     }
 
+    // copy constructor
     [[[cog
-    cog.outl("~"+name+"() {")
+        cog.outl(name+"("+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
     ]]]
     [[[end]]]
-        if (mAllocated)
-            delete &mBuffer;
-    }
-
 
     [[[cog
     vars = list(g.do(filename))
@@ -79,7 +76,17 @@ public:
     }
 
 
+    // destructor
+    [[[cog
+    cog.outl("~"+name+"() {")
+    ]]]
+    [[[end]]]
+        if (mAllocated)
+            delete &mBuffer;
+    }
 
+
+    // GETTER & SETTER //
     [[[cog
     vars = list(g.do(filename))
 
