@@ -29,9 +29,9 @@ TEST_F(ContainerTest, SimpleRead) {
     ASSERT_EQ(c.version(), 0xBEEFDEAD);
     ASSERT_EQ(c.first(), 0xfe);
     ASSERT_EQ(c.second(), 0xDEAD);
-    EXPECT_ARRAY_EQ(const uint8_t, "abc", c.buf_const(), 3);
+    EXPECT_ARRAY_EQ(const uint8_t, "abc", c.const_buf(), 3);
     EXPECT_ARRAY_EQ(const uint8_t, "abc", const_cast<const uint8_t*>(c.buf()), 3);
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf_const()+3, 7);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.const_buf()+3, 7);
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", const_cast<const uint8_t*>(c.buf()+3), 7);
 }
 
@@ -48,7 +48,7 @@ TEST_F(ContainerTest, SimpleWrite) {
     c.second(0xDEAD);
     ASSERT_EQ(c.second(), 0xDEAD);
     memset(c.buf(), 0xAB, 10);
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf_const(), 10);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.const_buf(), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf(), 10);
 
     ASSERT_EQ(htonl(0xBEEFDEAD), *reinterpret_cast<const uint32_t*>(c.buffer().const_data()));

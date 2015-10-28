@@ -128,7 +128,7 @@ public:
         cog.outl("// - "+v[1]+" - //")
         # pointer types
         if v[3] is not None:
-            cog.outl("inline const {type} {name}_const() const {{\n"
+            cog.outl("inline const {type} const_{name}() const {{\n"
                      "    return static_cast<const {type}>(mBuffer.const_data({offset}));\n"
                      "}}\n"
                      "inline {type} {name}() {{\n"
