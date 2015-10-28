@@ -29,7 +29,7 @@ public:
     /**
      * Destructor
      */
-    ~Buffer();
+    virtual ~Buffer();
 
     /**
      * Appends a bunch of data to the Buffer; increases it's capacity if necessary.
