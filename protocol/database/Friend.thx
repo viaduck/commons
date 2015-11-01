@@ -1,6 +1,7 @@
-uint8_t version
-uint16_t size
-uint8_t(32) name
-uint8_t(20) pubkeyhash
-uint8_t(7000) pubkey
-uint8_t(10) historyFile
+uint8_t         version
+uint16_t        size
+uint8_t(32)     name
+uint8_t(20)     pubkeyhash
+uint32_t        pubkeysize
+uint8_t(7000)   pubkey
+uint8_t(10)     historyFile
