@@ -37,14 +37,30 @@ public:
      * Capacity is at least double the capacity before.
      * @param data Data pointer
      * @param len Length of data (in bytes)
+     * @return BufferRange containing information about added range within Buffer
      */
     virtual BufferRange append(const void *data, uint32_t len);
     /**
      * Overloaded variant of append(const void *data, uint32_t len) which accepts char* for convenience.
      * @param data Data pointer
      * @param len Length of data (in bytes)
+     * @return BufferRange containing information about added range within Buffer
      */
     virtual BufferRange append(const char *data, uint32_t len);
+    /**
+     * Overloaded variant of append(const void *dta, uint32_t len) which appends the contents of another buffer to this
+     * buffer.
+     * @param other Other Buffer
+     * @return BufferRange containing information about added range within Buffer
+     */
+    virtual BufferRange append(const Buffer &other);
+    /**
+     * Overloaded variant of append(const void *dta, uint32_t len) which appends the contents of another buffer described
+     * by a BufferRange to this buffer.
+     * @param other Other Buffer
+     * @return BufferRange containing information about added range within Buffer
+     */
+    virtual BufferRange append(const BufferRange &range);
 
     /**
      * Consumes n bytes from the beginning, moving the Buffer's beginning.

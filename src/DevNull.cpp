@@ -11,6 +11,14 @@ BufferRange DevNull::append(const char *data, uint32_t len) {
     return BufferRange(*this, 0, len);
 }
 
+BufferRange DevNull::append(const Buffer &other) {
+    return Buffer::append(other);
+}
+
+BufferRange DevNull::append(const BufferRange &range) {
+    return Buffer::append(range);
+}
+
 void DevNull::consume(uint32_t n) {
 
 }

@@ -12,6 +12,9 @@ class DevNull : public Buffer {
 public:
     BufferRange append(const void *data, uint32_t len) override;
     BufferRange append(const char *data, uint32_t len) override;
+    BufferRange append(const Buffer &other) override;
+    BufferRange append(const BufferRange &range) override;
+
     void consume(uint32_t n) override;
     void use(uint32_t used) override;
 };

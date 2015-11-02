@@ -31,6 +31,14 @@ BufferRange Buffer::append(const char *data, uint32_t len) {
     return append(static_cast<const void *>(data), len);
 }
 
+BufferRange Buffer::append(const Buffer &other) {
+    return append(other.const_data(), other.size());
+}
+
+BufferRange Buffer::append(const BufferRange &range) {
+    return append(range.const_data(), range.size());
+}
+
 void Buffer::consume(uint32_t n) {
     if (n > mUsed)
         n = mUsed;
