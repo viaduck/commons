@@ -31,8 +31,8 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 public:
     [[[cog
-        cog.outl(name+"() : mBuffer(*(new Buffer(SIZE))), mAllocated(true) {\n"
-                 "     mBuffer.padd(SIZE, 0);\n"
+        cog.outl(name+"() : mBuffer(*(new Buffer(STATIC_SIZE))), mAllocated(true) {\n"
+                 "     mBuffer.padd(STATIC_SIZE, 0);\n"
                  " }")
     ]]]
     [[[end]]]
@@ -41,9 +41,9 @@ public:
         cog.outl(name+"(Buffer &buffer) : mBuffer(buffer) {")
     ]]]
     [[[end]]]
-        if (mBuffer.size() < SIZE) {
-            mBuffer.increase(SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
-            mBuffer.use(SIZE);
+        if (mBuffer.size() < STATIC_SIZE) {
+            mBuffer.increase(STATIC_SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
+            mBuffer.use(STATIC_SIZE);
         }
     }
 
@@ -58,6 +58,8 @@ public:
 
     cog.out(name+"(Buffer &buffer")
     for v in vars:
+        if v[3] == "var":
+            continue
         if v[3] is not None:
             cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
         else:
@@ -65,6 +67,8 @@ public:
     cog.out(") : {name}(buffer)".format(name=name)+" {\n")
     offset = 0
     for v in vars:
+        if v[3] == "var":
+            continue
         if v[3] is not None:
             cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
             offset += v[2]*v[3]     # sizeof type * array element count
@@ -93,6 +97,8 @@ public:
     cog.out(name+"(")
     first = True
     for v in vars:
+        if v[3] == "var":
+            continue
         if v[3] is not None:
             cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
         else:
@@ -101,6 +107,8 @@ public:
     cog.out(") : {name}()".format(name=name)+" {\n")
     offset = 0
     for v in vars:
+        if v[3] == "var":
+            continue
         if v[3] is not None:
             cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
             offset += v[2]*v[3]     # sizeof type * array element count
@@ -128,24 +136,33 @@ public:
         cog.outl("// - "+v[1]+" - //")
         # pointer types
         if v[3] is not None:
-            cog.outl("inline const {type} const_{name}() const {{\n"
-                     "    return static_cast<const {type}>(mBuffer.const_data({offset}));\n"
-                     "}}\n"
-                     "inline {type} {name}() {{\n"
-                     "    return static_cast<{type}>(mBuffer.data({offset}));\n"
-                     "}}\n"
-                     "inline bool {name}(const {type} v, const uint32_t size) {{\n"
-                     "    if (size != {size}) return false;\n"
-                     "    memcpy(mBuffer.data({offset}), v, {size});\n"
-                     "    return true;\n"
-                     "}}\n"
-                     "const BufferRange {name}_range() {{\n"
-                     "    return BufferRange(mBuffer, {name}_size(), {offset});\n"
-                     "}}\n"
-                     "static inline const uint32_t {name}_size() {{\n"
-                     "    return sizeof({type_raw})*{count};\n"
-                     "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3], size=v[2]*v[3]))
-            offset += v[2]*v[3]     # sizeof type * array element count
+            if v[3] == "var":
+                cog.outl("inline const Buffer &const_{name}() const {{\n"
+                         "    return const_cast<const Buffer&>(mBuffer_{name});\n"
+                         "}}\n"
+                         "inline Buffer &{name}() {{\n"
+                         "    return mBuffer_{name};\n"
+                         "}}\n".format(name=v[1])
+                        )
+            else:
+                cog.outl("inline const {type} const_{name}() const {{\n"
+                         "    return static_cast<const {type}>(mBuffer.const_data({offset}));\n"
+                         "}}\n"
+                         "inline {type} {name}() {{\n"
+                         "    return static_cast<{type}>(mBuffer.data({offset}));\n"
+                         "}}\n"
+                         "inline bool {name}(const {type} v, const uint32_t size) {{\n"
+                         "    if (size != {size}) return false;\n"
+                         "    memcpy(mBuffer.data({offset}), v, {size});\n"
+                         "    return true;\n"
+                         "}}\n"
+                         "const BufferRange {name}_range() {{\n"
+                         "    return BufferRange(mBuffer, {name}_size(), {offset});\n"
+                         "}}\n"
+                         "static inline const uint32_t {name}_size() {{\n"
+                         "    return sizeof({type_raw})*{count};\n"
+                         "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3], size=v[2]*v[3]))
+                offset += v[2]*v[3]     # sizeof type * array element count
         else:
         # non-pointer types
             cog.outl("inline const {type} {name}() const {{\n"
@@ -162,13 +179,74 @@ public:
     [[[end]]]
 
     // ++++++++ ///
+    void serialize(Buffer &out) const {
+        out.append(mBuffer);
 
+        [[[cog
+            for v in vars:
+                # variable data type
+                if v[3] == "var":
+                    cog.outl("// - {name} - //\n"
+                             "const uint32_t {name}_size = hton_uint32_t(mBuffer_{name}.size());\n"
+                             "out.append(static_cast<const void *>(&{name}_size), sizeof(uint32_t));\n"
+                             "out.append(mBuffer_{name});\n".format(name=v[1]))
+        ]]]
+        [[[end]]]
+    }
+
+    const bool deserialize(const Buffer &in) {
+        if (in.size() < STATIC_SIZE)
+            return false;
+        // static data
+        mBuffer.clear();
+        mBuffer.append(BufferRange(in, STATIC_SIZE, 0));
+
+        // now variable data
+        uint32_t offset = STATIC_SIZE;
+        [[[cog
+            for v in vars:
+                # variable data type
+                if v[3] == "var":
+                    cog.outl("// - {name} - //\n"
+                             "if (in.size()-offset < sizeof(uint32_t))    // not big enough to hold size indicator for buffer\n"
+                             "    return false;\n"
+                             "const uint32_t mBuffer_{name}_size = ntoh_uint32_t(*static_cast<const uint32_t*>(in.const_data(offset)));\n"
+                             "if (in.size()-offset < mBuffer_{name}_size)       // not big enough to hold var buffer\n"
+                             "    return false;\n"
+                             "mBuffer_{name}.clear();\n"
+                             "mBuffer_{name}.append(BufferRange(in, offset, mBuffer_{name}_size));\n"
+                             "offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
+        ]]]
+        [[[end]]]
+        return true;
+    }
+    // ++++++++ ///
     [[[cog
-    cog.outl("const static uint32_t SIZE = {size};".format(size=offset))
+    cog.outl("const static uint32_t STATIC_SIZE = {size};".format(size=offset))
     ]]]
     [[[end]]]
+    // ++++++++ ///
+    inline const uint32_t size() const {
+        return
+            [[[cog
+                for v in vars:
+                    # variable data type
+                    if v[3] == "var":
+                        cog.outl("mBuffer_{name}.size()+".format(name=v[1]))
+            ]]]
+            [[[end]]]
+            STATIC_SIZE;
+    }
 
 private:
+    [[[cog
+        for v in vars:
+            # variable data type
+            if v[3] == "var":
+                cog.outl("// - "+v[1]+" - //")
+                cog.outl("Buffer mBuffer_{name};\n".format(name=v[1]))
+    ]]]
+    [[[end]]]
     Buffer &mBuffer;
     const bool mAllocated = false;
 };

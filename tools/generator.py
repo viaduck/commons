@@ -15,8 +15,14 @@ def do(filename):
     with open(filename, "r") as f:
         for line in f:
             type, id = l = line.split()
-            arr_i = re.split("\(([0-9]+)\)", type)
-            arr = int(arr_i[1]) if len(arr_i) > 1 else None     # array element count
+            arr_i = re.split("\(([0-9]+|var)\)", type)
+            if len(arr_i) > 1:
+                if arr_i[1] != "var":
+                    arr = int(arr_i[1])     # array element count
+                else:
+                    arr = "var"
+            else:
+                arr = None
             type = arr_i[0]
 
             # is defined as array, but not supported
