@@ -211,15 +211,15 @@ public:
                 # variable data type
                 if v[3] == "var":
                     cog.outl("// - {name} - //\n"
-                             "if (in.size()-offset < sizeof(uint32_t)) {    // not big enough to hold size indicator for buffer\n"
+                             "if (in.size()-offset < sizeof(uint32_t)) {{    // not big enough to hold size indicator for buffer\n"
                              "    missing = sizeof(uint32_t)-(in.size()-offset);\n"
                              "    return false;\n"
-                             "}\n"
+                             "}}\n"
                              "const uint32_t mBuffer_{name}_size = ntoh_uint32_t(*static_cast<const uint32_t*>(in.const_data(offset)));\n"
-                             "if (in.size()-offset < mBuffer_{name}_size) {       // not big enough to hold var buffer\n"
+                             "if (in.size()-offset < mBuffer_{name}_size) {{       // not big enough to hold var buffer\n"
                              "    missing = mBuffer_{name}_size-(in.size()-offset);\n"
                              "    return false;\n"
-                             "}\n"
+                             "}}\n"
                              "mBuffer_{name}.clear();\n"
                              "mBuffer_{name}.append(BufferRange(in, offset+sizeof(uint32_t), mBuffer_{name}_size));".format(name=v[1]))
                     if i != (nvars-1):
