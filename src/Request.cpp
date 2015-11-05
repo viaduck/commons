@@ -143,5 +143,9 @@ bool Request::readExactly(Buffer &buffer, const uint32_t size) {
 }
 
 bool Request::write(const Buffer &buffer) {
-    return initDone && SSL_write(ssl, buffer.const_data(), buffer.size()) == buffer.size();
+    int res = SSL_write(ssl, buffer.const_data(), buffer.size());
+    if(res < 0) return false;
+
+    uint32_t writtenbytes = static_cast<uint32_t>(res);
+    return initDone && writtenbytes == buffer.size();
 }
