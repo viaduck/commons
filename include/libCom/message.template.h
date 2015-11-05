@@ -217,7 +217,7 @@ public:
                              "if (in.size()-offset < mBuffer_{name}_size)       // not big enough to hold var buffer\n"
                              "    return false;\n"
                              "mBuffer_{name}.clear();\n"
-                             "mBuffer_{name}.append(BufferRange(in, offset, mBuffer_{name}_size));".format(name=v[1]))
+                             "mBuffer_{name}.append(BufferRange(in, offset+sizeof(uint32_t), mBuffer_{name}_size));".format(name=v[1]))
                     if i != (nvars-1):
                         cog.outl("offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
         ]]]
@@ -236,7 +236,7 @@ public:
                 for v in vars:
                     # variable data type
                     if v[3] == "var":
-                        cog.outl("mBuffer_{name}.size()+".format(name=v[1]))
+                        cog.outl("mBuffer_{name}.size()+sizeof(uint32_t)+".format(name=v[1]))
             ]]]
             [[[end]]]
             STATIC_SIZE;
