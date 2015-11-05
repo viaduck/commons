@@ -55,29 +55,30 @@ public:
 
     [[[cog
     vars = list(g.do(filename))
-
-    cog.out(name+"(Buffer &buffer")
-    for v in vars:
-        if v[3] == "var":
-            continue
-        if v[3] is not None:
-            cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
-        else:
-            cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
-    cog.out(") : {name}(buffer)".format(name=name)+" {\n")
-    offset = 0
-    for v in vars:
-        if v[3] == "var":
-            continue
-        if v[3] is not None:
-            cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
-            offset += v[2]*v[3]     # sizeof type * array element count
-        else:
-            cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
-            offset += v[2]
+    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)
+    if cstatic > 0:
+        cog.out(name+"(Buffer &buffer")
+        for v in vars:
+            if v[3] == "var":
+                continue
+            if v[3] is not None:
+                cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
+            else:
+                cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
+        cog.out(") : {name}(buffer)".format(name=name)+" {\n")
+        offset = 0
+        for v in vars:
+            if v[3] == "var":
+                continue
+            if v[3] is not None:
+                cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
+                offset += v[2]*v[3]     # sizeof type * array element count
+            else:
+                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
+                offset += v[2]
+        cog.outl("}")
     ]]]
     [[[end]]]
-    }
 
 
     // destructor
@@ -93,31 +94,31 @@ public:
     // GETTER & SETTER //
     [[[cog
     vars = list(g.do(filename))
-
-    cog.out(name+"(")
-    first = True
-    for v in vars:
-        if v[3] == "var":
-            continue
-        if v[3] is not None:
-            cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
-        else:
-            cog.out((", " if not first else "")+"{type} _{name}".format(type=v[0], name=v[1]))
-        first = False
-    cog.out(") : {name}()".format(name=name)+" {\n")
-    offset = 0
-    for v in vars:
-        if v[3] == "var":
-            continue
-        if v[3] is not None:
-            cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
-            offset += v[2]*v[3]     # sizeof type * array element count
-        else:
-            cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
-            offset += v[2]
+    if cstatic > 0:
+        cog.out(name+"(")
+        first = True
+        for v in vars:
+            if v[3] == "var":
+                continue
+            if v[3] is not None:
+                cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
+            else:
+                cog.out((", " if not first else "")+"{type} _{name}".format(type=v[0], name=v[1]))
+            first = False
+        cog.out(") : {name}()".format(name=name)+" {\n")
+        offset = 0
+        for v in vars:
+            if v[3] == "var":
+                continue
+            if v[3] is not None:
+                cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
+                offset += v[2]*v[3]     # sizeof type * array element count
+            else:
+                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
+                offset += v[2]
+        cog.outl("}")
     ]]]
     [[[end]]]
-    }
 
     const Buffer &const_buffer() const {
         return mBuffer;
