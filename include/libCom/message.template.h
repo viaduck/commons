@@ -205,7 +205,9 @@ public:
         // now variable data
         uint32_t offset = STATIC_SIZE;
         [[[cog
-            for v in vars:
+            nvars = len(vars)
+            for i in range(nvars):
+                v = vars[i]
                 # variable data type
                 if v[3] == "var":
                     cog.outl("// - {name} - //\n"
@@ -215,8 +217,9 @@ public:
                              "if (in.size()-offset < mBuffer_{name}_size)       // not big enough to hold var buffer\n"
                              "    return false;\n"
                              "mBuffer_{name}.clear();\n"
-                             "mBuffer_{name}.append(BufferRange(in, offset, mBuffer_{name}_size));\n"
-                             "offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
+                             "mBuffer_{name}.append(BufferRange(in, offset, mBuffer_{name}_size));".format(name=v[1]))
+                    if i != (nvars-1):
+                        cog.outl("offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
         ]]]
         [[[end]]]
         return true;
