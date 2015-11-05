@@ -202,14 +202,17 @@ public:
         mBuffer.clear();
         mBuffer.append(BufferRange(in, STATIC_SIZE, 0));
 
-        // now variable data
-        uint32_t offset = STATIC_SIZE;
         [[[cog
             nvars = len(vars)
+            first = False
             for i in range(nvars):
                 v = vars[i]
                 # variable data type
                 if v[3] == "var":
+                    if not first:
+                        cog.outl("// now variable data")
+                        cog.outl("uint32_t offset = STATIC_SIZE;")
+                        first = True
                     cog.outl("// - {name} - //\n"
                              "if (in.size()-offset < sizeof(uint32_t)) {{    // not big enough to hold size indicator for buffer\n"
                              "    missing = sizeof(uint32_t)-(in.size()-offset);\n"
