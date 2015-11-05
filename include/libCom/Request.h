@@ -84,6 +84,14 @@ public:
 	int32_t read(Buffer &buffer, const uint32_t size);
 
 	/**
+	 * Read exactly size bytes from remote into the buffer
+	 * @param buffer Buffer receiving the read data
+     * @param size Exact count of bytes to read
+	 * @return True if exactly bytes have been red, false if not
+	 */
+	bool readExactly(Buffer &buffer, const uint32_t size);
+
+	/**
 	 * Write from buffer to remote
 	 * @param buffer Buffer to send to remote
 	 * @return Success (true) or not (false)
