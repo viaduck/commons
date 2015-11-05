@@ -85,10 +85,11 @@ int Request::init() {
     return initSsl(fd);
 }
 
-bool Request::read(Buffer &buffer) {
+bool Request::read(Buffer &buffer, const uint32_t min) {
     if (!initDone)
         return false;
 
+    uint32_t read = 0;
     int res;
     uint8_t iters = 0;
     buffer.increase(buffer.size() + 512 * 4);     // must be big enough to hold at least 512 bytes (*4 for 4 iterations)
@@ -96,8 +97,9 @@ bool Request::read(Buffer &buffer) {
     // TODO read timeout, non-blocking?
 	while ((res = SSL_read(ssl, buffer.data(buffer.size()), 512)) > 0) {
 		buffer.use(static_cast<uint32_t>(res));
+        read += res;
 
-        if (res != 512)
+        if (res != 512 || read >= min)
             break;
 
         iters++;
@@ -110,7 +112,7 @@ bool Request::read(Buffer &buffer) {
 	return res >= 0;
 }
 
-int32_t Request::read(Buffer &buffer, const uint32_t size) {
+int32_t Request::readMax(Buffer &buffer, const uint32_t size) {
     if (!initDone)
         return -1;
 

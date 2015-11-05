@@ -69,11 +69,12 @@ public:
 	int init();
 
 	/**
-	 * Read from remote into the buffer
+	 * Read from remote into the buffer (greed - as max bytes as available)
 	 * @param buffer Buffer receiving the read data
+     * @param min Minimum size to read
 	 * @return Success (true) or not (false)
 	 */
-	bool read(Buffer &buffer);
+	bool read(Buffer &buffer, const uint32_t min = 0);
 
     /**
 	 * Read at most size bytes from remote into the buffer
@@ -81,7 +82,7 @@ public:
      * @param size Maximum bytes to read
 	 * @return >0: Actual bytes read. 0: (clean) shutdown. <0: error occurred
 	 */
-	int32_t read(Buffer &buffer, const uint32_t size);
+	int32_t readMax(Buffer &buffer, const uint32_t size);
 
 	/**
 	 * Read exactly size bytes from remote into the buffer
