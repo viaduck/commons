@@ -31,6 +31,13 @@ public:
     String(const char *cstring, uint32_t size);
 
     /*
+     * Creates a String object from a byte sequence, copying it's contents
+     * @param bytes Byte sequence
+     * @param size The c-style string's size in characters (excluding 0-termination)
+     */
+    String(const uint8_t *bytes, uint32_t size);
+
+    /*
      * Creates a String object from an STL string (std::string), copying it's contents
      * @param stlstring The std::string object
      */

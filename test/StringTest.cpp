@@ -30,6 +30,25 @@ TEST(StringTest, creationTest) {
         EXPECT_ARRAY_EQ(const char, "abc", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
     }
 
+    // create from byte sequence
+    ASSERT_EQ(1, static_cast<int32_t>(sizeof(char)));
+    {
+        uint8_t bytes[0];
+        String s(bytes, 0);
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+    {
+        uint8_t bytes[] = {1,2,3,4,5,6, 255, 127, 0};
+        String s(bytes, 9);
+        ASSERT_EQ(9, static_cast<int32_t>(s.size()));
+
+        uint8_t res[] = {1,2,3,4,5,6, 255, 127, 0, 0};
+        EXPECT_ARRAY_EQ(const char, reinterpret_cast<const char *>(res), s.c_str(), static_cast<int32_t>(s.size())+1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, reinterpret_cast<const char *>(res), s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+
     // create from String
     {
         String str("");

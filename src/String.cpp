@@ -16,6 +16,10 @@ String::String(const char *cstring, uint32_t size) : Buffer(size) {
     append(cstring, size);
 }
 
+String::String(const uint8_t *bytes, uint32_t size) : Buffer(size) {
+    append(bytes, size);
+}
+
 String::String(const String &other) : String(static_cast<const char*>(other.const_data()), other.size()) { }
 
 String::String(const std::string &stlstring) : Buffer(static_cast<uint32_t>(stlstring.size())) {        // FIXME integer is truncated if stlstring.size() > MAX_UINT32
