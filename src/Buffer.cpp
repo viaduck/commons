@@ -28,7 +28,7 @@ BufferRange Buffer::append(const void *data, uint32_t len) {
 }
 
 BufferRange Buffer::append(const char *data, uint32_t len) {
-    return append(static_cast<const void *>(data), len);
+    return append(static_cast<const void *>(data), static_cast<uint32_t>(len*sizeof(char)));
 }
 
 BufferRange Buffer::append(const Buffer &other) {
