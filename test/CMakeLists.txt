@@ -1,4 +1,5 @@
-set(TEST_FILES ${LIBCOM_HEADERS} BufferTest.cpp ContainerTest.cpp custom_assert.h BlockCacheTest.cpp BlockCacheTest.h)
+set(TEST_FILES ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp BufferTest.h ContainerTest.cpp ContainerTest.h
+        BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h)
 
 ###
 add_executable(AllUnitTests ${TEST_FILES})

@@ -100,7 +100,7 @@ public:
     /**
      * Returns the Buffer's size.
      */
-    const uint32_t size() const;
+    virtual const uint32_t size() const;
 
     /**
      * Returns a direct (mutable) data pointer to the beginning (+ p) of Buffer's memory.
@@ -136,7 +136,7 @@ public:
     /**
      * Clears the buffer. This resets used and consumed bytes counts.
      */
-    void clear();
+    virtual void clear();
 
 private:
     SecureUniquePtr<uint8_t[]> mData;
