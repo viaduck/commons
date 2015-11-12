@@ -389,3 +389,10 @@ TEST(StringTest, conversionTest) {
         EXPECT_ARRAY_EQ(const char, "abc", std1.c_str(), 3 + 1);       // compare the 0-terminator, too!
     }
 }
+
+TEST(StringTest, castTest) {
+    String s("abc");
+    ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+    ASSERT_EQ(3, static_cast<int32_t>(s.toBuffer().size()));
+    EXPECT_ARRAY_EQ(const char, "abc", s.toBuffer().const_data(), static_cast<int32_t>(s.size()));      // String does not use any 0-terminator internally
+}

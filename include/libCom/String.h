@@ -148,6 +148,14 @@ public:
      */
     std::string stl_str() const;
 
+    /**
+     * Casts this to Buffer, exposing the underlying Buffer methods
+     * @return This casted to Buffer
+     */
+    inline const Buffer &toBuffer() const {
+        return *dynamic_cast<const Buffer*>(this);
+    }
+
     // REDIRECTIONS
     virtual const uint32_t size() const override;
     virtual void clear() override;
