@@ -178,6 +178,17 @@ public:
         return is;
     }
 
+    /**
+     * Stream operator supporting e.g. streaming String into std::out
+     * @param is std::ostream to write to
+     * @param string String instance to read contents from
+     * @return param os (for chaining)
+     */
+    friend std::ostream &operator<<(std::ostream &os, const String &string) {
+        os.write(static_cast<const char *>(string.const_data()), string.size());
+        return os;
+    }
+
     // REDIRECTIONS
     virtual const uint32_t size() const override;
     virtual void clear() override;

@@ -425,7 +425,7 @@ struct membuf : std::streambuf
     }
 };
 
-TEST(StringTest, streamTest) {
+TEST(StringTest, istreamTest) {
     {
         String s;
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
@@ -466,5 +466,22 @@ TEST(StringTest, streamTest) {
 
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+}
+
+TEST(StringTest, ostreamTest) {
+    {
+        String s("abcdefg\0h1234i\nxyz9876", 22);
+        ASSERT_EQ(22, static_cast<int32_t>(s.size()));
+
+        char buffer[512];
+        membuf sbuf(buffer, buffer + sizeof(buffer));
+        std::ostream out(&sbuf);
+        sbuf.pubsync();
+
+        out << s;        // stream it!
+
+        //ASSERT_EQ(22, static_cast<int32_t>(out.tellp()));     // TODO
+        EXPECT_ARRAY_EQ(const char, "abcdefg\0h1234i\nxyz9876", buffer, static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
     }
 }
