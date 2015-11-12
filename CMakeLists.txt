@@ -29,12 +29,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_BINARY_
 
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/BufferRange.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/openssl_hook.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp) #
-set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h
+set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/openssl_hook.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/openssl_hook.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/errorcodes.h)
 
 # targets
 ## get list of messages that must be generated
@@ -46,7 +47,8 @@ add_custom_command(
     OUTPUT ${GENERATED_PROTOCOL}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/ ${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/database/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/network/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/test/*.thx
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/message.template.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/database/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/network/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/test/*.thx
 )
 
 ## and the target
