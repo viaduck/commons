@@ -415,3 +415,56 @@ TEST(StringTest, castTest) {
     ASSERT_EQ(3, static_cast<int32_t>(s.toBuffer().size()));
     EXPECT_ARRAY_EQ(const char, "abc", s.toBuffer().const_data(), static_cast<int32_t>(s.size()));      // String does not use any 0-terminator internally
 }
+
+
+// required for streaming test
+struct membuf : std::streambuf
+{
+    membuf(char* begin, char* end) {
+        this->setg(begin, begin, end);
+    }
+};
+
+TEST(StringTest, streamTest) {
+    {
+        String s;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+
+        char buffer[] = "abcdefg\0h1234i\nxyz9876";
+        membuf sbuf(buffer, buffer + sizeof(buffer));
+        std::istream in(&sbuf);
+
+        in >> s;        // stream it!
+
+        ASSERT_EQ(14, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abcdefg\0h1234i\0", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+
+    {
+        String s;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+
+        char buffer[] = "abcdef";
+        membuf sbuf(buffer, buffer + sizeof(buffer));
+        std::istream in(&sbuf);
+
+        in >> s;        // stream it!
+
+        ASSERT_EQ(6, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abcdef", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+
+    {
+        String s;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+
+        char buffer[] = "";
+        membuf sbuf(buffer, buffer + sizeof(buffer));
+        std::istream in(&sbuf);
+
+        in >> s;        // stream it!
+
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+}

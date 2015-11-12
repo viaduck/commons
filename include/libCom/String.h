@@ -5,6 +5,8 @@
 #ifndef LIBCOM_STRING_H
 #define LIBCOM_STRING_H
 
+#include <istream>
+
 #include "Buffer.h"
 
 class String : protected Buffer {
@@ -161,6 +163,19 @@ public:
      */
     inline const Buffer &toBuffer() const {
         return *dynamic_cast<const Buffer*>(this);
+    }
+
+    /**
+     * Stream operator supporting e.g. streaming std::cin into String
+     * @param is std::istream to read from
+     * @param string String instance to write contents to
+     * @return param is (for chaining)
+     */
+    friend std::istream &operator>>(std::istream &is, String &string) {
+        string.increase(sizeof(char)*512);
+        is.getline(static_cast<char *>(string.data()), sizeof(char)*512);
+        string.use(static_cast<uint32_t>(is.gcount()-1));     // dont want the istream 0-terminator; cap is OK, since we limit it to sizeof(char)*512
+        return is;
     }
 
     // REDIRECTIONS
