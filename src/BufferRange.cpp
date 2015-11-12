@@ -1,3 +1,4 @@
+#include "libCom/helper.h"
 #include "libCom/BufferRange.h"
 
 
@@ -5,16 +6,11 @@ BufferRange::BufferRange(const Buffer &buffer, const uint32_t size, const uint32
 
 
 bool BufferRange::operator==(const BufferRange &other) const{
-    if (other.mSize != mSize)
+    if (other.mSize != mSize)       // size is different -> they are truly not equal
         return false;
 
-    const unsigned char *other_data = static_cast<const unsigned char*>(other.mBuffer.const_data(other.mOffset));
-    const unsigned char *this_data = static_cast<const unsigned char*>(mBuffer.const_data(mOffset));
+    const char *cthis = static_cast<const char *>(mBuffer.const_data(mOffset)),
+            *cother = static_cast<const char *>(other.mBuffer.const_data(other.mOffset));
 
-    for (uint32_t i = 0; i < other.mSize; ++i) {
-        if (other_data[i] != this_data[i])
-            return false;
-    }
-
-    return true;
+    return comparisonHelper(cthis, cother, mSize);
 }

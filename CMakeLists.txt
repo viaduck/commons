@@ -33,7 +33,8 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_C
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/openssl_hook.h) #
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/openssl_hook.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h)
 
 # targets
 ## get list of messages that must be generated

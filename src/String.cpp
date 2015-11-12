@@ -4,6 +4,7 @@
 
 #include <string>
 #include <string.h>
+#include "libCom/helper.h"
 #include "libCom/String.h"
 #include "libCom/BufferRange.h"
 
@@ -61,9 +62,7 @@ String &String::operator=(const String &other) {
 }
 
 const bool String::operator==(const String &other) const {
-    if (size() != other.size())     // size is different -> they are truly not equal
-        return false;
-    return comparisonHelper(static_cast<const char *>(other.const_data()));
+    return BufferRange(*this, size(), 0) == BufferRange(other, other.size(), 0);
 }
 
 const bool String::operator==(const char *other) const {
@@ -73,13 +72,13 @@ const bool String::operator==(const char *other) const {
     uint32_t cSize = static_cast<uint32_t>(strlen(other));       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
     if (size() != cSize)
         return false;
-    return comparisonHelper(other);
+    return comparisonHelper(const_data(), other, cSize);
 }
 
 const bool String::operator==(const std::string &other) const {
     if (size() != other.size())
         return false;
-    return comparisonHelper(other.c_str());
+    return comparisonHelper(const_data(), other.c_str(), size());
 }
 
 const char *String::c_str() {
@@ -108,12 +107,4 @@ String String::concatHelper(const char *cstring, uint32_t size) const {
     String newString(*this);
     newString.append(cstring, size);
     return newString;
-}
-
-const bool String::comparisonHelper(const char *other) const {
-    const char *cthis = static_cast<const char *>(const_data());
-
-    for (uint32_t len = size(); len != 0 && *cthis == *other; cthis++, other++, len--) { }
-
-    return (cthis-static_cast<const char *>(const_data())) == size();       // if they equal, iteration count equals size()
 }

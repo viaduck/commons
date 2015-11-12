@@ -198,7 +198,6 @@ protected:
 
 private:
     String concatHelper(const char *cstring, uint32_t size) const;
-    const bool comparisonHelper(const char *other) const;
 };
 
 
