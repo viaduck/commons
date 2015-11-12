@@ -67,6 +67,9 @@ const bool String::operator==(const String &other) const {
 }
 
 const bool String::operator==(const char *other) const {
+    if (other == nullptr)       // without this check, there may occur crashes if == is wrongly used
+        return false;
+
     uint32_t cSize = static_cast<uint32_t>(strlen(other));       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
     if (size() != cSize)
         return false;
