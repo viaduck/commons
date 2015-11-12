@@ -80,13 +80,24 @@ public:
      */
     String &operator+=(const std::string &stlstring);
 
-
     /**
      * Compares two Strings (byte-comparison)
      * @param other String to compare to this String
      * @return True if they are equal, false if not
      */
     const bool operator==(const String &other) const;
+    /**
+     * Compares a String and a cstring (byte-comparison)
+     * @param other Cstring to compare to this String (must be 0-terminated)
+     * @return True if they are equal, false if not
+     */
+    const bool operator==(const char *other) const;
+    /**
+     * Compares a String and an stl string (byte-comparison)
+     * @param other STL string (std::string) to compare to this String
+     * @return True if they are equal, false if not
+     */
+    const bool operator==(const std::string &other) const;
 
     /**
      * Assigns a new String, copying it's contents
@@ -121,6 +132,7 @@ protected:
 
 private:
     String concatHelper(const char *cstring, uint32_t size) const;
+    const bool comparisonHelper(const char *other) const;
 };
 
 

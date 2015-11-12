@@ -225,6 +225,65 @@ TEST(StringTest, compareTest) {
         String s2("abcd");
         ASSERT_FALSE(s == s2);
     }
+
+    // cstrings
+    {
+        String s("");
+        ASSERT_TRUE(s == "");
+    }
+    {
+        String s("abc");
+        ASSERT_TRUE(s == "abc");
+    }
+    {
+        String s("");
+        ASSERT_FALSE(s == "abc");
+    }
+    {
+        String s("abc");
+        ASSERT_FALSE(s == "");
+    }
+    {
+        String s("abcd");
+        ASSERT_FALSE(s == "abc");
+    }
+    {
+        String s("abc");
+        String s2("abcd");
+        ASSERT_FALSE(s == "abcd");
+    }
+
+    // stl strings
+    {
+        String s("");
+        std::string s2("");
+        ASSERT_TRUE(s == s2);
+    }
+    {
+        String s("abc");
+        std::string s2("abc");
+        ASSERT_TRUE(s == s2);
+    }
+    {
+        String s("");
+        std::string s2("abc");
+        ASSERT_FALSE(s == s2);
+    }
+    {
+        String s("abc");
+        std::string s2("");
+        ASSERT_FALSE(s == s2);
+    }
+    {
+        String s("abcd");
+        std::string s2("abc");
+        ASSERT_FALSE(s == s2);
+    }
+    {
+        String s("abc");
+        std::string s2("abcd");
+        ASSERT_FALSE(s == s2);
+    }
 }
 
 TEST(StringTest, reassignTest) {
