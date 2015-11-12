@@ -199,58 +199,70 @@ TEST(StringTest, compareTest) {
         String s("");
         String s2("");
         ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
     }
     {
         String s("abc");
         String s2("abc");
         ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
     }
     {
         String s("");
         String s2("abc");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abc");
         String s2("");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abcd");
         String s2("abc");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abc");
         String s2("abcd");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
 
     // cstrings
     {
         String s("");
         ASSERT_TRUE(s == "");
+        ASSERT_FALSE(s != "");
     }
     {
         String s("abc");
         ASSERT_TRUE(s == "abc");
+        ASSERT_FALSE(s != "abc");
     }
     {
         String s("");
         ASSERT_FALSE(s == "abc");
+        ASSERT_TRUE(s != "abc");
     }
     {
         String s("abc");
         ASSERT_FALSE(s == "");
+        ASSERT_TRUE(s != "");
     }
     {
         String s("abcd");
         ASSERT_FALSE(s == "abc");
+        ASSERT_TRUE(s != "abc");
     }
     {
         String s("abc");
         String s2("abcd");
         ASSERT_FALSE(s == "abcd");
+        ASSERT_TRUE(s != "abcd");
     }
 
     // stl strings
@@ -258,31 +270,37 @@ TEST(StringTest, compareTest) {
         String s("");
         std::string s2("");
         ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
     }
     {
         String s("abc");
         std::string s2("abc");
         ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
     }
     {
         String s("");
         std::string s2("abc");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abc");
         std::string s2("");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abcd");
         std::string s2("abc");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
     {
         String s("abc");
         std::string s2("abcd");
         ASSERT_FALSE(s == s2);
+        ASSERT_TRUE(s != s2);
     }
 }
 

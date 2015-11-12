@@ -100,6 +100,31 @@ public:
     const bool operator==(const std::string &other) const;
 
     /**
+     * Compares two Strings (byte-comparison)
+     * @param other String to compare to this String
+     * @return True if they are equal, false if not
+     */
+    inline const bool operator!=(const String &other) const {
+        return !operator==(other);
+    }
+    /**
+     * Compares a String and a cstring (byte-comparison)
+     * @param other Cstring to compare to this String (must be 0-terminated)
+     * @return True if they are equal, false if not
+     */
+    inline const bool operator!=(const char *other) const {
+        return !operator==(other);
+    }
+    /**
+     * Compares a String and an stl string (byte-comparison)
+     * @param other STL string (std::string) to compare to this String
+     * @return True if they are equal, false if not
+     */
+    inline const bool operator!=(const std::string &other) const {
+        return !operator==(other);
+    }
+
+    /**
      * Assigns a new String, copying it's contents
      * @param other The other String object
      * @return Reference to this
