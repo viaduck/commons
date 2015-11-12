@@ -10,6 +10,11 @@
 class String : protected Buffer {
 
 public:
+    /**
+     * Creates an empty String
+     */
+    String();
+
     /*
      * Creates a String object from a c-style string or byte sequence, copying it's contents.
      *

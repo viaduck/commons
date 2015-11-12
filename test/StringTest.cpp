@@ -8,6 +8,14 @@
 
 
 TEST(StringTest, creationTest) {
+    // default constructor
+    {
+        String s;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+
     // create from cstring
     {
         String s("");

@@ -7,6 +7,9 @@
 #include "libCom/String.h"
 #include "libCom/BufferRange.h"
 
+
+String::String() : Buffer() { }
+
 String::String(const char *cstring) : String(cstring, static_cast<uint32_t>(strlen(cstring))) { }       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
 
 String::String(const char *cstring, uint32_t size) : Buffer(size) {
