@@ -6,7 +6,7 @@
 #define PUSHCLIENT_CONVERSIONS_H
 
 extern "C" {
-    #include "libCom/conversions_crossplatform.h"
+    #include "libCom/_conversions_crossplatform.h"
 };
 
 /**

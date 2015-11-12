@@ -31,7 +31,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CUR
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/openssl_hook.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp) #
 set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/openssl_hook.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h)
