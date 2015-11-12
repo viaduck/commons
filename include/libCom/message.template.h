@@ -195,7 +195,7 @@ public:
         [[[end]]]
     }
 
-    const bool deserialize(const Buffer &in, uint32_t missing) {
+    const bool deserialize(const Buffer &in, uint32_t &missing) {
         if (in.size() < STATIC_SIZE)
             return false;
         // static data
