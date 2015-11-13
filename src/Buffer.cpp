@@ -13,6 +13,8 @@ Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer
 Buffer::~Buffer() { }
 
 BufferRange Buffer::append(const void *data, uint32_t len) {
+    if (data == nullptr)        // nullptr check
+        return BufferRange(*this, 0, mUsed);
 
     if (mOffset+mUsed+len > mReserved) {
         increase(mOffset+mUsed+len + mReserved*2);

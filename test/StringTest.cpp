@@ -8,6 +8,17 @@
 
 
 TEST(StringTest, creationTest) {
+    // nullptr
+    {
+        String s(static_cast<const char*>(nullptr));
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+    }
+    {
+        String s(static_cast<const uint8_t*>(nullptr), 10);
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        String s2(static_cast<const uint8_t*>(nullptr), 0);
+        ASSERT_EQ(0, static_cast<int32_t>(s2.size()));
+    }
     // default constructor
     {
         String s;
@@ -83,6 +94,35 @@ TEST(StringTest, creationTest) {
 }
 
 TEST(StringTest, appendTest) {
+    // nullptr
+    {
+        String s("abc");
+        String s2(nullptr);
+        String sf = s + s2;
+        ASSERT_EQ(3, static_cast<int32_t>(sf.size()));
+        EXPECT_ARRAY_EQ(const char, "abc", sf.c_str(), static_cast<int32_t>(sf.size()) + 1);       // compare the 0-terminator, too!
+    }
+    {
+        String s(nullptr);
+        String s2("abc");
+        String sf = s + s2;
+        ASSERT_EQ(3, static_cast<int32_t>(sf.size()));
+        EXPECT_ARRAY_EQ(const char, "abc", sf.c_str(), static_cast<int32_t>(sf.size()) + 1);       // compare the 0-terminator, too!
+    }
+    {
+        String s("abc");
+        String s2(nullptr);
+        s += s2;
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+    {
+        String s(nullptr);
+        String s2("abc");
+        s += s2;
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
     // ## append a String
     {
         String s("abc");
@@ -214,6 +254,20 @@ TEST(StringTest, appendTest) {
 }
 
 TEST(StringTest, compareTest) {
+    // nullptr
+    {
+        String s("");
+        String s2(nullptr);
+        ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
+    }
+    {
+        String s(nullptr);
+        String s2("");
+        ASSERT_TRUE(s == s2);
+        ASSERT_FALSE(s != s2);
+    }
+    //
     {
         String s("");
         String s2("");
@@ -324,6 +378,25 @@ TEST(StringTest, compareTest) {
 }
 
 TEST(StringTest, reassignTest) {
+    // nullptr
+    {
+        String s("abc");
+        String s2(nullptr);
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        ASSERT_EQ(0, static_cast<int32_t>(s2.size()));
+        s = s2;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
+    {
+        String s(nullptr);
+        String s2("abc");
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        ASSERT_EQ(3, static_cast<int32_t>(s2.size()));
+        s = s2;
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+    }
     // String
     {
         String s("abc");
@@ -480,7 +553,6 @@ TEST(StringTest, ostreamTest) {
         membuf sbuf(buffer, buffer + sizeof(buffer));
         std::ostream out(&sbuf);
         sbuf.pubsync();
-
         out << s;        // stream it!
 
         EXPECT_ARRAY_EQ(const char, "abcdefg\0h1234i\nxyz9876", buffer, static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally

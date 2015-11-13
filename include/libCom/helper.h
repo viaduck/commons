@@ -5,6 +5,7 @@
 #ifndef LIBCOM_HELPER_H
 #define LIBCOM_HELPER_H
 
+#include <cstring>
 #include "libCom/conversions.h"
 
 inline const bool comparisonHelper(const void *one, const void *two, uint32_t size) {
@@ -17,5 +18,10 @@ inline const bool comparisonHelper(const void *one, const void *two, uint32_t si
     return size == 0;       // if they equal, iteration count equals size
 }
 
+inline const size_t strlen_s(const char *str) {
+    if (str == nullptr)
+        return 0;
+    return strlen(str);
+}
 
 #endif //LIBCOM_HELPER_H

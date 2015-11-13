@@ -11,7 +11,7 @@
 
 String::String() : Buffer() { }
 
-String::String(const char *cstring) : String(cstring, static_cast<uint32_t>(strlen(cstring))) { }       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
+String::String(const char *cstring) : String(cstring, static_cast<uint32_t>(strlen_s(cstring))) { }       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
 
 String::String(const char *cstring, uint32_t size) : Buffer(size) {
     append(cstring, size);
@@ -32,7 +32,7 @@ String String::operator+(const String &other) const {
 }
 
 String String::operator+(const char *cstring) const {
-    return concatHelper(cstring, static_cast<uint32_t>(strlen(cstring)));             // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
+    return concatHelper(cstring, static_cast<uint32_t>(strlen_s(cstring)));             // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
 }
 
 String String::operator+(const std::string &stlstring) const {
@@ -45,7 +45,7 @@ String &String::operator+=(const String &other) {
 }
 
 String &String::operator+=(const char *cstring) {
-    append(cstring, static_cast<uint32_t>(strlen(cstring)));        // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
+    append(cstring, static_cast<uint32_t>(strlen_s(cstring)));        // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
     return *this;
 }
 
@@ -69,7 +69,7 @@ const bool String::operator==(const char *other) const {
     if (other == nullptr)       // without this check, there may occur crashes if == is wrongly used
         return false;
 
-    uint32_t cSize = static_cast<uint32_t>(strlen(other));       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
+    uint32_t cSize = static_cast<uint32_t>(strlen_s(other));       // FIXME integer is truncated if strlen(cstring) > MAX_UINT32
     if (size() != cSize)
         return false;
     return comparisonHelper(const_data(), other, cSize);
