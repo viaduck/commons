@@ -206,8 +206,13 @@ public:
     }
 
     // REDIRECTIONS
-    virtual const uint32_t size() const override;
-    virtual void clear() override;
+    inline virtual const uint32_t size() const override {
+        return Buffer::size();
+    }
+
+    inline virtual void clear() override {
+        Buffer::clear();
+    }
 
 protected:
     Buffer mCStrings;       // FIXME holds all returned cstrings

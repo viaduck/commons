@@ -120,14 +120,6 @@ String String::toHex(const uint8_t *data, uint32_t size) {
     return s;
 }
 
-const uint32_t String::size() const {
-    return Buffer::size();
-}
-
-void String::clear() {
-    Buffer::clear();
-}
-
 /* PRIVATE */
 String String::concatHelper(const char *cstring, uint32_t size) const {
     String newString(*this);
