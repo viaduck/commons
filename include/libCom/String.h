@@ -174,6 +174,14 @@ public:
     }
 
     /**
+     * Creates a Hex string from the specified binary data
+     * @param data Binary data
+     * @param size Data size
+     * @return String instance containing the hex string
+     */
+    static String toHex(const uint8_t *data, uint32_t size);
+
+    /**
      * Stream operator supporting e.g. streaming std::cin into String
      * @param is std::istream to read from
      * @param string String instance to write contents to

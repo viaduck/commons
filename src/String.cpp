@@ -94,6 +94,32 @@ std::string String::stl_str() const {
     return std::string(static_cast<const char*>(const_data()), size());
 }
 
+String String::toHex(const uint8_t *data, uint32_t size) {
+    if (data == nullptr || size == 0)
+        return String();
+
+    constexpr const static char *alphabet = "0123456789abcdef";
+    constexpr const uint8_t sixteen = static_cast<uint8_t>(16);
+
+    char final[size*2+1];
+    final[size*2] = '\0';
+
+    String s;
+    uint8_t div, rem;
+
+    for (uint32_t i = 0; i < size; ++i) {
+        rem = data[i] % sixteen;
+        final[i*2+1] = alphabet[rem];
+
+        div = data[i] / sixteen;
+        rem = div % sixteen;
+        final[i*2] = alphabet[rem];
+    }
+    s += final;
+
+    return s;
+}
+
 const uint32_t String::size() const {
     return Buffer::size();
 }
