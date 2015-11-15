@@ -377,6 +377,38 @@ TEST(StringTest, compareTest) {
     }
 }
 
+TEST(StringTest, emptyTest) {
+    {
+        String s("");
+        ASSERT_TRUE(s.isEmpty());
+    }
+    {
+        String s(nullptr);
+        ASSERT_TRUE(s.isEmpty());
+    }
+    {
+        String s(String(""));
+        ASSERT_TRUE(s.isEmpty());
+    }
+    {
+        String s(std::string(""));
+        ASSERT_TRUE(s.isEmpty());
+    }
+
+    {
+        String s("abc");
+        ASSERT_FALSE(s.isEmpty());
+    }
+    {
+        String s(std::string("abc"));
+        ASSERT_FALSE(s.isEmpty());
+    }
+    {
+        String s(String("abc"));
+        ASSERT_FALSE(s.isEmpty());
+    }
+}
+
 TEST(StringTest, reassignTest) {
     // nullptr
     {
