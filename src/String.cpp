@@ -3,7 +3,8 @@
 //
 
 #include <string>
-#include <string.h>
+#include <cstring>
+#include <cmath>
 #include "libCom/helper.h"
 #include "libCom/String.h"
 #include "libCom/BufferRange.h"
@@ -92,6 +93,36 @@ const char *String::c_str() {
 
 std::string String::stl_str() const {
     return std::string(static_cast<const char*>(const_data()), size());
+}
+
+bool String::toInt(uint8_t base, uint32_t &result) const {
+    result = 0;
+
+    if (size() == 0)
+        return false;
+
+    constexpr const static char *alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+    constexpr const static uint8_t gap = 'a' - '9' - 1;     // difference between 9 and a since they are not siblings in ascii
+    uint32_t exp = 0;
+
+    // traverse array from back to front
+    for (uint32_t i = size(); i != 0; --i) {
+        uint8_t val = *(static_cast<const uint8_t*>(const_data(i-1)));
+        if (val >= alphabet[0] && val < alphabet[base]) {        // within base bounds
+
+            // need to apply an offset for alphabetic values
+            uint32_t diff;
+            if (val >= alphabet[10])
+                diff = val - gap - alphabet[0];
+            else
+                diff = val - alphabet[0];
+
+            result += diff * pow(base, exp);
+            exp++;
+        }
+    }
+
+    return exp != 0;
 }
 
 String String::toHex(const uint8_t *data, uint32_t size) {

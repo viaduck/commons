@@ -648,3 +648,62 @@ TEST(StringTest, toHex) {
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
 }
+
+TEST(StringTest, toInt) {
+    {
+        String s("");
+        uint32_t result;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        ASSERT_FALSE(s.toInt(10, result));
+        ASSERT_EQ(0, static_cast<int32_t>(result));
+    }
+    {
+        String s("");
+        uint32_t result;
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        ASSERT_FALSE(s.toInt(10, result));
+        ASSERT_EQ(0, static_cast<int32_t>(result));
+    }
+    {
+        String s("123");
+        uint32_t result;
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        ASSERT_TRUE(s.toInt(10, result));
+        ASSERT_EQ(123, static_cast<int32_t>(result));
+    }
+    {
+        String s("ab0");
+        uint32_t result;
+        ASSERT_EQ(3, static_cast<int32_t>(s.size()));
+        ASSERT_TRUE(s.toInt(10, result));
+        ASSERT_EQ(0, static_cast<int32_t>(result));
+    }
+    {
+        String s("abcdef");
+        uint32_t result;
+        ASSERT_EQ(6, static_cast<int32_t>(s.size()));
+        ASSERT_FALSE(s.toInt(10, result));
+        ASSERT_EQ(0, static_cast<int32_t>(result));
+    }
+    {
+        String s("ab0986bc0123def");
+        uint32_t result;
+        ASSERT_EQ(15, static_cast<int32_t>(s.size()));
+        ASSERT_TRUE(s.toInt(10, result));
+        ASSERT_EQ(9860123, static_cast<int32_t>(result));
+    }
+    {
+        String s("ff");
+        uint32_t result;
+        ASSERT_EQ(2, static_cast<int32_t>(s.size()));
+        ASSERT_TRUE(s.toInt(16, result));
+        ASSERT_EQ(255, static_cast<int32_t>(result));
+    }
+    {
+        String s("zx56efcdyw");
+        uint32_t result;
+        ASSERT_EQ(10, static_cast<int32_t>(s.size()));
+        ASSERT_TRUE(s.toInt(16, result));
+        ASSERT_EQ(0x56efcd, static_cast<int32_t>(result));
+    }
+}

@@ -174,6 +174,17 @@ public:
     }
 
     /**
+     * Converts the String to a number
+     * If conversion was unsuccessful, result will be 0.
+
+     * LIMITATIONS: All signed numbers are treated as unsigned
+     * @param base Conversion base
+     * @param result The converted number
+     * @return If conversion war successful
+     */
+    bool toInt(uint8_t base, uint32_t &result) const;
+
+    /**
      * Creates a Hex string from the specified binary data
      * @param data Binary data
      * @param size Data size
