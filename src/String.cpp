@@ -132,21 +132,20 @@ String String::toHex(const uint8_t *data, uint32_t size) {
     constexpr const static char *alphabet = "0123456789abcdef";
     constexpr const uint8_t sixteen = static_cast<uint8_t>(16);
 
-    char final[size*2+1];
-    final[size*2] = '\0';
+    SecureUniquePtr<char[]> final(size*2+1);
+    final()[size*2] = '\0';
 
     String s;
     uint8_t div, rem;
 
     for (uint32_t i = 0; i < size; ++i) {
         rem = data[i] % sixteen;
-        final[i*2+1] = alphabet[rem];
+        final()[i*2+1] = alphabet[rem];
 
         div = data[i] / sixteen;
-        rem = div % sixteen;
-        final[i*2] = alphabet[rem];
+        final()[i*2] = alphabet[div];
     }
-    s += final;
+    s += final().get();
 
     return s;
 }
