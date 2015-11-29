@@ -99,23 +99,20 @@ public:
 
             block.generation++;
             mGenMap.emplace(block.generation, id);      // ... to insert it again in an increased generation
-        } else {
-            // element is not present -> check capacity
-            if (mMap.size() < mCapacity) {        // we can safely insert
-                mMap[id] = BlockInfo<V>(address);
-                mGenMap.emplace(1, id);     // add block to generation map
-                mLeast = 1;             // just inserted a generation 1 block
-            } else {
+        } else {        // element is not present
+            bool retValue = true;
+            // check if element insertion would exceed map size. If so, remove one block
+            if (mMap.size() >= mCapacity) {
                 auto leastElem = mGenMap.find(mLeast);      // get one least used block id (with lowest generation). There is always one, so leastElem cannot be it::end
                 mMap.erase(leastElem->second);     // remove it
                 mGenMap.erase(leastElem);           // and remove it form generation map
-
-                mMap[id] = BlockInfo<V>(address);          // insert new block
-                mGenMap.emplace(1, id);         // and place the block in generation map
-                mLeast = 1;             // just inserted a generation 1 element
-
-                return false;       // we had to remove one block, so return false
+                retValue = false;               // we had to remove one block, so return false
             }
+            mMap[id] = BlockInfo<V>(address);          // insert new block
+            mGenMap.emplace(1, id);         // and place the block in generation map
+            mLeast = 1;             // just inserted a generation 1 element
+
+            return retValue;
         }
         return true;
     }
