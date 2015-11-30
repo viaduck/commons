@@ -185,6 +185,16 @@ public:
     bool toInt(uint8_t base, uint32_t &result) const;
 
     /**
+     * Creates a Hex string from the contained binary data
+     * @param data Binary data
+     * @param size Data size
+     * @return New String instance containing the hex string
+     */
+    inline String toHex() const {
+        return String::toHex(static_cast<const uint8_t *>(const_data()), size());
+    }
+
+    /**
      * Creates a Hex string from the specified binary data
      * @param data Binary data
      * @param size Data size
