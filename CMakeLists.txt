@@ -22,10 +22,10 @@ include(external/includes.cmake)
 config_compiler_and_linker()
 
 include(external/openssl-cmake/openssl-config.cmake)
-config_openssl()
+config_openssl(external/openssl-cmake)
 
 # includes
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_BINARY_DIR}/external/openssl-cmake/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/BufferRange.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/openssl_hook.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp) #
