@@ -1,6 +1,7 @@
-[submodule "external/googletest"]
-	path = external/googletest
-	url = https://chromium.googlesource.com/external/googletest.git
 [submodule "external/openssl-cmake"]
 	path = external/openssl-cmake
 	url = ../../viaduck/openssl-cmake.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/google/googletest.git
+
