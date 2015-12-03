@@ -2,7 +2,7 @@
 // Created by steffen on 13.08.15.
 //
 
-#include <netinet/in.h>
+#include "libCom/conversions.h"
 #include "libCom/Buffer.h"
 #include "test/sometest.h"
 #include "ContainerTest.h"
@@ -11,9 +11,9 @@
 
 TEST_F(ContainerTest, SimpleRead) {
     Buffer a(20);
-    const uint32_t firstInt = htonl(0xBEEFDEAD);
+    const uint32_t firstInt = hton_uint32_t(0xBEEFDEAD);
     const uint8_t secondInt = 0xfe;
-    const uint16_t third = htons(0xDEAD);
+    const uint16_t third = hton_uint16_t(0xDEAD);
     const uint8_t arr[] = { 'a', 'b', 'c' };
 //    const uint8_t arr[] = { 'a', 'b', 'c' };
 
@@ -51,9 +51,9 @@ TEST_F(ContainerTest, SimpleWrite) {
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.const_buf(), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf(), 10);
 
-    ASSERT_EQ(htonl(0xBEEFDEAD), *reinterpret_cast<const uint32_t*>(c.buffer().const_data()));
+    ASSERT_EQ(hton_uint32_t(0xBEEFDEAD), *reinterpret_cast<const uint32_t*>(c.buffer().const_data()));
     ASSERT_EQ(0xfe, *static_cast<const uint8_t*>(c.buffer().const_data(4)));
-    uint16_t bla =htons(0xDEAD);
+    uint16_t bla = hton_uint16_t(0xDEAD);
     ASSERT_EQ(bla, *reinterpret_cast<const uint16_t*>(c.buffer().const_data(5)));
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buffer().const_data(7), 10);      // no need to respect endianess, since it's a byte-sequence
 }
