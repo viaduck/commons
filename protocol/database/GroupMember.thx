@@ -1,0 +1,3 @@
+uint8_t(32)     adminGivenName
+uint8_t(20)     groupMemberHash
+uint8_t(7000)   groupMemberPubkey
