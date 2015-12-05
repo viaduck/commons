@@ -62,10 +62,6 @@ String &String::operator=(const String &other) {
     return *this;
 }
 
-const bool String::operator==(const String &other) const {
-    return BufferRange(*this, size(), 0) == BufferRange(other, other.size(), 0);
-}
-
 const bool String::operator==(const char *other) const {
     if (other == nullptr)       // without this check, there may occur crashes if == is wrongly used
         return false;

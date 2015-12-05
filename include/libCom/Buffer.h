@@ -138,6 +138,25 @@ public:
      */
     virtual void clear();
 
+    /**
+     * Compares two Buffers.
+     *
+     * This is a deep comparison, comparing the used bytes only, not taking into account Buffer's capacity.
+     * @param other
+     * @return True if contents of Buffers are the same
+     */
+    virtual bool operator==(const Buffer &other) const;
+    /**
+     * Compares two Buffers.
+     *
+     * This is a deep comparison, comparing the used bytes only, not taking into account Buffer's capacity.
+     * @param other
+     * @return True if contents of Buffers differ
+     */
+    virtual inline const bool operator!=(const Buffer &other) const {
+        return !operator==(other);
+    }
+
 private:
     SecureUniquePtr<uint8_t[]> mData;
     uint32_t mReserved;

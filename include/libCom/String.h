@@ -90,12 +90,6 @@ public:
     String &operator+=(const std::string &stlstring);
 
     /**
-     * Compares two Strings (byte-comparison)
-     * @param other String to compare to this String
-     * @return True if they are equal, false if not
-     */
-    const bool operator==(const String &other) const;
-    /**
      * Compares a String and a cstring (byte-comparison)
      * @param other Cstring to compare to this String (must be 0-terminated)
      * @return True if they are equal, false if not
@@ -108,14 +102,6 @@ public:
      */
     const bool operator==(const std::string &other) const;
 
-    /**
-     * Compares two Strings (byte-comparison)
-     * @param other String to compare to this String
-     * @return True if they are equal, false if not
-     */
-    inline const bool operator!=(const String &other) const {
-        return !operator==(other);
-    }
     /**
      * Compares a String and a cstring (byte-comparison)
      * @param other Cstring to compare to this String (must be 0-terminated)
@@ -233,6 +219,24 @@ public:
 
     inline virtual void clear() override {
         Buffer::clear();
+    }
+
+    /**
+     * Compares two Strings (byte-comparison)
+     * @param other String to compare to this String
+     * @return True if they are equal, false if not
+     */
+    inline virtual const bool operator==(const String &other) const {
+        return Buffer::operator==(other);
+    }
+
+    /**
+     * Compares two Strings (byte-comparison)
+     * @param other String to compare to this String
+     * @return True if they are equal, false if not
+     */
+    inline virtual const bool operator!=(const String &other) const {
+        return Buffer::operator!=(other);
     }
 
 protected:

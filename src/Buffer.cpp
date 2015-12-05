@@ -1,5 +1,6 @@
 #include <string.h>
 #include <libCom/BufferRange.h>
+#include <libCom/helper.h>
 
 DevNull Buffer::DEV_NULL;
 
@@ -117,4 +118,8 @@ void Buffer::use(uint32_t n) {
 void Buffer::clear() {
     mUsed = 0;
     mOffset = 0;
+}
+
+bool Buffer::operator==(const Buffer &other) const {
+    return size() == other.size() && comparisonHelper(const_data(), other.const_data(), this->size());
 }

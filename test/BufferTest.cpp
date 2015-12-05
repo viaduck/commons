@@ -93,3 +93,168 @@ TEST_F(BufferTest, UseTest) {
     b.use(80);       // this would exceed capacity -> size must be capacity now
     ASSERT_EQ(25, static_cast<int32_t>(b.size()));
 }
+
+TEST_F(BufferTest, ComparisonTest) {
+    // no data
+    {
+        // no capacity
+        Buffer b(0);
+        Buffer b2(0);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    {
+        // different capacity
+        Buffer b(10);
+        Buffer b2(5);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    {
+        // default capacity
+        Buffer b;
+        Buffer b2;
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    // equal data
+    {
+        // no capacity
+        Buffer b(0);
+        Buffer b2(0);
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    {
+        // different capacity
+        Buffer b(10);
+        Buffer b2(5);
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    {
+        // default capacity
+        Buffer b;
+        Buffer b2;
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("abc", 3);
+        ASSERT_TRUE(b == b2);
+        ASSERT_FALSE(b != b2);
+    }
+    // different data
+    {
+        // no capacity
+        Buffer b(0);
+        Buffer b2(0);
+        b.append("abc", 3);
+        b2.append("abcd", 4);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("", 0);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("", 0);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abcd", 4);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+    }
+    {
+        // different capacity
+        Buffer b(10);
+        Buffer b2(5);
+        b.append("abc", 3);
+        b2.append("abcd", 4);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("", 0);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("", 0);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abcd", 4);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+    }
+    {
+        // default capacity
+        Buffer b;
+        Buffer b2;
+        b.append("abc", 3);
+        b2.append("abcd", 4);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("", 0);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abc", 3);
+        b2.append("", 0);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+
+        b.clear();
+        b2.clear();
+        b.append("abcd", 4);
+        b2.append("abc", 3);
+        ASSERT_FALSE(b == b2);
+        ASSERT_TRUE(b != b2);
+    }
+}
