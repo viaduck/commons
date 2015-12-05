@@ -110,6 +110,8 @@ const BufferRange Buffer::const_data(uint32_t offset, uint32_t size) const {
 void Buffer::use(uint32_t n) {
     if (mReserved >= n+mUsed)
         mUsed += n;
+    else
+        mUsed = mReserved;
 }
 
 void Buffer::clear() {
