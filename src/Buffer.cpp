@@ -15,7 +15,7 @@ Buffer::~Buffer() { }
 
 BufferRange Buffer::append(const void *data, uint32_t len) {
     if (data == nullptr)        // nullptr check
-        return BufferRange(*this, 0, mUsed);
+        return BufferRange(*this, mUsed, 0);
 
     if (mOffset+mUsed+len > mReserved) {
         increase(mOffset+mUsed+len + mReserved*2);
@@ -27,7 +27,7 @@ BufferRange Buffer::append(const void *data, uint32_t len) {
     }
     mUsed += len;
 
-    return BufferRange(*this, len, mUsed-len);
+    return BufferRange(*this, mUsed - len, len);
 }
 
 BufferRange Buffer::append(const char *data, uint32_t len) {
@@ -105,7 +105,7 @@ const void *Buffer::const_data(uint32_t p) const {
 }
 
 const BufferRange Buffer::const_data(uint32_t offset, uint32_t size) const {
-    return BufferRange(*this, size, offset);
+    return BufferRange(*this, offset, size);
 }
 
 void Buffer::use(uint32_t n) {

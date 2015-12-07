@@ -158,7 +158,7 @@ public:
                          "    return true;\n"
                          "}}\n"
                          "const BufferRange {name}_range() {{\n"
-                         "    return BufferRange(mBuffer, {name}_size(), {offset});\n"
+                         "    return BufferRange(mBuffer, {offset}, {name}_size());\n"
                          "}}\n"
                          "static inline const uint32_t {name}_size() {{\n"
                          "    return sizeof({type_raw})*{count};\n"
@@ -200,7 +200,7 @@ public:
             return false;
         // static data
         mBuffer.clear();
-        mBuffer.append(BufferRange(in, STATIC_SIZE, 0));
+        mBuffer.append(BufferRange(in, 0, STATIC_SIZE));
 
         [[[cog
             nvars = len(vars)

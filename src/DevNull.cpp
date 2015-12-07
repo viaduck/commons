@@ -8,7 +8,7 @@ BufferRange DevNull::append(const void *data, uint32_t len) {
 
 BufferRange DevNull::append(const char *data, uint32_t len) {
     increase(len);
-    return BufferRange(*this, 0, len);
+    return BufferRange(*this, len, 0);
 }
 
 BufferRange DevNull::append(const Buffer &other) {

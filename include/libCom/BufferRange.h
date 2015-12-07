@@ -11,10 +11,10 @@ public:
     /**
      * Creates a BufferRange defining a range (offset, size) within a Buffer object.
      * @param buffer Buffer object
-     * @param size Range's size
      * @param offset Offset in Buffer to start at
+     * @param size Range's size
      */
-    BufferRange(const Buffer &buffer, const uint32_t size, const uint32_t offset);
+    BufferRange(const Buffer &buffer, const uint32_t offset, const uint32_t size);
 
     /**
      * Compares two BufferRanges

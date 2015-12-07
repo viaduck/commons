@@ -2,7 +2,8 @@
 #include "libCom/BufferRange.h"
 
 
-BufferRange::BufferRange(const Buffer &buffer, const uint32_t size, const uint32_t offset) : mBuffer(buffer), mSize(size), mOffset(offset) { }
+BufferRange::BufferRange(const Buffer &buffer, const uint32_t offset, const uint32_t size)
+        : mBuffer(buffer), mSize(size), mOffset(offset) { }
 
 
 bool BufferRange::operator==(const BufferRange &other) const{
