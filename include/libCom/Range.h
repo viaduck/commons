@@ -87,6 +87,23 @@ public:
         return object().data(offset());
     }
 
+    /**
+     * Shrinks the Range by moving it forward.
+     * Internally, this increases the offset and reduces the size.
+     *
+     * This operation is in-place and modifies the Range!
+     * @param addition Amount of bytes to move
+     * @return this
+     */
+    Range &operator+=(uint32_t addition) {
+        if (addition > mSize)
+            addition = mSize;
+
+        mOffset += addition;
+        mSize -= addition;
+        return *this;
+    }
+
 private:
     T &mObj;
     uint32_t mSize;
