@@ -83,7 +83,7 @@ public:
     /**
      * Getter: underlying data (of T)
      */
-    inline const void *data() {
+    inline void *data() {
         return object().data(offset());
     }
 
