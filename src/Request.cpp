@@ -2,7 +2,7 @@
 #include <openssl/err.h>
 #include <iostream>
 #include <libCom/Buffer.h>
-#include <libCom/BufferRange.h>
+#include "libCom/Range.h"
 #include <libCom/openssl_hook.h>
 #include "libCom/Request.h"
 

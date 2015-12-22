@@ -1,6 +1,6 @@
 #include <string.h>
+#include <libCom/Buffer.h>
 #include <libCom/BufferRange.h>
-#include <libCom/helper.h>
 
 DevNull Buffer::DEV_NULL;
 
@@ -13,9 +13,9 @@ Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer
 
 Buffer::~Buffer() { }
 
-BufferRange Buffer::append(const void *data, uint32_t len) {
+BufferRangeConst Buffer::append(const void *data, uint32_t len) {
     if (data == nullptr)        // nullptr check
-        return BufferRange(*this, mUsed, 0);
+        return BufferRangeConst(*this, mUsed, 0);
 
     if (mOffset+mUsed+len > mReserved) {
         increase(mOffset+mUsed+len + mReserved*2);
@@ -27,18 +27,18 @@ BufferRange Buffer::append(const void *data, uint32_t len) {
     }
     mUsed += len;
 
-    return BufferRange(*this, mUsed - len, len);
+    return BufferRangeConst(*this, mUsed - len, len);
 }
 
-BufferRange Buffer::append(const char *data, uint32_t len) {
+BufferRangeConst Buffer::append(const char *data, uint32_t len) {
     return append(static_cast<const void *>(data), static_cast<uint32_t>(len*sizeof(char)));
 }
 
-BufferRange Buffer::append(const Buffer &other) {
+BufferRangeConst Buffer::append(const Buffer &other) {
     return append(other.const_data(), other.size());
 }
 
-BufferRange Buffer::append(const BufferRange &range) {
+BufferRangeConst Buffer::append(const BufferRangeConst &range) {
     return append(range.const_data(), range.size());
 }
 
@@ -104,8 +104,8 @@ const void *Buffer::const_data(uint32_t p) const {
     return const_cast<const uint8_t *>(&mData()[mOffset+p]);
 }
 
-const BufferRange Buffer::const_data(uint32_t offset, uint32_t size) const {
-    return BufferRange(*this, offset, size);
+const BufferRangeConst Buffer::const_data(uint32_t offset, uint32_t size) const {
+    return BufferRangeConst(*this, offset, size);
 }
 
 void Buffer::use(uint32_t n) {

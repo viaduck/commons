@@ -1,8 +1,7 @@
 #include <libCom/Buffer.h>
-#include <libCom/BufferRange.h>
+#include <libCom/Range.h>
 #include "BufferTest.h"
 #include "custom_assert.h"
-#include <libCom/BufferRange.h>
 
 
 TEST_F(BufferTest, AppendNoOverflow) {

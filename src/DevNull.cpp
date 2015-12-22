@@ -1,21 +1,22 @@
 #include <libCom/DevNull.h>
+#include <libCom/Range.h>
 #include <libCom/BufferRange.h>
 
 
-BufferRange DevNull::append(const void *data, uint32_t len) {
+BufferRangeConst DevNull::append(const void *data, uint32_t len) {
     return append(static_cast<const char *>(data), len);
 }
 
-BufferRange DevNull::append(const char *data, uint32_t len) {
+BufferRangeConst DevNull::append(const char *data, uint32_t len) {
     increase(len);
-    return BufferRange(*this, len, 0);
+    return BufferRangeConst(*this, len, 0);
 }
 
-BufferRange DevNull::append(const Buffer &other) {
+BufferRangeConst DevNull::append(const Buffer &other) {
     return Buffer::append(other);
 }
 
-BufferRange DevNull::append(const BufferRange &range) {
+BufferRangeConst DevNull::append(const BufferRangeConst &range) {
     return Buffer::append(range);
 }
 

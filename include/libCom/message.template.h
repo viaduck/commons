@@ -20,7 +20,7 @@ cog.outl("#define {name}_H".format(name=name))
 
 
 #include "libCom/Buffer.h"
-#include "libCom/BufferRange.h"
+#include "libCom/Range.h"
 #include "libCom/conversions.h"
 #include <cstring>
 
@@ -157,8 +157,8 @@ public:
                          "    memcpy(mBuffer.data({offset}), v, {size});\n"
                          "    return true;\n"
                          "}}\n"
-                         "const BufferRange {name}_range() {{\n"
-                         "    return BufferRange(mBuffer, {offset}, {name}_size());\n"
+                         "const BufferRangeConst {name}_range() {{\n"
+                         "    return BufferRangeConst(mBuffer, {offset}, {name}_size());\n"
                          "}}\n"
                          "static inline const uint32_t {name}_size() {{\n"
                          "    return sizeof({type_raw})*{count};\n"
@@ -200,7 +200,7 @@ public:
             return false;
         // static data
         mBuffer.clear();
-        mBuffer.append(BufferRange(in, 0, STATIC_SIZE));
+        mBuffer.append(BufferRangeConst(in, 0, STATIC_SIZE));
 
         [[[cog
             nvars = len(vars)
@@ -224,7 +224,7 @@ public:
                              "    return false;\n"
                              "}}\n"
                              "mBuffer_{name}.clear();\n"
-                             "mBuffer_{name}.append(BufferRange(in, offset+sizeof(uint32_t), mBuffer_{name}_size));".format(name=v[1]))
+                             "mBuffer_{name}.append(BufferRangeConst(in, offset+sizeof(uint32_t), mBuffer_{name}_size));".format(name=v[1]))
                     if i != (nvars-1):
                         cog.outl("offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
         ]]]

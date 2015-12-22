@@ -1,7 +1,6 @@
 #ifndef LIBCOM_DEVNULL_H
 #define LIBCOM_DEVNULL_H
 
-
 #include "Buffer.h"
 
 /**
@@ -10,10 +9,10 @@
 class DevNull : public Buffer {
 
 public:
-    BufferRange append(const void *data, uint32_t len) override;
-    BufferRange append(const char *data, uint32_t len) override;
-    BufferRange append(const Buffer &other) override;
-    BufferRange append(const BufferRange &range) override;
+    BufferRangeConst append(const void *data, uint32_t len) override;
+    BufferRangeConst append(const char *data, uint32_t len) override;
+    BufferRangeConst append(const Buffer &other) override;
+    BufferRangeConst append(const BufferRangeConst &range) override;
 
     void consume(uint32_t n) override;
     void use(uint32_t used) override;

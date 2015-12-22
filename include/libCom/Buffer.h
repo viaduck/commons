@@ -1,10 +1,15 @@
-#ifndef PUSHCLIENT_BUFFER_H
-#define PUSHCLIENT_BUFFER_H
+#ifndef LIBCOM_BUFFER_H
+#define LIBCOM_BUFFER_H
 
 #include <libCom/SecureUniquePtr.h>
 #include <cinttypes>
+#include <libCom/Range.h>
 
-class BufferRange;
+class Buffer;
+
+typedef Range<Buffer> BufferRange;
+typedef Range<const Buffer> BufferRangeConst;
+
 class DevNull;
 
 class Buffer {
@@ -37,30 +42,30 @@ public:
      * Capacity is at least double the capacity before.
      * @param data Data pointer
      * @param len Length of data (in bytes)
-     * @return BufferRange containing information about added range within Buffer
+     * @return Range containing information about added range within Buffer
      */
-    virtual BufferRange append(const void *data, uint32_t len);
+    virtual BufferRangeConst append(const void *data, uint32_t len);
     /**
      * Overloaded variant of append(const void *data, uint32_t len) which accepts char* for convenience.
      * @param data Data pointer
      * @param len Length of data (in bytes)
-     * @return BufferRange containing information about added range within Buffer
+     * @return Range containing information about added range within Buffer
      */
-    virtual BufferRange append(const char *data, uint32_t len);
+    virtual BufferRangeConst append(const char *data, uint32_t len);
     /**
      * Overloaded variant of append(const void *dta, uint32_t len) which appends the contents of another buffer to this
      * buffer.
      * @param other Other Buffer
-     * @return BufferRange containing information about added range within Buffer
+     * @return Range containing information about added range within Buffer
      */
-    virtual BufferRange append(const Buffer &other);
+    virtual BufferRangeConst append(const Buffer &other);
     /**
      * Overloaded variant of append(const void *dta, uint32_t len) which appends the contents of another buffer described
-     * by a BufferRange to this buffer.
+     * by a Range to this buffer.
      * @param other Other Buffer
-     * @return BufferRange containing information about added range within Buffer
+     * @return Range containing information about added range within Buffer
      */
-    virtual BufferRange append(const BufferRange &range);
+    virtual BufferRangeConst append(const BufferRangeConst &range);
 
     /**
      * Consumes n bytes from the beginning, moving the Buffer's beginning.
@@ -119,13 +124,13 @@ public:
     const void *const_data(uint32_t p = 0) const;
 
     /**
-     * Returns a BufferRange object from offset with size.
+     * Returns a Range object from offset with size.
      *
      * WARNING: This function does not check if the specified range exists!
-     * @param offset The byte to start the BufferRange from
-     * @param size BufferRange's size
+     * @param offset The byte to start the Range from
+     * @param size Range's size
      */
-    const BufferRange const_data(uint32_t offset, uint32_t size) const;
+    const BufferRangeConst const_data(uint32_t offset, uint32_t size) const;
 
     /**
      * Marks n bytes used. This increases Buffer's size.
@@ -167,4 +172,4 @@ private:
 // fix IDE quick fix tooltip, there is no other reason in doing this besides that
 #include "DevNull.h"
 
-#endif //PUSHCLIENT_BUFFER_H
+#endif //LIBCOM_BUFFER_H
