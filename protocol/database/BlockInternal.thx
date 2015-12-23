@@ -1,4 +1,4 @@
-uint32_t        prevBlockPtr
-uint32_t        nextBlockPtr
-uint8_t(16)     ghash
-uint8_t(256)    content
+uint32_t        _prevBlockPtr
+uint32_t        _nextBlockPtr
+uint8_t(16)     _ghash
+uint8_t(256)    _content
