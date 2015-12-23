@@ -4,6 +4,9 @@ project(libCom)
 
 enable_testing()
 
+# add additional cmake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/cmake-modules")
+
 # required packages
 find_package(PythonInterp 3 REQUIRED)       # use Python 3 - Python2 is not compatible!
 

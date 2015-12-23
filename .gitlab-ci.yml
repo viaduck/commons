@@ -11,6 +11,7 @@ linux-x86_64:
         - cmake ../ -DPREBUILT_BRANCH=x86_64-linux
         - make
         - test/AllUnitTests             # runs gtest target
+        - make Coverage                 # generate code coverage
     stage: build
     only:
         - master

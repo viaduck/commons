@@ -1,5 +1,8 @@
-set(TEST_FILES ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp BufferTest.h ContainerTest.cpp ContainerTest.h
+set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp BufferTest.h ContainerTest.cpp ContainerTest.h
         BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h)
+
+### coverage
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
 ###
 add_executable(AllUnitTests ${TEST_FILES})
@@ -11,3 +14,7 @@ target_link_libraries(AllUnitTests libCom)
 
 ##
 add_test(Tests AllUnitTests)
+
+## code coverage
+include(CodeCoverage)
+setup_target_for_coverage(Coverage AllUnitTests ${CMAKE_CURRENT_BINARY_DIR}/coverage)
