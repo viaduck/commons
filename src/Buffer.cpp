@@ -38,10 +38,11 @@ BufferRangeConst Buffer::write(const void *data, uint32_t len, uint32_t offset) 
 
         // now copy new data
         memcpy(&mData()[offset], data, len);
-    } else {
+    } else
         memcpy(&mData()[mOffset+offset], data, len);
-    }
-    mUsed += len;
+
+    if (offset+len > mUsed)
+        mUsed = offset+len;
 
     return BufferRangeConst(*this, offset, len);
 }
