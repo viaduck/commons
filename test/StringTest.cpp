@@ -267,6 +267,11 @@ TEST(StringTest, compareTest) {
         ASSERT_TRUE(s == s2);
         ASSERT_FALSE(s != s2);
     }
+    {
+        String s("");
+        ASSERT_FALSE(s == nullptr);
+        ASSERT_TRUE(s != nullptr);
+    }
     //
     {
         String s("");
