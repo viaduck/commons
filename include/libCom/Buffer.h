@@ -68,6 +68,32 @@ public:
     virtual BufferRangeConst append(const BufferRangeConst &range);
 
     /**
+     * Writes a bunch of data to the Buffer starting at specified offset; overwriting existing data and increasing
+     * Buffer's capacity if necessary.
+     * @param data Data pointer
+     * @param len Length of data (in bytes)
+     * @param offset Starting position
+     * @return Range containing information about added range within Buffer
+     */
+    virtual BufferRangeConst write(const void *data, uint32_t len, uint32_t offset);
+    /**
+     * Overloaded variant of write(const void *data, uint32_t len, uint32_t offset) which writes the contents of another
+     * buffer to this buffer.
+     * @param other Other Buffer
+     * @param offset Starting position
+     * @return Range containing information about added range within Buffer
+     */
+    virtual BufferRangeConst write(const Buffer &other, uint32_t offset);
+    /**
+     * Overloaded variant of write(const void *data, uint32_t len, uint32_t offset) which writes the contents of another
+     * buffer described by a Range to this buffer.
+     * @param other Other Buffer
+     * @param offset Starting position
+     * @return Range containing information about added range within Buffer
+     */
+    virtual BufferRangeConst write(const BufferRangeConst &other, uint32_t offset);
+
+    /**
      * Consumes n bytes from the beginning, moving the Buffer's beginning.
      * These bytes are considered garbage, which means, the caller can NOT rely on their existence in memory anymore.
      * They might be overwritten by any buffer re-arranging operation.

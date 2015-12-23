@@ -14,20 +14,7 @@ Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer
 Buffer::~Buffer() { }
 
 BufferRangeConst Buffer::append(const void *data, uint32_t len) {
-    if (data == nullptr)        // nullptr check
-        return BufferRangeConst(*this, mUsed, 0);
-
-    if (mOffset+mUsed+len > mReserved) {
-        increase(mOffset+mUsed+len + mReserved*2);
-
-        // now copy new data
-        memcpy(&mData()[mUsed], data, len);
-    } else {
-        memcpy(&mData()[mOffset+mUsed], data, len);
-    }
-    mUsed += len;
-
-    return BufferRangeConst(*this, mUsed - len, len);
+    return write(data, len, mUsed);
 }
 
 BufferRangeConst Buffer::append(const char *data, uint32_t len) {
@@ -40,6 +27,31 @@ BufferRangeConst Buffer::append(const Buffer &other) {
 
 BufferRangeConst Buffer::append(const BufferRangeConst &range) {
     return append(range.const_data(), range.size());
+}
+
+BufferRangeConst Buffer::write(const void *data, uint32_t len, uint32_t offset) {
+    if (data == nullptr)        // nullptr check
+        return BufferRangeConst(*this, mUsed, 0);
+
+    if (mOffset+offset+len > mReserved) {
+        increase(mOffset+offset+len + mReserved*2);
+
+        // now copy new data
+        memcpy(&mData()[offset], data, len);
+    } else {
+        memcpy(&mData()[mOffset+offset], data, len);
+    }
+    mUsed += len;
+
+    return BufferRangeConst(*this, offset, len);
+}
+
+BufferRangeConst Buffer::write(const Buffer &other, uint32_t offset) {
+    return write(other.const_data(), other.size(), offset);
+}
+
+BufferRangeConst Buffer::write(const BufferRangeConst &other, uint32_t offset) {
+    return write(other.const_data(), other.size(), offset);
 }
 
 void Buffer::consume(uint32_t n) {
