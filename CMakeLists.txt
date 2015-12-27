@@ -64,9 +64,7 @@ add_dependencies(libCom openssl)
 target_link_libraries(libCom ssl crypto)
 if (WIN32)
     target_link_libraries(libCom ws2_32)
-else()
-    # tests
-    add_subdirectory(test)
 endif()
 
-
+# tests
+add_subdirectory(test)
