@@ -19,8 +19,16 @@
 #endif
 
 #if defined(__linux__) || defined(__CYGWIN__)
-
 #	include <endian.h>
+
+#ifdef __ANDROID__
+#  define be16toh(x) htobe16(x)
+#  define le16toh(x) htole16(x)
+#  define be32toh(x) htobe32(x)
+#  define le32toh(x) htole32(x)
+#  define be64toh(x) htobe64(x)
+#  define le64toh(x) htole64(x)
+#endif
 
 #elif defined(__APPLE__)
 
