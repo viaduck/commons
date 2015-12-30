@@ -110,14 +110,22 @@ const uint32_t Buffer::size() const {
 }
 
 void *Buffer::data(uint32_t p) {
+    if (p > size())
+        p = size();
     return &mData()[mOffset+p];
 }
 
 const void *Buffer::const_data(uint32_t p) const {
+    if (p > size())
+        p = size();
     return const_cast<const uint8_t *>(&mData()[mOffset+p]);
 }
 
 const BufferRangeConst Buffer::const_data(uint32_t offset, uint32_t size) const {
+    if (offset > this->size())
+        offset = this->size();
+    if (offset+size > this->size())
+        size = this->size() - offset;
     return BufferRangeConst(*this, offset, size);
 }
 

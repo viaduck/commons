@@ -31,6 +31,21 @@ TEST_F(BufferTest, CopyConstructor) {
     EXPECT_ARRAY_EQ(const uint8_t, "cdef", a.data(2), 4);
 }
 
+TEST_F(BufferTest, UnsafeDataAccess) {
+    // tests for invalid values of raw data pointer offset
+    Buffer a(20);
+    ASSERT_EQ(0, static_cast<int32_t>(a.size()));
+    a.append("0123456789", 10);
+    ASSERT_EQ(10, static_cast<int32_t>(a.size()));
+    memset(a.data(a.size()), 0xFF, 10);     // set "invalid" indices to 0xFF
+
+    // offset too big, must return pointer after last index (next 10 indices must be 0xFF)
+    EXPECT_ARRAY_EQ(const uint8_t, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", a.const_data(12), 10);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", a.const_data(-1), 10);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", a.data(12), 10);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", a.data(-1), 10);
+}
+
 TEST_F(BufferTest, ConstDataRange) {
     Buffer a(20);
     ASSERT_EQ(0, static_cast<int32_t>(a.size()));
@@ -47,7 +62,15 @@ TEST_F(BufferTest, ConstDataRange) {
     ASSERT_EQ(4, static_cast<int32_t>(br2.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "3456", br2.const_data(), 4);
 
-    // TODO const_data(uint32_t, uint32_t) should check for Buffer boundaries (offset, size)!
+    // range exceeds buffer -> BufferRange must have offset == size() and size == 0
+    BufferRangeConst br3 = a.const_data(a.size()+20, 234);
+    ASSERT_EQ(a.size(), br3.offset());
+    ASSERT_EQ(0, static_cast<int32_t>(br3.size()));
+
+    // range exceeds buffer (offset within bounds, but size not) -> BufferRange must have offset unaltered and size == size() - offset
+    BufferRangeConst br4 = a.const_data(3, 234);
+    ASSERT_EQ(3, static_cast<int32_t>(br4.offset()));
+    ASSERT_EQ(a.size()-3, br4.size());
 }
 
 TEST_F(BufferTest, AppendNoOverflow) {
