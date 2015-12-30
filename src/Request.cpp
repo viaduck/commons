@@ -4,6 +4,7 @@
 #include <libCom/Buffer.h>
 #include "libCom/Range.h"
 #include <libCom/openssl_hook.h>
+#include <unistd.h>
 #include "libCom/Request.h"
 
 using namespace std;
@@ -17,11 +18,9 @@ Request::Request(std::string host, u_short port, bool IPv6) {
 }
 
 Request::~Request() {
-    if (initDone) {
-        SSL_CTX_free(ctx);
-        SSL_shutdown(ssl);
-        SSL_free(ssl);
-    }
+    close();
+    SSL_CTX_free(ctx);
+    SSL_free(ssl);
 }
 
 void printError() {
@@ -41,6 +40,8 @@ int Request::initSsl(int fd) {
         printError();
         return -4;
     }
+    // options
+    SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
 
 	ssl = SSL_new(ctx);
     if (ssl == nullptr) {
@@ -62,12 +63,20 @@ int Request::initSsl(int fd) {
 }
 
 int Request::init() {
-    SOCKET fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     if (fd == SOCKET_ERROR) {
         return -1;
     }
-
+/* TODO unused rcv and snd timeout code
+    struct timeval timeout;
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
+        std::cerr<<"Failed to setsockopt. Code: "<<strerror(errno);
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0)
+        std::cerr<<"Failed to setsockopt. Code: "<<strerror(errno);
+*/
     sockaddr_in service;
     if (this->ipv6) {
         service.sin_port = AF_INET6;
@@ -95,8 +104,8 @@ bool Request::read(Buffer &buffer, const uint32_t min) {
     buffer.increase(buffer.size() + 512 * 4);     // must be big enough to hold at least 512 bytes (*4 for 4 iterations)
 
     // TODO read timeout, non-blocking?
-	while ((res = SSL_read(ssl, buffer.data(buffer.size()), 512)) > 0) {
-		buffer.use(static_cast<uint32_t>(res));
+    while ((res = SSL_read(ssl, buffer.data(buffer.size()), 512)) > 0) {
+        buffer.use(static_cast<uint32_t>(res));
         read += res;
 
         if (res != 512 || read >= min)
@@ -107,9 +116,8 @@ bool Request::read(Buffer &buffer, const uint32_t min) {
             buffer.increase(buffer.size() + 512 * 4);
             iters = 0;
         }
-	}
-
-	return res >= 0;
+    }
+    return res > 0;
 }
 
 int32_t Request::readMax(Buffer &buffer, const uint32_t size) {
@@ -145,9 +153,19 @@ bool Request::readExactly(Buffer &buffer, const uint32_t size) {
 }
 
 bool Request::write(const Buffer &buffer) {
+    if (!initDone)
+        return false;
+
     int res = SSL_write(ssl, buffer.const_data(), buffer.size());
-    if(res < 0) return false;
+    if (res <= 0) return false;
 
     uint32_t writtenbytes = static_cast<uint32_t>(res);
-    return initDone && writtenbytes == buffer.size();
+    return writtenbytes == buffer.size();
+}
+
+void Request::close() {
+    if (initDone) {
+        SSL_shutdown(ssl);
+        ::close(fd);        // global namespace socket close method, not the member method!
+    }
 }

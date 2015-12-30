@@ -99,10 +99,16 @@ public:
 	 */
 	bool write(const Buffer &buffer);
 
+	/**
+	 * Closes the underlying socket
+	 */
+	void close();
+
 private:
 	SSL_CTX *ctx;
 	SSL *ssl;
 	bool initDone = false;
+	SOCKET fd;
 };
 
 
