@@ -16,6 +16,12 @@ public:
     Range(T &obj, uint32_t offset, uint32_t size) : mObj(obj), mSize(size), mOffset(offset) { }
 
     /**
+     * Overload constructor with offset = 0 and size = obj.size()
+     * @param obj T
+     */
+    Range(T &obj) : Range(obj, 0, obj.size()) { }
+
+    /**
      * Compares two Ranges
      * @param other
      * @return True if content within the ranges is the same
