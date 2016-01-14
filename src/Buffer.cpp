@@ -69,7 +69,7 @@ void Buffer::reset(uint32_t offsetDiff) {
     mOffset -= offsetDiff;
 }
 
-const uint32_t Buffer::increase(const uint32_t newCapacity, const bool by) {
+uint32_t Buffer::increase(const uint32_t newCapacity, const bool by) {
     uint32_t capa = newCapacity;
     if (by)
         capa += size();
@@ -90,7 +90,7 @@ const uint32_t Buffer::increase(const uint32_t newCapacity, const bool by) {
     return mReserved;
 }
 
-const uint32_t Buffer::increase(const uint32_t newCapacity, const uint8_t value, const bool by) {
+uint32_t Buffer::increase(const uint32_t newCapacity, const uint8_t value, const bool by) {
     uint32_t r = increase(newCapacity, by);
     // initialize with supplied value
     for (uint32_t i = mUsed; i < r; ++i)
@@ -105,7 +105,7 @@ void Buffer::padd(const uint32_t newSize, const uint8_t value) {
     use(newSize-mUsed);
 }
 
-const uint32_t Buffer::size() const {
+uint32_t Buffer::size() const {
     return mUsed;
 }
 

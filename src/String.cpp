@@ -62,7 +62,7 @@ String &String::operator=(const String &other) {
     return *this;
 }
 
-const bool String::operator==(const char *other) const {
+bool String::operator==(const char *other) const {
     if (other == nullptr)       // without this check, there may occur crashes if == is wrongly used
         return false;
 
@@ -72,7 +72,7 @@ const bool String::operator==(const char *other) const {
     return comparisonHelper(const_data(), other, cSize);
 }
 
-const bool String::operator==(const std::string &other) const {
+bool String::operator==(const std::string &other) const {
     if (size() != other.size())
         return false;
     return comparisonHelper(const_data(), other.c_str(), size());

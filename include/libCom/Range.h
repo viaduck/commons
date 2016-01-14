@@ -56,7 +56,7 @@ public:
      * Getter: size
      * @return size
      */
-    inline const uint32_t size() const {
+    inline uint32_t size() const {
         return mSize;
     }
     /**
@@ -70,7 +70,7 @@ public:
      * Getter: offset
      * @return offset
      */
-    inline const uint32_t offset() const {
+    inline uint32_t offset() const {
         return mOffset;
     }
     /**

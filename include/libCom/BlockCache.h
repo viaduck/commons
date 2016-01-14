@@ -59,7 +59,7 @@ public:
      * @param id K
      * @return True if K exists, false if not
      */
-    const bool contains(const K id) const {
+    bool contains(const K id) const {
         return mMap.find(id) != mMap.end();
     }
 
@@ -68,7 +68,7 @@ public:
      * @param id K
      * @return Generation or 0 if no such block is present
      */
-    const uint16_t generation(const K id) const {
+    uint16_t generation(const K id) const {
         return mMap.find(id) != mMap.end() ? mMap.find(id)->second.generation : 0;
     }
 
@@ -120,14 +120,14 @@ public:
     /**
      * Returns the current cache size
      */
-    const inline uint32_t size() const {
+    inline uint32_t size() const {
         return static_cast<uint32_t>(mMap.size());
     }
 
     /**
      * Returns the cache capacity
      */
-    const inline uint32_t capacity() const {
+    inline uint32_t capacity() const {
         return mCapacity;
     }
 

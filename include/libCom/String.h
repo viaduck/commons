@@ -94,20 +94,20 @@ public:
      * @param other Cstring to compare to this String (must be 0-terminated)
      * @return True if they are equal, false if not
      */
-    const bool operator==(const char *other) const;
+    bool operator==(const char *other) const;
     /**
      * Compares a String and an stl string (byte-comparison)
      * @param other STL string (std::string) to compare to this String
      * @return True if they are equal, false if not
      */
-    const bool operator==(const std::string &other) const;
+    bool operator==(const std::string &other) const;
 
     /**
      * Compares a String and a cstring (byte-comparison)
      * @param other Cstring to compare to this String (must be 0-terminated)
      * @return True if they are equal, false if not
      */
-    inline const bool operator!=(const char *other) const {
+    inline bool operator!=(const char *other) const {
         return !operator==(other);
     }
     /**
@@ -115,7 +115,7 @@ public:
      * @param other STL string (std::string) to compare to this String
      * @return True if they are equal, false if not
      */
-    inline const bool operator!=(const std::string &other) const {
+    inline bool operator!=(const std::string &other) const {
         return !operator==(other);
     }
 
@@ -123,7 +123,7 @@ public:
      * Checks if String is empty
      * @return True if String is empty, false if not
      */
-    inline const bool isEmpty() const {
+    inline bool isEmpty() const {
         return size() == 0;
     }
 
@@ -213,7 +213,7 @@ public:
     }
 
     // REDIRECTIONS
-    inline virtual const uint32_t size() const override {
+    inline virtual uint32_t size() const override {
         return Buffer::size();
     }
 
@@ -226,7 +226,7 @@ public:
      * @param other String to compare to this String
      * @return True if they are equal, false if not
      */
-    inline virtual const bool operator==(const String &other) const {
+    inline virtual bool operator==(const String &other) const {
         return Buffer::operator==(other);
     }
 
@@ -235,7 +235,7 @@ public:
      * @param other String to compare to this String
      * @return True if they are equal, false if not
      */
-    inline virtual const bool operator!=(const String &other) const {
+    inline virtual bool operator!=(const String &other) const {
         return Buffer::operator!=(other);
     }
 

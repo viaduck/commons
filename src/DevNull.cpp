@@ -19,15 +19,15 @@ BufferRangeConst DevNull::append(const BufferRangeConst &range) {
     return Buffer::append(range);
 }
 
-void DevNull::consume(uint32_t n) {
+void DevNull::consume(uint32_t /* n */) {
 
 }
 
-void DevNull::use(uint32_t used) {
+void DevNull::use(uint32_t /* used */) {
 
 }
 
-BufferRangeConst DevNull::write(const void *data, uint32_t len, uint32_t offset) {
+BufferRangeConst DevNull::write(const void */* data */, uint32_t len, uint32_t offset) {
     increase(offset+len);
     return BufferRangeConst(*this, len, offset);
 }
