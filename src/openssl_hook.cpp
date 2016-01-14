@@ -1,7 +1,5 @@
-#include <openssl/evp.h>
-#include <openssl/ssl.h>
-
 #include "libCom/openssl_hook.h"
+#include <openssl/ssl.h>
 
 void global_initOpenSSL() {
     if (opensslInitialized)
