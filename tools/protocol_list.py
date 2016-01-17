@@ -1,3 +1,7 @@
+"""
+Prints list of protocol message definition files (relative path)
+"""
+
 from subprocess import call
 from sys import argv
 import os

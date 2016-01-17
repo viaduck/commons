@@ -55,25 +55,25 @@ public:
 
     [[[cog
     vars = list(g.do(filename))
-    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)
+    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
     if cstatic > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
-            if v[3] == "var":
+            if v[3] == "var":           # variable array
                 continue
-            if v[3] is not None:
+            if v[3] is not None:        # array
                 cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
-            else:
+            else:                       # normal type
                 cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
         cog.out(") : {name}(buffer)".format(name=name)+" {\n")
         offset = 0
         for v in vars:
-            if v[3] == "var":
+            if v[3] == "var":           # variable type
                 continue
-            if v[3] is not None:
+            if v[3] is not None:        # array
                 cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
                 offset += v[2]*v[3]     # sizeof type * array element count
-            else:
+            else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
                 offset += v[2]
         cog.outl("}")
@@ -135,9 +135,9 @@ public:
     offset = 0
     for v in vars:
         cog.outl("// - "+v[1]+" - //")
-        # pointer types
+        # array types
         if v[3] is not None:
-            if v[3] == "var":
+            if v[3] == "var":       # variable array
                 cog.outl("inline const Buffer &const_{name}() const {{\n"
                          "    return const_cast<const Buffer&>(mBuffer_{name});\n"
                          "}}\n"
@@ -160,19 +160,19 @@ public:
                          "const BufferRangeConst {name}_range() {{\n"
                          "    return BufferRangeConst(mBuffer, {offset}, {name}_size());\n"
                          "}}\n"
-                         "static inline const uint32_t {name}_size() {{\n"
+                         "static inline uint32_t {name}_size() {{\n"
                          "    return sizeof({type_raw})*{count};\n"
                          "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3], size=v[2]*v[3]))
                 offset += v[2]*v[3]     # sizeof type * array element count
         else:
-        # non-pointer types
-            cog.outl("inline const {type} {name}() const {{\n"
+        # non-array types
+            cog.outl("inline {type} {name}() const {{\n"
                      "    return {conversion}(*static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
                      "}}\n"
                      "inline void {name}({type} v) {{\n"
                      "    *static_cast<{type}*>(mBuffer.data({offset})) = {conversion}(v);\n"
                      "}}\n"
-                     "static inline const uint32_t {name}_size() {{\n"
+                     "static inline uint32_t {name}_size() {{\n"
                      "    return sizeof({type});\n"
                      "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton_"+v[0]))
             offset += v[2]
@@ -185,7 +185,7 @@ public:
 
         [[[cog
             for v in vars:
-                # variable data type
+                # variable array
                 if v[3] == "var":
                     cog.outl("// - {name} - //\n"
                              "const uint32_t {name}_size = hton_uint32_t(mBuffer_{name}.size());\n"
@@ -195,7 +195,11 @@ public:
         [[[end]]]
     }
 
-    const bool deserialize(const Buffer &in, uint32_t &missing) {
+
+    bool deserialize(const Buffer &in, uint32_t &
+        [[[cog cog.outl("missing" if len(vars)-cstatic > 0 else "/* missing */")]]]
+        [[[end]]]
+        ) {
         if (in.size() < STATIC_SIZE)
             return false;
         // static data
@@ -207,7 +211,7 @@ public:
             first = False
             for i in range(nvars):
                 v = vars[i]
-                # variable data type
+                # variable array
                 if v[3] == "var":
                     if not first:
                         cog.outl("// now variable data")
@@ -237,11 +241,11 @@ public:
     ]]]
     [[[end]]]
     // ++++++++ ///
-    inline const uint32_t size() const {
+    inline uint32_t size() const {
         return
             [[[cog
                 for v in vars:
-                    # variable data type
+                    # variable array
                     if v[3] == "var":
                         cog.outl("mBuffer_{name}.size()+sizeof(uint32_t)+".format(name=v[1]))
             ]]]
@@ -252,14 +256,14 @@ public:
 private:
     [[[cog
         for v in vars:
-            # variable data type
+            # variable array
             if v[3] == "var":
                 cog.outl("// - "+v[1]+" - //")
                 cog.outl("Buffer mBuffer_{name};\n".format(name=v[1]))
     ]]]
     [[[end]]]
     Buffer &mBuffer;
-    const bool mAllocated = false;
+    bool mAllocated = false;
 };
 
 [[[cog

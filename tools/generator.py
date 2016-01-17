@@ -1,5 +1,10 @@
+"""
+Used from protcol message template header
+"""
+
 import re
 
+# maps variable type to its  byte size
 i = {
     "uint64_t": 8,
     "uint32_t": 4,
@@ -7,11 +12,14 @@ i = {
     "uint8_t": 1
 }
 
+# tuple of variable types that have array support
 arr_supported = ('uint8_t',)
 
-
 def do(filename):
-
+    """
+    Processes the protocol message definition file
+    :param filename: protocol message definition file path
+    """
     with open(filename, "r") as f:
         for line in f:
             type, id = l = line.split()
@@ -29,8 +37,3 @@ def do(filename):
             if arr is not None and type not in arr_supported:
                 raise Exception(type+" is not supported as array type!")
             yield (type, id, i[type], arr)
-    #return filename
-
-
-#print(list(do("sometest.thx")))
-#print(do(filename))

@@ -1,8 +1,11 @@
+"""
+Calls cogapp with required arguments for every protocol file
+"""
+
 from subprocess import call
 from sys import argv, executable
 import os
 
-#outp = ""
 protocol_dir = os.getcwd()+"/protocol/"
 if not os.path.exists(argv[2]+"/include/"):
     os.makedirs(argv[2]+"/include/")
