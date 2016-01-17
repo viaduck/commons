@@ -29,7 +29,7 @@ void DevNull::use(uint32_t /* used */) {
 
 BufferRangeConst DevNull::write(const void */* data */, uint32_t len, uint32_t offset) {
     increase(offset+len);
-    return BufferRangeConst(*this, len, offset);
+    return BufferRangeConst(*this, offset, len);
 }
 
 BufferRangeConst DevNull::write(const Buffer &other, uint32_t offset) {
