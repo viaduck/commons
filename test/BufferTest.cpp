@@ -77,7 +77,7 @@ TEST_F(BufferTest, AppendNoOverflow) {
     Buffer a(20);
     ASSERT_EQ(size_t(0), a.size());
 
-    a.append("abcdef", 7);
+    BufferRangeConst range = a.append("abcdef", 7);
 
     ASSERT_EQ(7, static_cast<int32_t>(a.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdef", a.data(), 7);
@@ -85,24 +85,35 @@ TEST_F(BufferTest, AppendNoOverflow) {
     EXPECT_ARRAY_EQ(const uint8_t, "cdef", a.data(2), 5);
     EXPECT_ARRAY_EQ(const uint8_t, "cdef", a.const_data(2), 5);
 
+    ASSERT_EQ(static_cast<uint32_t>(0), range.offset());
+    ASSERT_EQ(static_cast<uint32_t>(7), range.size());
+
 
     Buffer b(10);
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
-    b.append("fedcba", 0);
+    BufferRangeConst range2 = b.append("fedcba", 0);
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range2.offset());
+    ASSERT_EQ(static_cast<uint32_t>(0), range2.size());
 
-    b.append("fedcba", 7);
+    BufferRangeConst range3 = b.append("fedcba", 7);
     ASSERT_EQ(7, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "fedcba", b.data(), 7);
     EXPECT_ARRAY_EQ(const uint8_t, "fedcba", b.const_data(), 7);
     EXPECT_ARRAY_EQ(const uint8_t, "cba", b.data(3), 4);
     EXPECT_ARRAY_EQ(const uint8_t, "cba", b.const_data(3), 4);
+    ASSERT_EQ(static_cast<uint32_t>(0), range3.offset());
+    ASSERT_EQ(static_cast<uint32_t>(7), range3.size());
 
     // append Buffer
     Buffer c(50);
     ASSERT_EQ(0, static_cast<int32_t>(c.size()));
-    c.append(b);
-    c.append(a);
+    BufferRangeConst range4 = c.append(b);
+    ASSERT_EQ(static_cast<uint32_t>(0), range4.offset());
+    ASSERT_EQ(static_cast<uint32_t>(7), range4.size());
+    BufferRangeConst range5 = c.append(a);
+    ASSERT_EQ(static_cast<uint32_t>(7), range5.offset());
+    ASSERT_EQ(static_cast<uint32_t>(7), range5.size());
 
     ASSERT_EQ(14, static_cast<int32_t>(c.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "fedcba\0abcdef\0", c.data(), 14);
@@ -110,11 +121,17 @@ TEST_F(BufferTest, AppendNoOverflow) {
     EXPECT_ARRAY_EQ(const uint8_t, "ba\0abcdef\0", c.data(4), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "ba\0abcdef\0", c.const_data(4), 10);
 
+
     // append BufferRange
     Buffer d(50);
     ASSERT_EQ(0, static_cast<int32_t>(d.size()));
-    d.append(BufferRangeConst(b, 0, b.size()));
-    d.append(BufferRangeConst(a, 3, 3));
+    BufferRangeConst range6 = d.append(BufferRangeConst(b, 0, b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range6.offset());
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range6.size());
+
+    BufferRangeConst range7 = d.append(BufferRangeConst(a, 3, 3));
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range7.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range7.size());
 
     ASSERT_EQ(10, static_cast<int32_t>(d.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "fedcba\0def\0", d.data(), 10);
@@ -127,31 +144,42 @@ TEST_F(BufferTest, AppendOverflowTest) {
     Buffer b(5);
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
 
-    b.append("abc", 3);
+    BufferRangeConst range = b.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abc", b.data(), 3);
+    ASSERT_EQ(static_cast<uint32_t>(0), range.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range.size());
 
-    b.append("defghi", 6);
+    BufferRangeConst range1 = b.append("defghi", 6);
     ASSERT_EQ(9, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghi", b.data(), 9);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghi", b.const_data(), 9);
     EXPECT_ARRAY_EQ(const uint8_t, "efghi", b.data(4), 5);
     EXPECT_ARRAY_EQ(const uint8_t, "efghi", b.const_data(4), 5);
     EXPECT_ARRAY_EQ(const uint8_t, "efghi", b.const_data(4), 5);
+    ASSERT_EQ(static_cast<uint32_t>(3), range1.offset());
+    ASSERT_EQ(static_cast<uint32_t>(6), range1.size());
 
-    b.append("abcdefghijklmnopqrstuvwxyz", 26);
+    BufferRangeConst range2 = b.append("abcdefghijklmnopqrstuvwxyz", 26);
     ASSERT_EQ(35, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghiabcdefghijklmnopqrstuvwxyz", b.data(), 35);
     EXPECT_ARRAY_EQ(const uint8_t, "bcdefghijklmnopqrstuvwxyz", b.data(10), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "bcdefghijklmnopqrstuvwxyz", b.const_data(10), 25);
+    ASSERT_EQ(static_cast<uint32_t>(9), range2.offset());
+    ASSERT_EQ(static_cast<uint32_t>(26), range2.size());
 
     // append Buffer
     Buffer c(5);
     ASSERT_EQ(0, static_cast<int32_t>(c.size()));
-    c.append(b);
+    BufferRangeConst range3 = c.append(b);
     ASSERT_EQ(35, static_cast<int32_t>(c.size()));
-    c.append("01234", 5);
+    ASSERT_EQ(static_cast<uint32_t>(0), range3.offset());
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range3.size());
+
+    BufferRangeConst range4 = c.append("01234", 5);
     ASSERT_EQ(40, static_cast<int32_t>(c.size()));
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range4.offset());
+    ASSERT_EQ(static_cast<uint32_t>(5), range4.size());
 
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghiabcdefghijklmnopqrstuvwxyz012345", c.data(), 40);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghiabcdefghijklmnopqrstuvwxyz012345", c.const_data(), 40);
@@ -161,9 +189,14 @@ TEST_F(BufferTest, AppendOverflowTest) {
     // append BufferRange
     Buffer d(5);
     ASSERT_EQ(0, static_cast<int32_t>(d.size()));
-    d.append(BufferRangeConst(b, 0, b.size()));
-    d.append(BufferRangeConst(c, 10, 15));
+    BufferRangeConst range5 = d.append(BufferRangeConst(b, 0, b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range5.offset());
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range5.size());
+
+    BufferRangeConst range6 = d.append(BufferRangeConst(c, 10, 15));
     ASSERT_EQ(50, static_cast<int32_t>(d.size()));
+    ASSERT_EQ(static_cast<uint32_t>(b.size()), range6.offset());
+    ASSERT_EQ(static_cast<uint32_t>(15), range6.size());
     
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghiabcdefghijklmnopqrstuvwxyzbcdefghijklmnop", d.data(), 50);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghiabcdefghijklmnopqrstuvwxyzbcdefghijklmnop", d.const_data(), 50);
@@ -175,109 +208,157 @@ TEST_F(BufferTest, WriteTestNoOverflow) {
     Buffer b(20);
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
 
-    b.append("abc", 3);
+    BufferRangeConst range = b.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(b.size()));
-    b.append("defghi", 6);
-    ASSERT_EQ(9, static_cast<int32_t>(b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range.size());
 
-    b.write("01234", 5, 0);
+    BufferRangeConst range2 = b.append("defghi", 6);
+    ASSERT_EQ(9, static_cast<int32_t>(b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range2.offset());
+    ASSERT_EQ(static_cast<uint32_t>(6), range2.size());
+
+    BufferRangeConst range3 = b.write("01234", 5, 0);
     ASSERT_EQ(9, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "01234fghi", b.data(0), 9);
     EXPECT_ARRAY_EQ(const uint8_t, "01234fghi", b.const_data(0), 9);
+    ASSERT_EQ(static_cast<uint32_t>(0), range3.offset());
+    ASSERT_EQ(static_cast<uint32_t>(5), range3.size());
 
-    b.write("01234", 5, 3);
+    BufferRangeConst range4 = b.write("01234", 5, 3);
     ASSERT_EQ(9, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "01201234i", b.data(0), 9);
     EXPECT_ARRAY_EQ(const uint8_t, "01201234i", b.const_data(0), 9);
+    ASSERT_EQ(static_cast<uint32_t>(3), range4.offset());
+    ASSERT_EQ(static_cast<uint32_t>(5), range4.size());
 
     // buffer range
     Buffer c(20);
     ASSERT_EQ(0, static_cast<int32_t>(c.size()));
 
-    c.append("abc", 3);
+    BufferRangeConst range5 = c.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(c.size()));
-    c.append("defghijklmnopqrstuvxyz", 22);
-    ASSERT_EQ(25, static_cast<int32_t>(c.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range5.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range5.size());
 
-    c.write(BufferRangeConst(b, 0, 5), 4);
+    BufferRangeConst range6 = c.append("defghijklmnopqrstuvxyz", 22);
+    ASSERT_EQ(25, static_cast<int32_t>(c.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range6.offset());
+    ASSERT_EQ(static_cast<uint32_t>(22), range6.size());
+
+    BufferRangeConst range7 = c.write(BufferRangeConst(b, 0, 5), 4);
     ASSERT_EQ(25, static_cast<int32_t>(c.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcd01201jklmnopqrstuvxyz", c.data(0), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "abcd01201jklmnopqrstuvxyz", c.const_data(0), 25);
+    ASSERT_EQ(static_cast<uint32_t>(4), range7.offset());
+    ASSERT_EQ(static_cast<uint32_t>(5), range7.size());
 
-    c.write(BufferRangeConst(b, 3, 4), 10);
+    BufferRangeConst range8 = c.write(BufferRangeConst(b, 3, 4), 10);
     ASSERT_EQ(25, static_cast<int32_t>(c.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcd01201j0123opqrstuvxyz", c.data(0), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "abcd01201j0123opqrstuvxyz", c.const_data(0), 25);
+    ASSERT_EQ(static_cast<uint32_t>(10), range8.offset());
+    ASSERT_EQ(static_cast<uint32_t>(4), range8.size());
 
     // buffer
     Buffer d(30);
     ASSERT_EQ(0, static_cast<int32_t>(d.size()));
 
-    d.append("012", 3);
+    BufferRangeConst range9 = d.append("012", 3);
     ASSERT_EQ(3, static_cast<int32_t>(d.size()));
-    d.append("3456789012345678901234", 22);
+    ASSERT_EQ(static_cast<uint32_t>(0), range9.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range9.size());
+
+    BufferRangeConst range10 = d.append("3456789012345678901234", 22);
     ASSERT_EQ(25, static_cast<int32_t>(d.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range10.offset());
+    ASSERT_EQ(static_cast<uint32_t>(22), range10.size());
 
     Buffer app(5);
     ASSERT_EQ(0, static_cast<int32_t>(app.size()));
-    app.append("abcd", 4);
+    BufferRangeConst range11 = app.append("abcd", 4);
     ASSERT_EQ(4, static_cast<int32_t>(app.size()));
-    d.write(app, 6);
+    ASSERT_EQ(static_cast<uint32_t>(0), range11.offset());
+    ASSERT_EQ(static_cast<uint32_t>(4), range11.size());
 
+    BufferRangeConst range12 = d.write(app, 6);
     ASSERT_EQ(25, static_cast<int32_t>(d.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "012345abcd012345678901234", d.data(0), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "012345abcd012345678901234", d.const_data(0), 25);
+    ASSERT_EQ(static_cast<uint32_t>(6), range12.offset());
+    ASSERT_EQ(static_cast<uint32_t>(app.size()), range12.size());
 }
 
 TEST_F(BufferTest, WriteTestOverflow) {
     Buffer b(20);
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
 
-    b.append("abc", 3);
+    BufferRangeConst range = b.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(b.size()));
-    b.append("defghi", 6);
-    ASSERT_EQ(9, static_cast<int32_t>(b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range.size());
 
-    b.write("0123456789", 10, 0);
+    BufferRangeConst range2 = b.append("defghi", 6);
+    ASSERT_EQ(9, static_cast<int32_t>(b.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range2.offset());
+    ASSERT_EQ(static_cast<uint32_t>(6), range2.size());
+
+    BufferRangeConst range3 = b.write("0123456789", 10, 0);
     ASSERT_EQ(10, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "0123456789", b.data(0), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "0123456789", b.const_data(0), 10);
+    ASSERT_EQ(static_cast<uint32_t>(0), range3.offset());
+    ASSERT_EQ(static_cast<uint32_t>(10), range3.size());
 
-    b.write("9876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210", 120, 20);
+    BufferRangeConst range4 = b.write("9876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210", 120, 20);
     ASSERT_EQ(140, static_cast<int32_t>(b.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "0123456789", b.data(0), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "0123456789", b.const_data(0), 10);
     // there is a gap from (10, 20)
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210", b.data(20), 120);
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210987654321098765432109876543210", b.const_data(20), 120);
+    ASSERT_EQ(static_cast<uint32_t>(20), range4.offset());
+    ASSERT_EQ(static_cast<uint32_t>(120), range4.size());
 
     // buffer range
     Buffer c(30);
     ASSERT_EQ(0, static_cast<int32_t>(c.size()));
 
-    c.append("abc", 3);
+    BufferRangeConst range5 = c.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(c.size()));
-    c.append("defghijklmnopqrstuvxyz", 22);
-    ASSERT_EQ(25, static_cast<int32_t>(c.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range5.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range5.size());
 
-    c.write(BufferRangeConst(b, 20, 60), 30);
+    BufferRangeConst range6 = c.append("defghijklmnopqrstuvxyz", 22);
+    ASSERT_EQ(25, static_cast<int32_t>(c.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range6.offset());
+    ASSERT_EQ(static_cast<uint32_t>(22), range6.size());
+
+    BufferRangeConst range7 = c.write(BufferRangeConst(b, 20, 60), 30);
     ASSERT_EQ(90, static_cast<int32_t>(c.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvxyz", c.data(0), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvxyz", c.const_data(0), 25);
     // gap from (25, 30)
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210", c.data(30), 60);
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210", c.const_data(30), 60);
+    ASSERT_EQ(static_cast<uint32_t>(30), range7.offset());
+    ASSERT_EQ(static_cast<uint32_t>(60), range7.size());
 
     // buffer
     Buffer d(20);
     ASSERT_EQ(0, static_cast<int32_t>(d.size()));
 
-    d.append("abc", 3);
+    BufferRangeConst range8 = d.append("abc", 3);
     ASSERT_EQ(3, static_cast<int32_t>(d.size()));
-    d.append("defghijklmnopqrstuvxyz", 22);
-    ASSERT_EQ(25, static_cast<int32_t>(d.size()));
+    ASSERT_EQ(static_cast<uint32_t>(0), range8.offset());
+    ASSERT_EQ(static_cast<uint32_t>(3), range8.size());
 
-    d.write(c, 30);
+    BufferRangeConst range9 = d.append("defghijklmnopqrstuvxyz", 22);
+    ASSERT_EQ(25, static_cast<int32_t>(d.size()));
+    ASSERT_EQ(static_cast<uint32_t>(3), range9.offset());
+    ASSERT_EQ(static_cast<uint32_t>(22), range9.size());
+
+    BufferRangeConst range10 = d.write(c, 30);
     ASSERT_EQ(120, static_cast<int32_t>(d.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvxyz", d.data(0), 25);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvxyz", d.const_data(0), 25);
@@ -287,6 +368,8 @@ TEST_F(BufferTest, WriteTestOverflow) {
     // gap from (55, 60)
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210", d.data(60), 60);
     EXPECT_ARRAY_EQ(const uint8_t, "987654321098765432109876543210987654321098765432109876543210", d.const_data(60), 60);
+    ASSERT_EQ(static_cast<uint32_t>(30), range10.offset());
+    ASSERT_EQ(static_cast<uint32_t>(c.size()), range10.size());
 }
 
 TEST_F(BufferTest, ConsumeTest) {
