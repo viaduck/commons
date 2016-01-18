@@ -30,70 +30,11 @@ cog.outl("#define {name}_H".format(name=name))
 ]]]
 [[[end]]]
 public:
-    [[[cog
-        cog.outl(name+"() : mBuffer(*(new Buffer(STATIC_SIZE))), mAllocated(true) {\n"
-                 "     mBuffer.padd(STATIC_SIZE, 0);\n"
-                 " }")
-    ]]]
-    [[[end]]]
-
-    [[[cog
-        cog.outl(name+"(Buffer &buffer) : mBuffer(buffer) {")
-    ]]]
-    [[[end]]]
-        if (mBuffer.size() < STATIC_SIZE) {
-            mBuffer.increase(STATIC_SIZE);     // prevent access resulting in SIGSEGV if buffer is too small
-            mBuffer.use(STATIC_SIZE);
-        }
-    }
-
-    // copy constructor
-    [[[cog
-        cog.outl(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
-    ]]]
-    [[[end]]]
-
-    [[[cog
-    vars = list(g.do(filename))
-    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
-    if cstatic > 0:
-        cog.out(name+"(Buffer &buffer")
-        for v in vars:
-            if v[3] == "var":           # variable array
-                continue
-            if v[3] is not None:        # array
-                cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
-            else:                       # normal type
-                cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
-        cog.out(") : {name}(buffer)".format(name=name)+" {\n")
-        offset = 0
-        for v in vars:
-            if v[3] == "var":           # variable type
-                continue
-            if v[3] is not None:        # array
-                cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
-                offset += v[2]*v[3]     # sizeof type * array element count
-            else:                   # normal type
-                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
-                offset += v[2]
-        cog.outl("}")
-    ]]]
-    [[[end]]]
-
-
-    // destructor
-    [[[cog
-    cog.outl("~"+name+"() {")
-    ]]]
-    [[[end]]]
-        if (mAllocated)
-            delete &mBuffer;
-    }
-
 
     // GETTER & SETTER //
     [[[cog
     vars = list(g.do(filename))
+    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
     if cstatic > 0:
         cog.out(name+"(")
         first = True
@@ -251,6 +192,67 @@ public:
             ]]]
             [[[end]]]
             STATIC_SIZE;
+    }
+
+    // constructors
+    [[[cog
+        cog.outl(name+"() : mBuffer(*(new Buffer(STATIC_SIZE))), mAllocated(true) {\n"
+                 "     mBuffer.padd(STATIC_SIZE, 0);\n"
+                 " }")
+    ]]]
+    [[[end]]]
+
+    [[[cog
+        cog.outl(name+"(Buffer &buffer) : mBuffer(buffer) {")
+        if offset != 0:
+            cog.outl("    if (mBuffer.size() < STATIC_SIZE) {\n"
+                     "        mBuffer.increase(STATIC_SIZE);     // prevent access resulting in SIGSEGV if buffer is too small\n"
+                     "        mBuffer.use(STATIC_SIZE);\n"
+                     "    }")
+    ]]]
+    [[[end]]]
+    }
+
+    // copy constructor
+    [[[cog
+        cog.outl(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
+    ]]]
+    [[[end]]]
+
+    [[[cog
+    vars = list(g.do(filename))
+    if cstatic > 0:
+        cog.out(name+"(Buffer &buffer")
+        for v in vars:
+            if v[3] == "var":           # variable array
+                continue
+            if v[3] is not None:        # array
+                cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
+            else:                       # normal type
+                cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
+        cog.out(") : {name}(buffer)".format(name=name)+" {\n")
+        offset = 0
+        for v in vars:
+            if v[3] == "var":           # variable type
+                continue
+            if v[3] is not None:        # array
+                cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
+                offset += v[2]*v[3]     # sizeof type * array element count
+            else:                   # normal type
+                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
+                offset += v[2]
+        cog.outl("}")
+    ]]]
+    [[[end]]]
+
+
+    // destructor
+    [[[cog
+    cog.outl("~"+name+"() {")
+    ]]]
+    [[[end]]]
+        if (mAllocated)
+            delete &mBuffer;
     }
 
 private:
