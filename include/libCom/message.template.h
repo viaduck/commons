@@ -141,8 +141,14 @@ public:
         [[[cog cog.outl("missing" if len(vars)-cstatic > 0 else "/* missing */")]]]
         [[[end]]]
         ) {
-        if (in.size() < STATIC_SIZE)
-            return false;
+        [[[cog
+        if offset != 0:
+            cog.outl("    if (mBuffer.size() < STATIC_SIZE) {\n"
+                         "        mBuffer.increase(STATIC_SIZE);     // prevent access resulting in SIGSEGV if buffer is too small\n"
+                         "        mBuffer.use(STATIC_SIZE);\n"
+                        "    }")
+        ]]]
+        [[[end]]]
         // static data
         mBuffer.clear();
         mBuffer.append(BufferRangeConst(in, 0, STATIC_SIZE));
