@@ -67,7 +67,7 @@ int Request::initSsl(int fd) {
 int Request::init() {
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (fd == SOCKET_ERROR) {
+    if (fd == (SOCKET)SOCKET_ERROR) {
         return -1;
     }
 /* TODO unused rcv and snd timeout code
