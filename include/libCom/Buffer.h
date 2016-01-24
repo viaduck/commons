@@ -70,7 +70,7 @@ public:
     /**
      * Writes a bunch of data to the Buffer starting at specified offset; overwriting existing data and increasing
      * Buffer's capacity if necessary.
-     * @param data Data pointer
+     * @param data Data pointer (if nullptr: only allocate (if neceassary) and use memory)
      * @param len Length of data (in bytes)
      * @param offset Starting position
      * @return Range containing information about added range within Buffer

@@ -15,7 +15,7 @@ TEST(StringTest, creationTest) {
     }
     {
         String s(static_cast<const uint8_t*>(nullptr), 10);
-        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        ASSERT_EQ(10, static_cast<int32_t>(s.size()));              // according to changed API: Buffer::write(..) increases and uses memory if nullptr supplied
         String s2(static_cast<const uint8_t*>(nullptr), 0);
         ASSERT_EQ(0, static_cast<int32_t>(s2.size()));
     }

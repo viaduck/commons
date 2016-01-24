@@ -30,15 +30,11 @@ BufferRangeConst Buffer::append(const BufferRangeConst &range) {
 }
 
 BufferRangeConst Buffer::write(const void *data, uint32_t len, uint32_t offset) {
-    if (data == nullptr)        // nullptr check
-        return BufferRangeConst(*this, mUsed, 0);
-
-    if (mOffset+offset+len > mReserved) {
+    if (mOffset+offset+len > mReserved)
         increase(mOffset+offset+len + mReserved*2);
 
-        // now copy new data
-        memcpy(&mData()[offset], data, len);
-    } else
+    // now copy new data (if not nullptr)
+    if (data != nullptr)
         memcpy(&mData()[mOffset+offset], data, len);
 
     if (offset+len > mUsed)
