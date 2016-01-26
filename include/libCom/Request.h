@@ -104,6 +104,24 @@ public:
 	 */
 	void close();
 
+	/**
+	 * Write a protocol generated class to the request stream
+	 * @param pclass the class to write, needs to have serialize(const Buffer&)
+	 *
+	 * @return True on success
+	 */
+	template<typename T>
+	bool writeProtoClass(T &pclass);
+
+	/**
+	 * Reads a protocol generated class from request stream
+	 * @param bOut a buffer holding the read data upon return
+	 *
+	 * @return True on success
+	 */
+	template<typename T>
+	bool readProtoClass(Buffer &bOut);
+
 private:
 	SSL_CTX *ctx;
 	SSL *ssl;
