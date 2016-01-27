@@ -111,7 +111,7 @@ public:
 	 * @return True on success
 	 */
 	template<typename T>
-	bool Request::writeProtoClass(const T &pclass) {
+	bool writeProtoClass(const T &pclass) {
 		Buffer outBuf;
 		pclass.serialize(outBuf);
 		return write(outBuf);
@@ -124,7 +124,7 @@ public:
 	 * @return True on success
 	 */
 	template<typename T>
-	bool Request::readProtoClass(T &pclass) {
+	bool readProtoClass(T &pclass) {
 		Buffer inBuf;
 		uint32_t missing = 0;
 		// try to deserialize, read missing bytes
