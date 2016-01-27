@@ -1,5 +1,2 @@
 uint8_t     version
 uint8_t     opcode
-uint8_t(20) phash
-uint32_t    first
-uint32_t    second

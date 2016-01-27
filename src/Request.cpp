@@ -171,24 +171,3 @@ void Request::close() {
         ::close(fd);        // global namespace socket close method, not the member method!
     }
 }
-
-template<typename T>
-bool writeProtoClass(const T &pclass) {
-    Buffer outBuf;
-    pclass.serialize(outBuf);
-    return write(outBuf);
-}
-
-template<typename T>
-bool readProtoClass(T &pclass) {
-    Buffer inBuf;
-    uint32_t missing = 0;
-    // try to deserialize, read missing bytes
-    while(!pclass.deserialize(inBuf, missing)) { // TODO: check if partial serialization of some var buffers already fills them
-        if(missing == 0) // no bytes missing, but class cannot be deserialized => error
-            return false;
-
-        request.readExactly(inBuf, missing);
-    }
-    return true;
-}

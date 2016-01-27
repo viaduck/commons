@@ -106,21 +106,36 @@ public:
 
 	/**
 	 * Write a protocol generated class to the request stream
-	 * @param pclass the class to write, needs to have serialize(const Buffer&)
+	 * @param pclass the class to write, needs to have T::serialize(const Buffer&)
 	 *
 	 * @return True on success
 	 */
 	template<typename T>
-	bool writeProtoClass(T &pclass);
+	bool Request::writeProtoClass(const T &pclass) {
+		Buffer outBuf;
+		pclass.serialize(outBuf);
+		return write(outBuf);
+	}
 
 	/**
 	 * Reads a protocol generated class from request stream
-	 * @param bOut a buffer holding the read data upon return
+	 * @param pclass the protocol generated class to be filled from buffer, needs to have T::deserialize(const Buffer&, uint32_t &missing)
 	 *
 	 * @return True on success
 	 */
 	template<typename T>
-	bool readProtoClass(Buffer &bOut);
+	bool Request::readProtoClass(T &pclass) {
+		Buffer inBuf;
+		uint32_t missing = 0;
+		// try to deserialize, read missing bytes
+		while(!pclass.deserialize(inBuf, missing)) {
+			if(missing == 0) // no bytes missing, but class cannot be deserialized => error
+				return false;
+
+			readExactly(inBuf, missing);
+		}
+		return true;
+	}
 
 private:
 	SSL_CTX *ctx;
