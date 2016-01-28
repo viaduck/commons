@@ -158,6 +158,7 @@ bool Request::write(const Buffer &buffer) {
     if (!initDone)
         return false;
 
+    // TODO: writeExactly
     int res = SSL_write(ssl, buffer.const_data(), buffer.size());
     if (res <= 0) return false;
 
