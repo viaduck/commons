@@ -137,16 +137,13 @@ public:
     }
 
 
-    bool deserialize(const Buffer &in, uint32_t &
-        [[[cog cog.outl("missing" if len(vars)-cstatic > 0 else "/* missing */")]]]
-        [[[end]]]
-        ) {
+    bool deserialize(const Buffer &in, uint32_t &missing) {
         [[[cog
         if offset != 0:
-            cog.outl("    if (mBuffer.size() < STATIC_SIZE) {\n"
-                         "        mBuffer.increase(STATIC_SIZE);     // prevent access resulting in SIGSEGV if buffer is too small\n"
-                         "        mBuffer.use(STATIC_SIZE);\n"
-                        "    }")
+            cog.outl("    if (in.size() < STATIC_SIZE) {\n"
+                     "        missing = STATIC_SIZE - in.size();\n"
+                     "        return false;\n"
+                     "    }")
         ]]]
         [[[end]]]
         // static data
