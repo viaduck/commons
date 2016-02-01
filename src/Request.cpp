@@ -21,8 +21,6 @@ Request::Request(std::string host, u_short port, bool IPv6) {
 
 Request::~Request() {
     close();
-    SSL_CTX_free(ctx);
-    SSL_free(ssl);
 }
 
 void printError() {
@@ -170,5 +168,7 @@ void Request::close() {
     if (initDone) {
         SSL_shutdown(ssl);
         ::close(fd);        // global namespace socket close method, not the member method!
+        SSL_CTX_free(ctx);
+        SSL_free(ssl);
     }
 }
