@@ -132,7 +132,8 @@ public:
 			if(missing == 0) // no bytes missing, but class cannot be deserialized => error
 				return false;
 
-			readExactly(inBuf, missing);
+			if(!readExactly(inBuf, missing))
+				return false;
 		}
 		return true;
 	}
