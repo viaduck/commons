@@ -1,5 +1,5 @@
 set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp BufferTest.h ContainerTest.cpp ContainerTest.h
-        BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h DevNullTest.cpp)
+        BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h DevNullTest.cpp ValidPtrTest.cpp ValidPtrTest.h)
 
 ### coverage
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
