@@ -144,7 +144,7 @@ bool Request::readExactly(Buffer &buffer, const uint32_t size) {
     buffer.increase(size, true);        // must be big enough to hold at least size bytes
 
     // TODO read timeout
-    while ((res = SSL_read(ssl, buffer.data(buffer.size()), size-read)) > 0 && read != size) {
+    while (read != size && (res = SSL_read(ssl, buffer.data(buffer.size()), size-read)) > 0) {
         read += res;
         buffer.use(static_cast<uint32_t>(res));
     }
