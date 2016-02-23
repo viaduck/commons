@@ -165,6 +165,12 @@ public:
     virtual void use(uint32_t n);
 
     /**
+     * Marks n bytes unused (resp. reverts use(..)). This decreases Buffer's size.
+     * @param n Number of bytes
+     */
+    virtual void unuse(uint32_t n);
+
+    /**
      * Clears the buffer. This resets used and consumed bytes counts.
      */
     virtual void clear();

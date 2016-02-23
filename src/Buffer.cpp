@@ -132,6 +132,12 @@ void Buffer::use(uint32_t n) {
         mUsed = mReserved;
 }
 
+void Buffer::unuse(uint32_t n) {
+    if (n > mUsed)
+        n = mUsed;
+    mUsed -= n;
+}
+
 void Buffer::clear() {
     mUsed = 0;
     mOffset = 0;

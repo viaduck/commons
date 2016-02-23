@@ -417,6 +417,31 @@ TEST_F(BufferTest, UseTest) {
     ASSERT_EQ(25, static_cast<int32_t>(b.size()));
 }
 
+TEST_F(BufferTest, UnuseTest) {
+    Buffer b(25);
+    ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+
+    b.use(0);
+    ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+    b.unuse(0);
+    ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+
+    b.use(2);
+    ASSERT_EQ(2, static_cast<int32_t>(b.size()));
+    b.unuse(2);
+    ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+
+    b.use(10);
+    ASSERT_EQ(10, static_cast<int32_t>(b.size()));
+    b.unuse(3);
+    ASSERT_EQ(7, static_cast<int32_t>(b.size()));
+
+    b.use(80);       // this would exceed capacity -> size must be capacity now
+    ASSERT_EQ(25, static_cast<int32_t>(b.size()));
+    b.unuse(500);       // this exceeds used size() ->  size must be 0 now
+    ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+}
+
 TEST_F(BufferTest, ResetTest) {
     Buffer a(100);
     ASSERT_EQ(0, static_cast<int32_t>(a.size()));
