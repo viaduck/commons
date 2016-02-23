@@ -1,0 +1,3 @@
+uint32_t    pubkeyServerId
+uint8_t(32) pubkeySymmetricKey
+uint8_t(10) AIT

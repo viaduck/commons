@@ -51,7 +51,8 @@ add_custom_command(
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/ ${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/message.template.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/database/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/network/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/push/*.thx
+        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/database/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/network/*.thx
+        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/push/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/client/*.thx
         ${CMAKE_CURRENT_SOURCE_DIR}/protocol/test/*.thx
 )
 
