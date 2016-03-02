@@ -15,3 +15,6 @@ linux-x86_64:
     stage: build
     only:
         - master
+    artifacts:
+        paths:
+        - build/test/coverage/           # coverage data
