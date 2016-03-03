@@ -1,3 +1,4 @@
 uint8_t(10) AIT
-uint8_t(32) key1
-uint8_t(32) key2
+uint8_t(64) ecpubkey1
+uint8_t(32) ecpubkey2
+uint64_t    timestamp

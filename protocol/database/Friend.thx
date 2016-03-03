@@ -1,6 +1,9 @@
 uint8_t         version
 uint16_t        friendsize
 uint8_t(32)     name
+uint8_t         keystatus
+uint8_t(64)     ecPrivKey1
+uint8_t(64)     ecPrivKey2
 uint8_t(32)     symmetricKey1
 uint8_t(32)     symmetricKey2
 uint8_t(20)     pubkeyhash
