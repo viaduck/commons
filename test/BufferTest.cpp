@@ -468,6 +468,51 @@ TEST_F(BufferTest, PaddTest) {
     ASSERT_EQ(45, static_cast<int32_t>(a.size()));
     EXPECT_ARRAY_EQ(const uint8_t, "abcdef\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", a.data(), 45);
     EXPECT_ARRAY_EQ(const uint8_t, "abcdef\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", a.const_data(), 45);
+
+    {
+        // padd no-op
+        Buffer b(30);
+        ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+        b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        b.padd(10, 0xBE);       // 10 < size() -> no-op
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789", b.data(), 36);
+    }
+
+    {
+        // padd in middle of Buffer
+        Buffer b(30);
+        ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+        b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        b.padd(5, 10, 0xBE);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "abcde\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBEpqrstuvwxyz0123456789", b.data(),
+                        36);
+    }
+    {
+        // padd partly out of range
+        Buffer b(30);
+        ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+        b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        b.padd(30, 10, 0xBE);
+        ASSERT_EQ(40, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", b.data(),
+                        40);
+    }
+    {
+        // padd out of range
+        Buffer b(30);
+        ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+        b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        b.padd(40, 10, 0xBE);
+        ASSERT_EQ(50, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789", b.data(), 36);
+        EXPECT_ARRAY_EQ(const uint8_t, "\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", b.data(40), 10);
+    }
 }
 
 TEST_F(BufferTest, IncreaseTest) {

@@ -95,10 +95,22 @@ uint32_t Buffer::increase(const uint32_t newCapacity, const uint8_t value, const
     return r;
 }
 
-void Buffer::padd(const uint32_t newSize, const uint8_t value) {
-    increase(newSize, value);
+void Buffer::padd(const uint32_t offset, const uint32_t size, const uint8_t value) {
+    increase(offset+size, value);
+    // overwrite existing bytes with supplied value (bytes with offset < mUsed). New bytes have been set to value
+    // already by increase(..)
+    if (offset < mUsed)
+        for (uint32_t i = offset; i < offset+size; ++i)
+            static_cast<uint8_t *>(data())[i] = value;
+
     // mark them as used
-    use(newSize-mUsed);
+    if (offset+size > mUsed)
+        use(offset+size-mUsed);
+}
+
+void Buffer::padd(const uint32_t newSize, const uint8_t value) {
+    if (newSize > mUsed)
+        padd(mUsed, newSize-mUsed, value);
 }
 
 uint32_t Buffer::size() const {

@@ -123,7 +123,18 @@ public:
     uint32_t increase(const uint32_t newCapacity, const uint8_t value, const bool by = false);
 
     /**
-     * Adds padded bytes with specified value to the Buffer, so that Buffer is newSize long. Padded bytes are marked as used.
+     * Adds padded bytes with specified value to the Buffer (starting at offset), so that Buffer is newSize long. Padded
+     * bytes are marked as used.
+     * @param offset Offset within Buffer
+     * @param size Number of bytes to add
+     * @param value Byte value of padded bytes
+     */
+    void padd(const uint32_t offset, const uint32_t size, const uint8_t value);
+
+    /**
+     * Overload variant of padd(const uint32_t offset, const uint32_t size, const uint8_t value) which starts at
+     * end of Buffer (size())
+     * @param newSize Buffer's new size
      * @param value Byte value of padded bytes
      */
     void padd(const uint32_t newSize, const uint8_t value);
