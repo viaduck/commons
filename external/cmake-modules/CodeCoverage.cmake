@@ -27,6 +27,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
+# 2016-03-04
+# - Made coverage html report more informative and fancy:
+# -- Git revision as test title
+# -- Displaying a colour legend
+# -- Branch coverage
+#
 # 2016-01-24
 # - Added additional optional parameter for specifying exclusion paths of coverage target
 #
@@ -77,6 +83,10 @@ FIND_PROGRAM( GCOV_PATH gcov )
 FIND_PROGRAM( LCOV_PATH lcov )
 FIND_PROGRAM( GENHTML_PATH genhtml )
 FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
+
+# include git revision module
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
 IF(NOT GCOV_PATH)
     MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
@@ -141,15 +151,15 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
     ADD_CUSTOM_TARGET(${_targetname}
 
             # Cleanup lcov
-            ${LCOV_PATH} --directory . --zerocounters
+            ${LCOV_PATH} --rc lcov_branch_coverage=1 --directory . --zerocounters
 
             # Run tests
             COMMAND ${_testrunner} ${ARGV4}
 
             # Capturing lcov counters and generating report
-            COMMAND ${LCOV_PATH} --directory . --capture --output-file ${_outputname}.info
-            COMMAND ${LCOV_PATH} --remove ${_outputname}.info ${ARGV3} 'test/*' '/usr/*' 'external/' --output-file ${_outputname}.info.cleaned
-            COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info.cleaned
+            COMMAND ${LCOV_PATH} --rc lcov_branch_coverage=1 --directory . --capture --output-file ${_outputname}.info
+            COMMAND ${LCOV_PATH} --rc lcov_branch_coverage=1 --remove ${_outputname}.info ${ARGV3} 'test/*' '/usr/*' 'external/' --output-file ${_outputname}.info.cleaned
+            COMMAND ${GENHTML_PATH} -t ${GIT_SHA1} --legend --branch-coverage -o ${_outputname} ${_outputname}.info.cleaned
             COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info ${_outputname}.info.cleaned
 
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
