@@ -68,5 +68,20 @@ if (WIN32)
     target_link_libraries(libCom ws2_32)
 endif()
 
+# doxygen
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    # include git revision module
+    include(GetGitRevisionDescription)
+    get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(libCom_doc
+            ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen" VERBATIM
+            )
+endif()
+
 # tests
 add_subdirectory(test)

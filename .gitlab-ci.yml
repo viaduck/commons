@@ -12,9 +12,11 @@ linux-x86_64:
         - make
         - test/AllUnitTests             # runs gtest target
         - make Coverage                 # generate code coverage
+        - make libCom_doc               # generate doxygen code documentation
     stage: build
     only:
         - master
     artifacts:
         paths:
         - build/test/coverage/           # coverage data
+        - build/doc/html/                # doxygen documentation
