@@ -101,6 +101,9 @@ public:
                          "const BufferRangeConst {name}_range() {{\n"
                          "    return BufferRangeConst(mBuffer, {offset}, {name}_size());\n"
                          "}}\n"
+                         "BufferRange {name}_mutable_range() {{\n"
+                         "    return BufferRange(mBuffer, {offset}, {name}_size());\n"
+                         "}}\n"
                          "static inline uint32_t {name}_size() {{\n"
                          "    return sizeof({type_raw})*{count};\n"
                          "}}\n".format(type=v[0]+"*", type_raw=v[0], name=v[1], offset=offset, count=v[3], size=v[2]*v[3]))
