@@ -16,7 +16,7 @@ target_link_libraries(AllUnitTests libCom)
 add_test(Tests AllUnitTests)
 
 ## code coverage
-if (NOT WIN32)
-    include(CodeCoverage)
+include(CodeCoverage)
+if (LCOV_PATH)
     setup_target_for_coverage(Coverage AllUnitTests ${CMAKE_CURRENT_BINARY_DIR}/coverage)
 endif()

@@ -27,6 +27,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
+# 2016-03-05
+# - Having gcov installed is not mandatory anymore when including this module
+#
 # 2016-03-04
 # - Made coverage html report more informative and fancy:
 # -- Git revision as test title
@@ -88,10 +91,6 @@ FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
-IF(NOT GCOV_PATH)
-    MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
-ENDIF() # NOT GCOV_PATH
-
 IF(NOT CMAKE_COMPILER_IS_GNUCXX)
     # Clang version 3.0.0 and greater now supports gcov as well.
     MESSAGE(WARNING "Compiler is not GNU gcc! Clang Version 3.0.0 and greater supports gcov as well, but older versions don't.")
@@ -138,6 +137,10 @@ ENDIF() # NOT CMAKE_BUILD_TYPE STREQUAL "Debug"
 # Optional fifth parameter is passed as arguments to _testrunner
 #   Pass them in list form, e.g.: "-j;2" for -j 2
 FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
+
+    IF(NOT GCOV_PATH)
+        MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
+    ENDIF() # NOT GCOV_PATH
 
     IF(NOT LCOV_PATH)
         MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
