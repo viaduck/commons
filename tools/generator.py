@@ -22,7 +22,12 @@ def do(filename):
     """
     with open(filename, "r") as f:
         for line in f:
-            type, id = l = line.split()
+            if line[0] in ('#', '\n'):      # skip empty lines and line comments starting with '#'
+                continue
+
+            l = line.split()
+            type, id = l[0], l[1]
+
             arr_i = re.split("\(([0-9]+|var)\)", type)
             if len(arr_i) > 1:
                 if arr_i[1] != "var":
