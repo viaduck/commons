@@ -481,14 +481,14 @@ TEST_F(BufferTest, PaddTest) {
     }
 
     {
-        // padd in middle of Buffer
+        // padd in middle of Buffer -> no-op
         Buffer b(30);
         ASSERT_EQ(0, static_cast<int32_t>(b.size()));
         b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
         ASSERT_EQ(36, static_cast<int32_t>(b.size()));
         b.padd(5, 10, 0xBE);
         ASSERT_EQ(36, static_cast<int32_t>(b.size()));
-        EXPECT_ARRAY_EQ(const uint8_t, "abcde\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBEpqrstuvwxyz0123456789", b.data(),
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789", b.data(),
                         36);
     }
     {
@@ -499,7 +499,7 @@ TEST_F(BufferTest, PaddTest) {
         ASSERT_EQ(36, static_cast<int32_t>(b.size()));
         b.padd(30, 10, 0xBE);
         ASSERT_EQ(40, static_cast<int32_t>(b.size()));
-        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", b.data(),
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789\xBE\xBE\xBE\xBE", b.data(),
                         40);
     }
     {

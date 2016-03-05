@@ -124,7 +124,7 @@ public:
 
     /**
      * Adds padded bytes with specified value to the Buffer (starting at offset), so that Buffer is newSize long. Padded
-     * bytes are marked as used.
+     * bytes are marked as used. Does not overwrite any existing byte.
      * @param offset Offset within Buffer
      * @param size Number of bytes to add
      * @param value Byte value of padded bytes
