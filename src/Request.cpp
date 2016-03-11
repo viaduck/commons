@@ -91,7 +91,12 @@ int Request::init() {
         return -2;
     }
 
-    return initSsl(fd);
+    int ret = initSsl(fd);
+    // close connection if SSL init fails
+    if (ret != 0)
+        ::close(fd);
+
+    return ret;
 }
 
 bool Request::read(Buffer &buffer, const uint32_t min) {
