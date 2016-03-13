@@ -1,0 +1,4 @@
+uint8_t         messageType     # used for detecting which message type was used
+
+uint16_t        pluginID
+uint8_t(var)    content
