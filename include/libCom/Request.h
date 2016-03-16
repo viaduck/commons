@@ -56,7 +56,7 @@ public:
 	 * @param port Port to connect to
 	 * @param IPv6 Use IPv6 (true) or not (false; default)
 	 */
-	Request(std::string host, u_short port, bool IPv6=false);
+	Request(std::string host, u_short port, bool IPv6 = false, bool stickyPubKey = true);
 
 	/**
 	 * Free OpenSSL resources
@@ -143,6 +143,7 @@ private:
 	SSL *ssl;
 	bool initDone = false;
 	SOCKET fd;
+	bool stickyPubKey;
 };
 
 

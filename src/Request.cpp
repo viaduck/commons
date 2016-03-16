@@ -7,14 +7,34 @@
 #include <libCom/Request.h>
 
 #include <openssl/ssl.h>
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
 #include <openssl/err.h>
+#include <openssl/conf.h>
+
+const char STICKY_PUBKEY[] = "-----BEGIN PUBLIC KEY-----\n"
+                            "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA4tmmlX6LxHFfkUr+L3Tz\n"
+                            "Mfyw2RrkPvIgtSgtwHEIIQq5By3zsT0m8pNfpspascIQjtJ47A+HkbAgzn0tQvuI\n"
+                            "D9sQPbrdtHrHll5zH4jOPPuibx0dczmmXN3cBnMZZZaUMmYclwvSZ8zu3nJC8iG5\n"
+                            "t1ITRlnCvnNzjqHF2v2vGvfth7KcmVrb8q4wlI9kfdiuL0ypm9A/OWA0wjgQOAUq\n"
+                            "RXe7z1aqDU7fqyM72Vynkw7aWzg/gitWA1t7NT6Ph8aVRcTAffRBdcOA+B6kTVKc\n"
+                            "DonHvD0qk758ieFEED8bWdEsP+gwAVdbWD4pRfZzYYJmqCpsfFfDZ7b5DKRs0Cbr\n"
+                            "GRdIwZC/yXzLKKlG1MrkeXbmEfK05SyjF6R8swULDK29oms6LjxSSZPdJEB+kUf6\n"
+                            "aWKT0+hoRdvXJh+dMjj+WBTAoqSu5SP7yfxZePDO41MtP42MQaELFy0e0QqV2z8r\n"
+                            "WlMAbYweVPMtsvTplB1dCj2YB9ud1G1l2H0xtb+iapeF4gKm9hXs+JPPx++9WVGK\n"
+                            "gttgruOsj3ukjtVlB2gKUV5jj3B9EwQsuiGNJIsC/v9nKom3fTiLRZYkCYCCfZ/H\n"
+                            "tVOlJjPbHELFA5sFhVaPlX3BDQCL+w5hYVZPsZ64JZI7bkIDIS0Q8R9zsAoK+98A\n"
+                            "CZTMil/tviZShNIisKNfPpUCAwEAAQ==\n"
+                            "-----END PUBLIC KEY-----";
+int STICKY_PUBKEY_SIZE = sizeof(STICKY_PUBKEY)/sizeof(STICKY_PUBKEY[0]);
 
 using namespace std;
 
-Request::Request(std::string host, u_short port, bool IPv6) {
+Request::Request(std::string host, u_short port, bool IPv6, bool stickyPubKey) {
 	this->host = host;
 	this->port = port;
 	this->ipv6 = IPv6;
+    this->stickyPubKey = stickyPubKey;
 
 	global_initOpenSSL();
 }
@@ -24,7 +44,7 @@ Request::~Request() {
 }
 
 void printError() {
-    std::cerr << ERR_func_error_string(ERR_get_error());
+    std::cerr << ERR_func_error_string(ERR_get_error()) << std::endl;
 }
 
 int Request::initSsl(int fd) {
@@ -43,6 +63,50 @@ int Request::initSsl(int fd) {
     // options
     SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
 
+    // verify
+    if (stickyPubKey)
+        SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, [] (int preVerify, X509_STORE_CTX *ctx) -> int {
+            if (X509_STORE_CTX_get_error_depth(ctx) > 0)
+                return preVerify;
+
+            X509 *cert = X509_STORE_CTX_get_current_cert(ctx);
+            if (cert) {
+                using RSA_ref = std::unique_ptr<RSA, decltype(&RSA_free)>;
+                using BIO_ref = std::unique_ptr<BIO, decltype(&BIO_free)>;
+                using EVP_PKEY_ref = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
+
+                EVP_PKEY *pubKey = X509_get_pubkey(cert);
+
+                // create memory bio
+                BIO_ref pubKeyStoredBio(BIO_new(BIO_s_mem()), &BIO_free);
+                if (!pubKeyStoredBio)
+                    return 0;
+
+                // write PEM data into bio
+                if (BIO_write(pubKeyStoredBio.get(), STICKY_PUBKEY, STICKY_PUBKEY_SIZE) != STICKY_PUBKEY_SIZE)
+                    return 0;
+
+                // parse the PEM private key data
+                RSA_ref pubKeyStoredRSA(PEM_read_bio_RSA_PUBKEY(pubKeyStoredBio.get(), nullptr, nullptr, nullptr), &RSA_free);
+                if (!pubKeyStoredRSA)
+                    return 0;
+                EVP_PKEY_ref pubKeyStored(EVP_PKEY_new(), &EVP_PKEY_free);
+                EVP_PKEY_set1_RSA(pubKeyStored.get(), pubKeyStoredRSA.get());
+
+                // now compare the keys
+                int cmpRes = EVP_PKEY_cmp(pubKey, pubKeyStored.get());
+                if (cmpRes == 1)
+                    return 1;
+            }
+            return 0;
+        });
+    else
+        SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, nullptr);
+
+    SSL_CTX_set_verify_depth(ctx, 8);
+    // load default certificate path for verification
+    SSL_CTX_set_default_verify_paths(ctx);      // TODO issue #6
+
 	ssl = SSL_new(ctx);
     if (ssl == nullptr) {
         printError();
@@ -52,6 +116,7 @@ int Request::initSsl(int fd) {
         printError();
         return -6;
     }
+    //SSL_set_tlsext_host_name(ssl, "host.name");       // TODO hostname lookup
     if (SSL_connect(ssl) != 1) {
         printError();
         return -7;
@@ -86,6 +151,7 @@ int Request::init() {
     service.sin_port = htons(this->port);
     service.sin_addr.s_addr = inet_addr(this->host.c_str());
 
+    // TODO hostname lookup
     int result = connect(fd, reinterpret_cast<sockaddr *>(&service), sizeof(service));
     if (result == -1) {
         return -2;
