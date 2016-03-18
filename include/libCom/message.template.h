@@ -225,7 +225,12 @@ public:
 
     // copy constructor
     [[[cog
-        cog.outl(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true) { }")
+    vars = list(g.do(filename))
+    cog.out(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true)")
+    for v in vars:
+        if v[3] == "var":           # variable type
+            cog.out(", mBuffer_{name}(other.mBuffer_{name})".format(name=v[1]))
+    cog.outl("\n{ }")
     ]]]
     [[[end]]]
 
@@ -266,6 +271,9 @@ public:
     }
 
 private:
+    Buffer &mBuffer;
+    bool mAllocated = false;
+
     [[[cog
         for v in vars:
             # variable array
@@ -274,8 +282,6 @@ private:
                 cog.outl("Buffer mBuffer_{name};\n".format(name=v[1]))
     ]]]
     [[[end]]]
-    Buffer &mBuffer;
-    bool mAllocated = false;
 };
 
 [[[cog
