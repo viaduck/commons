@@ -139,6 +139,10 @@ public:
         [[[end]]]
     }
 
+    bool deserialize(const Buffer &in) {
+        uint32_t unused;
+        return deserialize(in, unused);
+    }
 
     bool deserialize(const Buffer &in, uint32_t &missing) {
         [[[cog
