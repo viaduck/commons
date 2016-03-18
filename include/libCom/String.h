@@ -8,6 +8,7 @@
 #include <istream>
 
 #include "Buffer.h"
+#include "BufferRange.h"
 
 class String : protected Buffer {
 
@@ -239,12 +240,59 @@ public:
         return Buffer::operator!=(other);
     }
 
+    inline virtual bool operator<(const String &other) const {
+        if(other.size() != size() || size() == 0)
+            return size() < other.size();
+
+        const uint8_t *s1 = static_cast<const uint8_t *>(const_data());
+        const uint8_t *s2 = static_cast<const uint8_t *>(other.const_data());
+
+        uint s_pos = 0;
+        while(s1[s_pos] == s2[s_pos] && ++s_pos < size() - 1);
+
+        return s1[s_pos] < s2[s_pos];
+    }
+
+    void serialize(Buffer &out) const {
+        uint cSize = size();
+        out.append(&cSize, sizeof(cSize));
+        out.append(toBuffer());
+    }
+
+    bool deserialize(BufferRangeConst in) {
+        if(in.size() < 4)
+            return false;
+
+        uint cSize = *static_cast<const uint*>(in.const_data());
+        in += sizeof(cSize);
+
+        if(in.size() < cSize)
+            return false;
+
+        append(in.const_data(), cSize);
+        return true;
+    }
+
 protected:
     Buffer mCStrings;       // FIXME holds all returned cstrings
 
 private:
     String concatHelper(const char *cstring, uint32_t size) const;
 };
+
+namespace std {
+
+    /**
+     * Implement hash function for String class (so that String is usable in a hash map)
+     */
+    template<>
+    struct hash<const String> {
+        std::size_t operator()(const String &k) const {
+            std::hash<const BufferRangeConst> test;
+            return test.operator()(k.toBuffer());
+        }
+    };
+}
 
 
 #endif //LIBCOM_STRING_H

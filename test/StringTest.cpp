@@ -745,3 +745,43 @@ TEST(StringTest, toInt) {
         ASSERT_EQ(0x56efcd, static_cast<int32_t>(result));
     }
 }
+
+TEST(StringTest, lessOperator) {
+    {
+        String s("test1"), p("test2");
+        ASSERT_TRUE(s < p);
+        ASSERT_FALSE(p < s);
+    }
+    {
+        String s("bb"), p("aaa");
+        ASSERT_TRUE(s < p);
+        ASSERT_FALSE(p < s);
+    }
+    {
+        String s("aa"), p("z");
+        ASSERT_FALSE(s < p);
+        ASSERT_TRUE(p < s);
+    }
+    {
+        String q("test");
+        ASSERT_FALSE(q < q);
+    }
+    {
+        String q, p("test");
+        ASSERT_FALSE(q < q);
+        ASSERT_TRUE(q < p);
+        ASSERT_FALSE(p < q);
+    }
+}
+
+TEST(StringTest, hashOp) {
+    {
+        String test("test1"), testDiff("lkajsasjs"), testSim("test2");
+        std::hash<const String> hasher;
+        size_t hashTest = hasher(test);
+        size_t hashDiff = hasher(testDiff);
+        size_t hashSim = hasher(testSim);
+        ASSERT_NE(hashTest, hashDiff);
+        ASSERT_NE(hashTest, hashSim);
+    }
+}
