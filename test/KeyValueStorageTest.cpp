@@ -9,19 +9,19 @@ TEST_F(KeyValueStorageTest, testSimple) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
-    testContainer.set("test1", "test1");
-    testContainer.set("test1", "test2");
-    testContainer.set("test1", "test3");
-    testContainer.set("test1", "test4");
-    testContainer.set("test1", "test5");
+    testContainer.set<String>("test1", "test1");
+    testContainer.set<String>("test1", "test2");
+    testContainer.set<String>("test1", "test3");
+    testContainer.set<String>("test1", "test4");
+    testContainer.set<String>("test1", "test5");
 
     // write 3 values with other key
-    testContainer.set("test2", "test1");
-    testContainer.set("test2", "test2");
-    testContainer.set("test2", "test3");
+    testContainer.set<String>("test2", "test1");
+    testContainer.set<String>("test2", "test2");
+    testContainer.set<String>("test2", "test3");
 
     uint32_t count = 0;
-    testContainer.get("test1", [&] (String& s) -> bool {
+    testContainer.get<String>("test1", [&] (const String& s) -> bool {
         count++;
         return true;
     });
@@ -30,7 +30,7 @@ TEST_F(KeyValueStorageTest, testSimple) {
     ASSERT_EQ(5, count);
 
     count = 0;
-    testContainer.get("test2", [&] (String& s) -> bool {
+    testContainer.get<String>("test2", [&] (const String& s) -> bool {
         count ++;
         return true;
     });
@@ -43,16 +43,16 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
-    testContainer.set("test1", "test1");
-    testContainer.set("test1", "test2");
-    testContainer.set("test1", "test3");
-    testContainer.set("test1", "test4");
-    testContainer.set("test1", "test5");
+    testContainer.set<String>("test1", "test1");
+    testContainer.set<String>("test1", "test2");
+    testContainer.set<String>("test1", "test3");
+    testContainer.set<String>("test1", "test4");
+    testContainer.set<String>("test1", "test5");
 
     // write 3 values with other key
-    testContainer.set("test2", "test1");
-    testContainer.set("test2", "test2");
-    testContainer.set("test2", "test3");
+    testContainer.set<String>("test2", "test1");
+    testContainer.set<String>("test2", "test2");
+    testContainer.set<String>("test2", "test3");
 
     Buffer testBuf;
     testContainer.serialize(testBuf);
@@ -61,7 +61,7 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     ASSERT_TRUE(dContainer.deserialize(testBuf));
 
     uint32_t count = 0;
-    dContainer.get("test1", [&] (String& s) -> bool {
+    dContainer.get<String>("test1", [&] (const String& s) -> bool {
         count++;
         return true;
     });
@@ -70,7 +70,7 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     ASSERT_EQ(5, count);
 
     count = 0;
-    dContainer.get("test2", [&] (String& s) -> bool {
+    dContainer.get<String>("test2", [&] (const String& s) -> bool {
         count ++;
         return true;
     });
