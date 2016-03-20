@@ -20,7 +20,7 @@ TEST_F(KeyValueStorageTest, testSimple) {
     testContainer.set("test2", "test2");
     testContainer.set("test2", "test3");
 
-    uint count = 0;
+    uint32_t count = 0;
     testContainer.get("test1", [&] (String& s) -> bool {
         count++;
         return true;
@@ -60,7 +60,7 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     KeyValueStorage dContainer;
     ASSERT_TRUE(dContainer.deserialize(testBuf));
 
-    uint count = 0;
+    uint32_t count = 0;
     dContainer.get("test1", [&] (String& s) -> bool {
         count++;
         return true;

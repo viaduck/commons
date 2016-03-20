@@ -240,6 +240,13 @@ public:
         return Buffer::operator!=(other);
     }
 
+    /*
+     * Compares two Strings lexically
+     * // FIXME: this is just enough to use a set<String>, but does not actually compare lexically
+     *
+     * @param other String to compare to this String
+     * @return True if this String is lexically smaller than the other one
+     */
     inline virtual bool operator<(const String &other) const {
         if(other.size() != size() || size() == 0)
             return size() < other.size();
@@ -247,23 +254,35 @@ public:
         const uint8_t *s1 = static_cast<const uint8_t *>(const_data());
         const uint8_t *s2 = static_cast<const uint8_t *>(other.const_data());
 
-        uint s_pos = 0;
+        uint32_t s_pos = 0;
         while(s1[s_pos] == s2[s_pos] && ++s_pos < size() - 1);
 
         return s1[s_pos] < s2[s_pos];
     }
 
+    /**
+     * Serializes the String in given Buffer.
+     *
+     * @param out Buffer where the serialized representation of this String will be appended to
+     */
     void serialize(Buffer &out) const {
-        uint cSize = size();
+        uint32_t cSize = size();
         out.append(&cSize, sizeof(cSize));
         out.append(toBuffer());
     }
 
+    /**
+     * Reads a serialized String from given Range.
+     *
+     * @paramm in Range pointing to a serialized representation of a String
+     *
+     * @return True on success, false otherwise
+     */
     bool deserialize(BufferRangeConst in) {
-        if(in.size() < 4)
+        if(in.size() < sizeof(uint32_t))
             return false;
 
-        uint cSize = *static_cast<const uint*>(in.const_data());
+        uint32_t cSize = *static_cast<const uint32_t*>(in.const_data());
         in += sizeof(cSize);
 
         if(in.size() < cSize)
