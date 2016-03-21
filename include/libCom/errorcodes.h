@@ -5,7 +5,7 @@
 #ifndef CORE_ERRORCODES_H
 #define CORE_ERRORCODES_H
 
-enum IOResult {
+enum class IOResult {
     // internal error codes
     ERROR_INVALID_PACKAGE,
     ERROR_INTERNAL,

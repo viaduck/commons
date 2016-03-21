@@ -21,19 +21,19 @@ TEST_F(KeyValueStorageTest, testSimple) {
     testContainer.set<String>("test2", "test3");
 
     uint32_t count = 0;
-    testContainer.get<String>("test1", [&] (const String& s) -> bool {
+    ASSERT_TRUE(testContainer.get<String>("test1", [&] (const String& s) -> bool {
         count++;
         return true;
-    });
+    }));
 
     // ensure that 5 values were found
     ASSERT_EQ(5, count);
 
     count = 0;
-    testContainer.get<String>("test2", [&] (const String& s) -> bool {
+    ASSERT_TRUE(testContainer.get<String>("test2", [&] (const String& s) -> bool {
         count ++;
         return true;
-    });
+    }));
 
     // ensure that 3 values were found
     ASSERT_EQ(3, count);
@@ -61,19 +61,19 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     ASSERT_TRUE(dContainer.deserialize(testBuf));
 
     uint32_t count = 0;
-    dContainer.get<String>("test1", [&] (const String& s) -> bool {
+    ASSERT_TRUE(dContainer.get<String>("test1", [&] (const String& s) -> bool {
         count++;
         return true;
-    });
+    }));
 
     // ensure that 5 values were found
     ASSERT_EQ(5, count);
 
     count = 0;
-    dContainer.get<String>("test2", [&] (const String& s) -> bool {
+    ASSERT_TRUE(dContainer.get<String>("test2", [&] (const String& s) -> bool {
         count ++;
         return true;
-    });
+    }));
 
     // ensure that 3 values were found
     ASSERT_EQ(3, count);

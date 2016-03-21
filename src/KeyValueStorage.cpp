@@ -16,7 +16,7 @@ bool KeyValueStorage::getSet<String>(const String &key, std::function<bool(Strin
             break;
     }
 
-    return its.first == its.second;
+    return its.first != its.second;
 }
 
 // TODO: code duplicate for const version
@@ -32,7 +32,7 @@ bool KeyValueStorage::get<String>(const String &key, std::function<bool(const St
             break;
     }
 
-    return its.first == its.second;
+    return its.first != its.second;
 }
 
 template <typename T>
