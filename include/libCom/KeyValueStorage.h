@@ -17,7 +17,7 @@ class KeyValueStorage {
 public:
 
     /**
-     * Calls callback for every value belonging to given key. The String will be mutable in the callback.
+     * Calls callback for every value belonging to given key. The Value will be mutable in the callback.
      *
      * @param key The key to look up
      * @param callback A callback receiving every value of the key. Return false to terminate loop over values.
@@ -28,7 +28,7 @@ public:
     bool getSet(const String &key, std::function<bool(T &)> callback);
 
     /**
-     * Calls callback for every value belonging to given key. The String will be immutable in the callback.
+     * Calls callback for every value belonging to given key. The Value will be immutable in the callback.
      *
      * @param key The key to look up
      * @param callback A callback receiving every value of the key. Return false to terminate loop over values.
@@ -62,6 +62,33 @@ public:
      * @return True on success, false otherwise
      */
     bool deserialize(BufferRangeConst in);
+
+    /**
+     * Gets a key with only one value with a fallback option.
+     *
+     * @param key The key to look up
+     * @param fallback If specified the fallback will be set as value and returned if key does not exist
+     *
+     * @return Mutable pointer to value or nullptr
+     */
+    template <typename T>
+    T *getSingle(const String &key, const T *fallback = nullptr);
+
+    /**
+     * Sets a value to a key with only one value, overwriting existing value if needed
+     *
+     * @param key The key to set value for
+     * @param value The value to associate with key
+     *
+     * @return True on success
+     */
+    template <typename T>
+    bool setSingle(const String &key, const T &value);
+
+    /**
+     * Removes all items from this storage
+     */
+    void clear();
 
 private:
     // internal key-value multimap

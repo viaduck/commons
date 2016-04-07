@@ -82,23 +82,33 @@ void KeyValueStorage::serialize(Buffer &out) const {
 
 
 bool KeyValueStorage::deserialize(BufferRangeConst in) {
+    // remove all items before deserialize
+    clear();
+
+    // while there is still data to read
     while(in.size() > 0) {
+        // deserialize key first
         String key;
         if(!key.deserialize(in))
             return false;
 
+        // move in pointer by key size and size of serialized key header
         in += key.size() + sizeof(uint32_t);
+        // fail if not enough data left for count of children
         if(in.size() < 4)
             return false;
 
+        // read child count
         uint32_t valCount = *static_cast<const uint32_t*>(in.const_data());
         in += sizeof(uint32_t);
 
+        // for each child, deserialize its value
         for (uint32_t cV = 0; cV < valCount; ++cV) {
             String value;
             if(!value.deserialize(in))
                 return false;
 
+            // store value in KVS and move pointer
             set(key, value);
             in += key.size() + sizeof(uint32_t);
         }
@@ -107,11 +117,49 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
     return true;
 }
 
+template<typename T>
+T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
+    // get all values matching key
+    auto its = mInternal.equal_range(key);
+
+    // range is empty and fallback given
+    if(its.first == its.second && fallback != nullptr) {
+        set(key, *fallback);
+        return getSingle<T>(key, nullptr);
+    }
+    else if(its.first != its.second)
+        return &its.first->second;
+
+    // range is empty and no fallback given
+    return nullptr;
+}
+
+template<typename T>
+bool KeyValueStorage::setSingle(const String &key, const T &value) {
+    if(mKeys.count(key) > 0)
+        return getSet<T>(key, [&] (T &listValue) {
+            listValue = value;
+            return false;
+        });
+    else
+        set(key, value);
+
+    return true;
+}
+
+void KeyValueStorage::clear() {
+    mKeys.clear();
+    mInternal.clear();
+}
+
+
 // explicit template instantiation
 template bool KeyValueStorage::getSet<String>(const String &key, std::function<bool(String &value)> callback);
 template bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &value)> callback) const;
 template void KeyValueStorage::set<String>(const String &key, const String& value);
+template String *KeyValueStorage::getSingle(const String &key, const String *fallback);
 
 template bool KeyValueStorage::getSet<uint32_t>(const String &key, std::function<bool(uint32_t &value)> callback);
 template bool KeyValueStorage::get<uint32_t>(const String &key, std::function<bool(const uint32_t &value)> callback) const;
 template void KeyValueStorage::set<uint32_t>(const String &key, const uint32_t& value);
+template bool KeyValueStorage::setSingle(const String &key, const String &value);
