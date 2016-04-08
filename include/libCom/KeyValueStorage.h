@@ -72,7 +72,7 @@ public:
      * @return Mutable pointer to value or nullptr
      */
     template <typename T>
-    T *getSingle(const String &key, const T *fallback = nullptr);
+    const T *getSingle(const String &key, const T *fallback = nullptr);
 
     /**
      * Sets a value to a key with only one value, overwriting existing value if needed

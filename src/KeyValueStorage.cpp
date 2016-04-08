@@ -118,7 +118,7 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
 }
 
 template<typename T>
-T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
+const T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
     // get all values matching key
     auto its = mInternal.equal_range(key);
 
@@ -128,7 +128,7 @@ T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
         return getSingle<T>(key, nullptr);
     }
     else if(its.first != its.second)
-        return &its.first->second;
+        return static_cast<const T*>(its.first->second.toBuffer().const_data());
 
     // range is empty and no fallback given
     return nullptr;
@@ -157,9 +157,11 @@ void KeyValueStorage::clear() {
 template bool KeyValueStorage::getSet<String>(const String &key, std::function<bool(String &value)> callback);
 template bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &value)> callback) const;
 template void KeyValueStorage::set<String>(const String &key, const String& value);
-template String *KeyValueStorage::getSingle(const String &key, const String *fallback);
+template const String *KeyValueStorage::getSingle(const String &key, const String *fallback);
+template bool KeyValueStorage::setSingle(const String &key, const String &value);
 
 template bool KeyValueStorage::getSet<uint32_t>(const String &key, std::function<bool(uint32_t &value)> callback);
 template bool KeyValueStorage::get<uint32_t>(const String &key, std::function<bool(const uint32_t &value)> callback) const;
 template void KeyValueStorage::set<uint32_t>(const String &key, const uint32_t& value);
-template bool KeyValueStorage::setSingle(const String &key, const String &value);
+template const uint32_t *KeyValueStorage::getSingle(const String &key, const uint32_t *fallback);
+template bool KeyValueStorage::setSingle(const String &key, const uint32_t &value);
