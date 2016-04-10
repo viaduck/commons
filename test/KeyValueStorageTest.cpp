@@ -21,22 +21,22 @@ TEST_F(KeyValueStorageTest, testSimple) {
     testContainer.set<String>("test2", "test3");
 
     uint32_t count = 0;
-    ASSERT_TRUE(testContainer.get<String>("test1", [&] (const String& s) -> bool {
+    ASSERT_TRUE(testContainer.get<String>("test1", [&] (const String&) -> bool {
         count++;
         return true;
     }));
 
     // ensure that 5 values were found
-    ASSERT_EQ(5, count);
+    ASSERT_EQ(5u, count);
 
     count = 0;
-    ASSERT_TRUE(testContainer.get<String>("test2", [&] (const String& s) -> bool {
+    ASSERT_TRUE(testContainer.get<String>("test2", [&] (const String&) -> bool {
         count ++;
         return true;
     }));
 
     // ensure that 3 values were found
-    ASSERT_EQ(3, count);
+    ASSERT_EQ(3u, count);
 }
 
 TEST_F(KeyValueStorageTest, testSerialize) {
@@ -61,22 +61,22 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     ASSERT_TRUE(dContainer.deserialize(testBuf));
 
     uint32_t count = 0;
-    ASSERT_TRUE(dContainer.get<String>("test1", [&] (const String& s) -> bool {
+    ASSERT_TRUE(dContainer.get<String>("test1", [&] (const String&) -> bool {
         count++;
         return true;
     }));
 
     // ensure that 5 values were found
-    ASSERT_EQ(5, count);
+    ASSERT_EQ(5u, count);
 
     count = 0;
-    ASSERT_TRUE(dContainer.get<String>("test2", [&] (const String& s) -> bool {
+    ASSERT_TRUE(dContainer.get<String>("test2", [&] (const String&) -> bool {
         count ++;
         return true;
     }));
 
     // ensure that 3 values were found
-    ASSERT_EQ(3, count);
+    ASSERT_EQ(3u, count);
 }
 
 TEST_F(KeyValueStorageTest, testSingle) {
@@ -99,7 +99,8 @@ TEST_F(KeyValueStorageTest, testSingle) {
     ASSERT_EQ(nullptr, testContainer.getSingle<String>("test32"));
 
     // ensure that the fallback is returned
-    ASSERT_EQ(fallback, *testContainer.getSingle<String>("test32", &fallback));
+    const String* result = testContainer.getSingle<String>("test32", &fallback);
+    ASSERT_EQ(fallback, *result);
 
     // ensure that the fallback was actually set as value
     ASSERT_EQ(fallback, *testContainer.getSingle<String>("test32"));

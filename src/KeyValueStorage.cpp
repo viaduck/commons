@@ -117,20 +117,37 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
     return true;
 }
 
-template<typename T>
-const T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
+template<>
+const String *KeyValueStorage::getSingle(const String &key, const String *fallback) {
     // get all values matching key
     auto its = mInternal.equal_range(key);
 
     // range is empty and fallback given
     if(its.first == its.second && fallback != nullptr) {
         set(key, *fallback);
-        return getSingle<T>(key, nullptr);
+        return getSingle<String>(key);
     }
     else if(its.first != its.second)
-        return static_cast<const T*>(its.first->second.toBuffer().const_data());
+        return &its.first->second;
 
     // range is empty and no fallback given
+    return nullptr;
+}
+
+template <typename T>
+const T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
+    const String *result;
+
+    if(mKeys.count(key) > 0)
+        result = getSingle<String>(key, nullptr);
+    else {
+        String fb(reinterpret_cast<const uint8_t *>(fallback), sizeof(T));
+        result = getSingle<String>(key, &fb);
+    }
+
+    if(result != nullptr)
+        return static_cast<const T*>(result->toBuffer().const_data());
+
     return nullptr;
 }
 
@@ -142,7 +159,7 @@ bool KeyValueStorage::setSingle(const String &key, const T &value) {
             return false;
         });
     else
-        set(key, value);
+        set<T>(key, value);
 
     return true;
 }
