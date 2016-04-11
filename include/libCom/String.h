@@ -152,12 +152,27 @@ public:
      */
     std::string stl_str() const;
 
+/*
+    TODO better using references instead of pointers for conversion. This would remove the need for *. But currently,
+         can't figure out why user defined conversion with references does not work.
+    explicit inline operator const Buffer&() const {
+        return *dynamic_cast<const Buffer*>(this);
+    }
+*/
     /**
      * Casts this to Buffer, exposing the underlying Buffer methods
      * @return This casted to Buffer
      */
-    inline const Buffer &toBuffer() const {
-        return *dynamic_cast<const Buffer*>(this);
+    inline operator const Buffer*() const {
+        return dynamic_cast<const Buffer*>(this);
+    }
+
+    /**
+     * Casts this to Buffer, exposing the underlying Buffer methods
+     * @return This casted to Buffer
+     */
+    inline operator Buffer*() {
+        return dynamic_cast<Buffer*>(this);
     }
 
     /**
@@ -279,7 +294,7 @@ namespace std {
     struct hash<const String> {
         std::size_t operator()(const String &k) const {
             std::hash<const BufferRangeConst> test;
-            return test.operator()(k.toBuffer());
+            return test.operator()(*k);
         }
     };
 }

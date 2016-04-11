@@ -522,8 +522,8 @@ TEST(StringTest, conversionTest) {
 TEST(StringTest, castTest) {
     String s("abc");
     ASSERT_EQ(3, static_cast<int32_t>(s.size()));
-    ASSERT_EQ(3, static_cast<int32_t>(s.toBuffer().size()));
-    EXPECT_ARRAY_EQ(const char, "abc", s.toBuffer().const_data(), static_cast<int32_t>(s.size()));      // String does not use any 0-terminator internally
+    ASSERT_EQ(3, static_cast<int32_t>((*s).size()));
+    EXPECT_ARRAY_EQ(const char, "abc", (*s).const_data(), static_cast<int32_t>(s.size()));      // String does not use any 0-terminator internally
 }
 
 
@@ -548,7 +548,7 @@ TEST(StringTest, istreamTest) {
         in >> s;        // stream it!
 
         ASSERT_EQ(14, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "abcdefg\0h1234i\0", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abcdefg\0h1234i\0", (*s).const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
     }
 
     {
@@ -562,7 +562,7 @@ TEST(StringTest, istreamTest) {
         in >> s;        // stream it!
 
         ASSERT_EQ(6, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "abcdef", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abcdef", (*s).const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
     }
 
     {
@@ -576,7 +576,7 @@ TEST(StringTest, istreamTest) {
         in >> s;        // stream it!
 
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", (*s).const_data(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
     }
 }
 
@@ -629,28 +629,28 @@ TEST(StringTest, toHex) {
     {
         String s = String::toHex(nullptr, 10);
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
         uint8_t bytes[] = {255, 1, 14, 3, 12, 5, 6, 255, 127, 189, 0};
         String s = String::toHex(bytes, 10);
         ASSERT_EQ(10 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "ff010e030c0506ff7fbd00", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "ff010e030c0506ff7fbd00", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
         uint8_t bytes[] = {0};
         String s = String::toHex(bytes, 1);
         ASSERT_EQ(1 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "00", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "00", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
         uint8_t bytes[] = {};
         String s = String::toHex(bytes, 0);
         ASSERT_EQ(0 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     // String::toHex()
@@ -658,7 +658,7 @@ TEST(StringTest, toHex) {
         String o;
         String s = o.toHex();
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
@@ -666,7 +666,7 @@ TEST(StringTest, toHex) {
         String o(bytes, 10);
         String s = o.toHex();
         ASSERT_EQ(10 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "ff010e030c0506ff7fbd00", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "ff010e030c0506ff7fbd00", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
@@ -674,7 +674,7 @@ TEST(StringTest, toHex) {
         String o(bytes, 1);
         String s = o.toHex();
         ASSERT_EQ(1 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "00", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "00", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
@@ -682,7 +682,7 @@ TEST(StringTest, toHex) {
         String o(bytes, 0);
         String s = o.toHex();
         ASSERT_EQ(0 * 2, static_cast<int32_t>(s.size()));
-        EXPECT_ARRAY_EQ(const char, "", s.toBuffer().const_data(),
+        EXPECT_ARRAY_EQ(const char, "", (*s).const_data(),
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
 }
