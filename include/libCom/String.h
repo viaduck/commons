@@ -260,37 +260,8 @@ public:
         return s1[s_pos] < s2[s_pos];
     }
 
-    /**
-     * Serializes the String in given Buffer.
-     *
-     * @param out Buffer where the serialized representation of this String will be appended to
-     */
-    void serialize(Buffer &out) const {
-        uint32_t cSize = size();
-        out.append(&cSize, sizeof(cSize));
-        out.append(toBuffer());
-    }
-
-    /**
-     * Reads a serialized String from given Range.
-     *
-     * @paramm in Range pointing to a serialized representation of a String
-     *
-     * @return True on success, false otherwise
-     */
-    bool deserialize(BufferRangeConst in) {
-        if(in.size() < sizeof(uint32_t))
-            return false;
-
-        uint32_t cSize = *static_cast<const uint32_t*>(in.const_data());
-        in += sizeof(cSize);
-
-        if(in.size() < cSize)
-            return false;
-
-        append(in.const_data(), cSize);
-        return true;
-    }
+    using Buffer::deserialize;
+    using Buffer::serialize;
 
 protected:
     Buffer mCStrings;       // FIXME holds all returned cstrings

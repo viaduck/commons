@@ -81,31 +81,36 @@ TEST_F(KeyValueStorageTest, testSerialize) {
 
 TEST_F(KeyValueStorageTest, testSingle) {
     KeyValueStorage testContainer;
-    String fallback("fallback");
+    Buffer fallback, fallback_mod;
+    fallback.append(String("fallback").toBuffer());
+    fallback_mod.append(String("fallbackbla").toBuffer());
 
     // write 5 values with one key
-    testContainer.setSingle<String>("test1", "test1");
-    testContainer.setSingle<String>("test1", "test2");
-    testContainer.setSingle<String>("test1", "test3");
-    testContainer.setSingle<String>("test1", "test4");
-    testContainer.setSingle<String>("test1", "test5");
+    testContainer.setSingle<Buffer>("test1", String("test1").toBuffer());
+    testContainer.setSingle<Buffer>("test1", String("test2").toBuffer());
+    testContainer.setSingle<Buffer>("test1", String("test3").toBuffer());
+    testContainer.setSingle<Buffer>("test1", String("test4").toBuffer());
+    testContainer.setSingle<Buffer>("test1", String("test5").toBuffer());
 
     // write 3 values with other key
-    testContainer.setSingle<String>("test2", "test1");
-    testContainer.setSingle<String>("test2", "test2");
-    testContainer.setSingle<String>("test2", "test3");
+    testContainer.setSingle<Buffer>("test2", String("test1").toBuffer());
+    testContainer.setSingle<Buffer>("test2", String("test2").toBuffer());
+    testContainer.setSingle<Buffer>("test2", String("test3").toBuffer());
 
     // ensure the value does not exist
-    ASSERT_EQ(nullptr, testContainer.getSingle<String>("test32"));
+    ASSERT_EQ(nullptr, testContainer.getSingle<Buffer>("test32"));
 
     // ensure that the fallback is returned
-    const String* result = testContainer.getSingle<String>("test32", &fallback);
+    Buffer* result = testContainer.getSingle<Buffer>("test32", &fallback);
     ASSERT_EQ(fallback, *result);
 
+    // modify buffer
+    result->append("bla", 3);
+
     // ensure that the fallback was actually set as value
-    ASSERT_EQ(fallback, *testContainer.getSingle<String>("test32"));
+    ASSERT_EQ(fallback_mod, *testContainer.getSingle<Buffer>("test32"));
 
     // ensure the values of key overwritten multiple times actually changed
-    ASSERT_EQ(String("test5"), *testContainer.getSingle<String>("test1"));
-    ASSERT_EQ(String("test3"), *testContainer.getSingle<String>("test2"));
+    ASSERT_EQ(String("test5").toBuffer(), *testContainer.getSingle<Buffer>("test1"));
+    ASSERT_EQ(String("test3").toBuffer(), *testContainer.getSingle<Buffer>("test2"));
 }

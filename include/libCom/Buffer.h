@@ -205,6 +205,38 @@ public:
         return !operator==(other);
     }
 
+    /**
+     * Serializes the Buffer to given Buffer.
+     *
+     * @param out Buffer where the serialized representation of this Buffer will be appended to
+     */
+    void serialize(Buffer &out) const {
+        uint32_t cSize = size();
+        out.append(&cSize, sizeof(cSize));
+        out.append(*this);
+    }
+
+    /**
+     * Reads a serialized Buffer from given Range.
+     *
+     * @param in Range pointing to a serialized representation of a Buffer
+     *
+     * @return True on success, false otherwise
+     */
+    bool deserialize(BufferRangeConst in) {
+        if(in.size() < sizeof(uint32_t))
+            return false;
+
+        uint32_t cSize = *static_cast<const uint32_t*>(in.const_data());
+        in += sizeof(uint32_t);
+
+        if(in.size() < cSize)
+            return false;
+
+        append(in.const_data(), cSize);
+        return true;
+    }
+
 private:
     SecureUniquePtr<uint8_t[]> mData;
     uint32_t mReserved;

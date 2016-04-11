@@ -72,7 +72,7 @@ public:
      * @return Mutable pointer to value or nullptr
      */
     template <typename T>
-    const T *getSingle(const String &key, const T *fallback = nullptr);
+    T *getSingle(const String &key, const T *fallback = nullptr);
 
     /**
      * Sets a value to a key with only one value, overwriting existing value if needed
@@ -92,7 +92,7 @@ public:
 
 private:
     // internal key-value multimap
-    std::unordered_multimap<const String, String> mInternal;
+    std::unordered_multimap<const String, Buffer> mInternal;
     // internal key-set
     std::set<String> mKeys;
 };
