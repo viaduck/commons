@@ -1,3 +1,5 @@
+uint8_t         version
+uint16_t        friendsize
 uint8_t(32)     name
 uint8_t         keystatus
 uint8_t(32)     ecPrivKey1
