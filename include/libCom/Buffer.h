@@ -212,6 +212,7 @@ public:
      */
     void serialize(Buffer &out) const {
         uint32_t cSize = size();
+        // TODO Big-Little-Endian
         out.append(&cSize, sizeof(cSize));
         out.append(*this);
     }
@@ -224,6 +225,7 @@ public:
      * @return True on success, false otherwise
      */
     bool deserialize(BufferRangeConst in) {
+        // TODO Big-Little-Endian
         if(in.size() < sizeof(uint32_t))
             return false;
 
