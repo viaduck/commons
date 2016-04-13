@@ -10,7 +10,7 @@
 #include "Buffer.h"
 #include "BufferRange.h"
 
-class String : protected Buffer {
+class String : public Buffer {
 
 public:
     /**
@@ -120,6 +120,10 @@ public:
         return !operator==(other);
     }
 
+    // also include comparators of Buffer
+    using Buffer::operator==;
+    using Buffer::operator!=;
+
     /**
      * Checks if String is empty
      * @return True if String is empty, false if not
@@ -151,29 +155,6 @@ public:
      * @return STL string
      */
     std::string stl_str() const;
-
-/*
-    TODO better using references instead of pointers for conversion. This would remove the need for *. But currently,
-         can't figure out why user defined conversion with references does not work.
-    explicit inline operator const Buffer&() const {
-        return *dynamic_cast<const Buffer*>(this);
-    }
-*/
-    /**
-     * Casts this to Buffer, exposing the underlying Buffer methods
-     * @return This casted to Buffer
-     */
-    inline operator const Buffer*() const {
-        return dynamic_cast<const Buffer*>(this);
-    }
-
-    /**
-     * Casts this to Buffer, exposing the underlying Buffer methods
-     * @return This casted to Buffer
-     */
-    inline operator Buffer*() {
-        return dynamic_cast<Buffer*>(this);
-    }
 
     /**
      * Converts the String to a number
@@ -228,33 +209,6 @@ public:
         return os;
     }
 
-    // REDIRECTIONS
-    inline virtual uint32_t size() const override {
-        return Buffer::size();
-    }
-
-    inline virtual void clear() override {
-        Buffer::clear();
-    }
-
-    /**
-     * Compares two Strings (byte-comparison)
-     * @param other String to compare to this String
-     * @return True if they are equal, false if not
-     */
-    inline virtual bool operator==(const String &other) const {
-        return Buffer::operator==(other);
-    }
-
-    /**
-     * Compares two Strings (byte-comparison)
-     * @param other String to compare to this String
-     * @return True if they are equal, false if not
-     */
-    inline virtual bool operator!=(const String &other) const {
-        return Buffer::operator!=(other);
-    }
-
     /*
      * Compares two Strings lexically
      * // FIXME: this is just enough to use a set<String>, but does not actually compare lexically
@@ -294,7 +248,7 @@ namespace std {
     struct hash<const String> {
         std::size_t operator()(const String &k) const {
             std::hash<const BufferRangeConst> test;
-            return test.operator()(*k);
+            return test.operator()(k);
         }
     };
 }
