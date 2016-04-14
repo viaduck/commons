@@ -19,6 +19,7 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
+#include "libCom/serializable.h"
 #include "libCom/Buffer.h"
 #include "libCom/Range.h"
 #include "libCom/conversions.h"
@@ -26,7 +27,7 @@ cog.outl("#define {name}_H".format(name=name))
 
 
 [[[cog
-    cog.outl("class "+name+" {")
+    cog.outl("class "+name+" : public Serializable {")
 ]]]
 [[[end]]]
 public:

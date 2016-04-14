@@ -1,6 +1,7 @@
 #ifndef LIBCOM_BUFFER_H
 #define LIBCOM_BUFFER_H
 
+#include <libCom/Serializable.h>
 #include <libCom/SecureUniquePtr.h>
 #include <cinttypes>
 #include <libCom/Range.h>
@@ -12,7 +13,7 @@ typedef Range<const Buffer> BufferRangeConst;
 
 class DevNull;
 
-class Buffer {
+class Buffer : public Serializable{
 public:
     /**
      * Static allocated DevNull Buffer object for all your garbage!
