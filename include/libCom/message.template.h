@@ -19,7 +19,7 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
-#include "libCom/serializable.h"
+#include "libCom/Serializable.h"
 #include "libCom/Buffer.h"
 #include "libCom/Range.h"
 #include "libCom/conversions.h"

@@ -86,31 +86,31 @@ TEST_F(KeyValueStorageTest, testSingle) {
     fallback_mod.append(String("fallbackbla"));
 
     // write 5 values with one key
-    testContainer.setSingle<Buffer>("test1", String("test1"));
-    testContainer.setSingle<Buffer>("test1", String("test2"));
-    testContainer.setSingle<Buffer>("test1", String("test3"));
-    testContainer.setSingle<Buffer>("test1", String("test4"));
-    testContainer.setSingle<Buffer>("test1", String("test5"));
+    testContainer.set<Buffer>("test1", String("test1"));
+    testContainer.set<Buffer>("test1", String("test2"));
+    testContainer.set<Buffer>("test1", String("test3"));
+    testContainer.set<Buffer>("test1", String("test4"));
+    testContainer.set<Buffer>("test1", String("test5"));
 
     // write 3 values with other key
-    testContainer.setSingle<Buffer>("test2", String("test1"));
-    testContainer.setSingle<Buffer>("test2", String("test2"));
-    testContainer.setSingle<Buffer>("test2", String("test3"));
+    testContainer.set<Buffer>("test2", String("test1"));
+    testContainer.set<Buffer>("test2", String("test2"));
+    testContainer.set<Buffer>("test2", String("test3"));
 
     // ensure the value does not exist
-    ASSERT_EQ(nullptr, testContainer.getSingle<Buffer>("test32"));
+    ASSERT_EQ(nullptr, testContainer.get<Buffer>("test32"));
 
     // ensure that the fallback is returned
-    Buffer* result = testContainer.getSingle<Buffer>("test32", &fallback);
+    Buffer* result = testContainer.get<Buffer>("test32", &fallback);
     ASSERT_EQ(fallback, *result);
 
     // modify buffer
     result->append("bla", 3);
 
     // ensure that the fallback was actually set as value
-    ASSERT_EQ(fallback_mod, *testContainer.getSingle<Buffer>("test32"));
+    ASSERT_EQ(fallback_mod, *testContainer.get<Buffer>("test32"));
 
-    // ensure the values of key overwritten multiple times actually changed
-    ASSERT_EQ(String("test5"), *testContainer.getSingle<Buffer>("test1"));
-    ASSERT_EQ(String("test3"), *testContainer.getSingle<Buffer>("test2"));
+    // ensure that getting a single value when multiple values are present fails
+    ASSERT_EQ(nullptr, testContainer.get<Buffer>("test1"));
+    ASSERT_EQ(nullptr, testContainer.get<Buffer>("test2"));
 }

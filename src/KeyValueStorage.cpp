@@ -2,53 +2,10 @@
 // Created by John Watson on 18.03.16.
 //
 
+#include <algorithm>
+#include <set>
+#include <unordered_map>
 #include <libCom/KeyValueStorage.h>
-
-// TODO: code duplicate for const version
-/*template <>
-bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Buffer &value)> callback) const {
-    // get all values matching key
-    auto its = mInternal.equal_range(key);
-
-    // call callback with every value
-    for(auto it = its.first; it != its.second; it++) {
-        // callback decided to break
-        if(!callback(it->second))
-            break;
-    }
-
-    return its.first != its.second;
-}*/
-
-
-/*template <>
-bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &)> callback) const {
-    // range of values matching key
-    auto range = mInternal.equal_range(key);
-
-    // iterate range and call callback with every found value
-    for (auto it = range.first; it != range.second; it++) {
-        String s;
-        s.deserialize(it->second);
-        if (!callback(s))      // callback decided to break
-            break;
-    }
-
-    return range.first != range.second;     // any value found for key
-}*/
-
-/*template <>
-void KeyValueStorage::set(const String &key, const Buffer &value) {
-    mInternal.emplace(key, value);
-    mKeys.insert(key);
-}
-
-template <typename T>
-void KeyValueStorage::set(const String &key, const T& value) {
-    Buffer b(sizeof(T));
-    b.append(&value, sizeof(T));
-    set(key, b);
-}*/
 
 void KeyValueStorage::serialize(Buffer &out) const {
     for(const String &key : mKeys) {
@@ -80,7 +37,7 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
         // move in pointer by key size and size of serialized key header
         in += key.size() + sizeof(uint32_t);
         // fail if not enough data left for count of children
-        if(in.size() < 4)
+        if(in.size() < sizeof(uint32_t))
             return false;
 
         // read child count
@@ -102,68 +59,31 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
     return true;
 }
 
-/*template<>
-Buffer *KeyValueStorage::getSingle(const String &key, const Buffer *fallback) {
+template <>
+bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Buffer &)> callback) const {
+    return iterEqualRange<Type::const_iterator>(key, [&](Type::const_iterator it) -> IterStatus {
+        if (!callback(it->second))           // callback decided to break
+            return IterStatus::BREAK;
 
-}
-
-template <typename T>
-T *KeyValueStorage::getSingle(const String &key, const T *fallback) {
-    Buffer *result;
-
-    if(mKeys.count(key) > 0)
-        result = getSingle<Buffer>(key, nullptr);
-    else {
-        Buffer b(sizeof(T));
-        b.append(fallback, sizeof(T));
-        result = getSingle<Buffer>(key, &b);
-    }
-
-    if(result != nullptr)
-        return static_cast<T*>(result->data());
-
-    return nullptr;
+        return IterStatus::CONTINUE;
+    });
 }
 
 template <>
-bool KeyValueStorage::setSingle(const String &key, const Buffer &value) {
-    if(mKeys.count(key) > 0)
-        return get<Buffer>(key, [&] (Buffer &listValue) {
-            listValue.clear();
-            listValue.append(value);
-            return false;
+bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &)> callback) {
+    return iterEqualRange<Type::iterator>(key, [&](Type::iterator it) -> IterStatus {
+        if (!callback(it->second))           // callback decided to break
+            return IterStatus::BREAK;
+
+        // tainted value will be reflected automatically in multimap since callback takes a reference
+
+        return IterStatus::CONTINUE;
+    });
+}
+
+template <>
+bool KeyValueStorage::set(const String &key, const Buffer &value, bool unique) {
+    return setInternal(key, unique, value.size(), [&](Buffer &b) {
+            b.append(value);
         });
-    else
-        set<Buffer>(key, value);
-
-    return true;
 }
-
-template<typename T>
-bool KeyValueStorage::setSingle(const String &key, const T &value) {
-    if(mKeys.count(key) > 0)
-        return get<T>(key, [&] (T &listValue) {
-            listValue = value;
-            return false;
-        });
-    else
-        set<T>(key, value);
-
-    return true;
-}
-*/
-void KeyValueStorage::clear() {
-    mKeys.clear();
-    mInternal.clear();
-}
-
-
-// explicit template instantiation
-template void KeyValueStorage::set<String>(const String &key, const String& value);
-//template bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &)> callback) const;
-//template Buffer *KeyValueStorage::getSingle(const String &key, const Buffer *fallback);
-//template bool KeyValueStorage::setSingle(const String &key, const Buffer &value);
-
-template void KeyValueStorage::set<uint32_t>(const String &key, const uint32_t& value);
-//template uint32_t *KeyValueStorage::getSingle(const String &key, const uint32_t *fallback);
-//template bool KeyValueStorage::setSingle(const String &key, const uint32_t &value);
