@@ -3,12 +3,39 @@
 
 #include <memory>
 #include <iostream>
+#include <random>
+#include <chrono>
 
-/**
- * memset(..) with will not be optimezed away by compilers (hopefully) used for memory erasing.
- */
-volatile void *sec_memset(volatile void *dst, unsigned char c, size_t len);
+class SecureUniquePtrPRNG {
+public:
+    /**
+     * memset(..) with will not be optimized away by compilers (hopefully) used for memory erasing.
+     */
+    static volatile void *shred(volatile void *dst, size_t len);
 
+private:
+    /**
+     * PRNG for secure overwrite. The PRNG doesn't have to be cryptographic because the only reason why we
+     * are overwriting with "random" values instead of a fixed value is obscurity: Compound memory blocks cannot be easily
+     * determined.
+     *
+     * Thread safety is accomplished by thread_local keyword.
+     */
+    static thread_local std::minstd_rand mRandGenerator;
+
+    /**
+     * @see SecureUniquePtr::mRandGenerator
+     */
+    static thread_local std::uniform_int_distribution<uint8_t> mRandDistribution;
+
+    /**
+     * Generates a PRNG value
+     * @return PRNG value
+     */
+    static uint8_t get() {
+        return mRandDistribution(mRandGenerator);
+    }
+};
 
 /**
  * Wrapper around std::unique_ptr<T> which features secure memory erasing
@@ -26,7 +53,7 @@ public:
      */
     ~SecureUniquePtr() {
 #ifdef OPTION_SECURE_UNIQUEPTR
-        sec_memset(ptr.get(), 0xDE, sizeof(T));
+        SecureUniquePtrPRNG::shred(ptr.get(), sizeof(T));
 #endif
     }
 
@@ -86,7 +113,7 @@ public:
      */
     ~SecureUniquePtr() {
 #ifdef OPTION_SECURE_UNIQUEPTR
-        sec_memset(ptr.get(), 0x12, sizeof(T) * mSize);
+        SecureUniquePtrPRNG::shred(ptr.get(), sizeof(T) * mSize);
 #endif
     }
 
