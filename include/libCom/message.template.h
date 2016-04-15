@@ -32,7 +32,7 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 public:
 
-    // GETTER & SETTER //
+    // constructor without provided buffer
     [[[cog
     vars = list(g.do(filename))
     cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
@@ -47,7 +47,7 @@ public:
             else:
                 cog.out((", " if not first else "")+"{type} _{name}".format(type=v[0], name=v[1]))
             first = False
-        cog.out(") : {name}()".format(name=name)+" {\n")
+        cog.out(") : {name}()".format(name=name)+" {\n")        # call buffer allocating constructor
         offset = 0
         for v in vars:
             if v[3] == "var":
@@ -62,6 +62,7 @@ public:
     ]]]
     [[[end]]]
 
+    // GETTER & SETTER //
     const Buffer &const_buffer() const {
         return mBuffer;
     }
@@ -73,7 +74,6 @@ public:
     // ++++++++ ///
 
     [[[cog
-
     offset = 0
     for v in vars:
         cog.outl("// - "+v[1]+" - //")
@@ -96,6 +96,7 @@ public:
                          "}}\n"
                          "inline bool {name}(const {type} v, const uint32_t size) {{\n"
                          "    if (size > {size}) return false;\n"
+                         "    memset(mBuffer.data({offset}+size), 0, {size}-size);        // pad with 0s\n"
                          "    memcpy(mBuffer.data({offset}), v, size);\n"
                          "    return true;\n"
                          "}}\n"
@@ -235,6 +236,7 @@ public:
     ]]]
     [[[end]]]
 
+    // constructor with provided buffer
     [[[cog
     vars = list(g.do(filename))
     if cstatic > 0:
@@ -257,6 +259,63 @@ public:
             else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
                 offset += v[2]
+        cog.outl("}")
+    ]]]
+    [[[end]]]
+    
+    // -- construct from ranges
+    [[[cog
+    vars = list(g.do(filename))
+    if cstatic > 0:
+        cog.out(name+"(Buffer &buffer")
+        for v in vars:
+            if v[3] == "var":           # variable array
+                continue
+            if v[3] is not None:        # array
+                cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
+            else:                       # normal type
+                cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
+        cog.out(") : {name}(buffer)".format(name=name)+" {\n")
+        for v in vars:
+            if v[3] == "var":           # variable type
+                continue
+            if v[3] is not None:        # array
+                cog.outl("    {name}(static_cast<{type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
+            else:                   # normal type
+                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
+        cog.outl("}")
+    ]]]
+    [[[end]]]
+
+    [[[cog
+    vars = list(g.do(filename))
+    if cstatic > 0:
+        outVars = []
+        cog.out(name+"(")
+        for v in vars:
+            if v[3] == "var":           # variable array
+                continue
+            if v[3] is not None:        # array
+                #cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
+                outVars += ["const BufferRangeConst _{name}".format(type=v[0], name=v[1])]
+            else:                       # normal type
+                #cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
+                outVars += ["{type} _{name}".format(type=v[0], name=v[1])]
+        cog.out(', '.join(outVars))
+
+        otherargs = []
+        for v in vars:
+            if v[3] != "var":
+                otherargs += ["_{name}".format(name=v[1])]
+
+        cog.out(") : {name}()".format(name=v[1])+" {\n")
+        for v in vars:
+            if v[3] == "var":           # variable type
+                continue
+            if v[3] is not None:        # array
+                cog.outl("    {name}(static_cast<{type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
+            else:                   # normal type
+                cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
         cog.outl("}")
     ]]]
     [[[end]]]
