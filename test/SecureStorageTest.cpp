@@ -20,7 +20,7 @@ public:
         return encrypt(source, destination, Buffer::DEV_NULL);
     }
 
-    const static uint EXTRA_SIZE = 0;
+    const static uint32_t EXTRA_SIZE = 0;
 };
 
 TEST_F(SecureStorageTest, testSecureStorage) {
