@@ -74,6 +74,10 @@ Buffer *KeyValueStorage::get(const String &key, Buffer* fallback) {
 
     return nullptr;     // multiple values for key
 }
+template <>
+String *KeyValueStorage::get(const String &key, String* fallback) {
+    return static_cast<String *>(get<Buffer>(key, fallback));
+}
 
 template <>
 bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Buffer &)> callback) const {
@@ -82,6 +86,12 @@ bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Bu
             return IterStatus::Break;
 
         return IterStatus::Continue;
+    });
+}
+template <>
+bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &)> callback) const {
+    return get<Buffer>(key, [&] (const Buffer &b) -> bool {
+        return callback(static_cast<const String&>(b));
     });
 }
 
@@ -96,10 +106,21 @@ bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &
         return IterStatus::Continue;
     });
 }
+template <>
+bool KeyValueStorage::get<String>(const String &key, std::function<bool(String &)> callback) {
+    return get<Buffer>(key, [&] (Buffer &b) -> bool {
+        return callback(static_cast<String&>(b));
+    });
+}
 
 template <>
 bool KeyValueStorage::set(const String &key, const Buffer &value, bool unique) {
     return setInternal(key, unique, value.size(), [&](Buffer &b) {
             b.append(value);
         });
+}
+
+template <>
+bool KeyValueStorage::set(const String &key, const String &value, bool unique) {
+    return set<Buffer>(key, value, unique);
 }

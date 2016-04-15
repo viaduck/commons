@@ -200,7 +200,8 @@ private:
                 return IterStatus::Break;
 
             // replace value since it could have been tainted by callback
-            b.write(hton(data), sizeof(T), 0);
+            data = hton(data);
+            b.write(&data, sizeof(T), 0);
 
             return IterStatus::Continue;
         });
@@ -323,6 +324,8 @@ private:
  */
 template <>
 bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Buffer &)> callback) const;
+template <>
+bool KeyValueStorage::get<String>(const String &key, std::function<bool(const String &)> callback) const;
 
 /**
  * Calls callback for every value belonging to given key. The Value will be mutable in the callback.
@@ -336,6 +339,8 @@ bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Bu
  */
 template <>
 bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &)> callback);
+template <>
+bool KeyValueStorage::get<String>(const String &key, std::function<bool(String &)> callback);
 
 /**
  * Associates the value with the given key. If the key does not exist, it will be created.
@@ -347,8 +352,12 @@ bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &
  */
 template <>
 bool KeyValueStorage::set<Buffer>(const String &key, const Buffer &value, bool unique);
+template <>
+bool KeyValueStorage::set<String>(const String &key, const String &value, bool unique);
 
 template <>
 Buffer * KeyValueStorage::get<Buffer>(const String &key, Buffer *fallback);
+template <>
+String * KeyValueStorage::get<String>(const String &key, String *fallback);
 
 #endif //CORE_KEYVALUESTORAGE_H
