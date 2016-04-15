@@ -14,8 +14,6 @@
 
 /**
  * Class storing Key-Value pairs of libCom Strings with the ability to serialize and deserialize it
- *
- * LIMITATIONS: No endianess transparency when using primitive datatypes that are directly serialized
  */
 class KeyValueStorage : public Serializable {
 
@@ -182,7 +180,7 @@ private:
                 return IterStatus::Error;
 
             const T *data = static_cast<const T *>(b.const_data());
-            if (!callback(*data))           // callback decided to break
+            if (!callback(ntoh(*data)))           // callback decided to break
                 return IterStatus::Break;
 
             return IterStatus::Continue;
@@ -197,12 +195,12 @@ private:
             if (b.size() < sizeof(T))       // Buffer not big enough -> does not contain the requested value
                 return IterStatus::Error;
 
-            T *data = static_cast<T *>(b.data());
-            if (!callback(*data))           // callback decided to break
+            T data = ntoh(*static_cast<T *>(b.data()));
+            if (!callback(data))           // callback decided to break
                 return IterStatus::Break;
 
             // replace value since it could have been tainted by callback
-            b.write(data, sizeof(T), 0);
+            b.write(hton(data), sizeof(T), 0);
 
             return IterStatus::Continue;
         });
@@ -229,7 +227,8 @@ private:
     template<typename T>
     bool set(is_serializable<false>, const String &key, const T &value, bool unique = false) {
         return setInternal(key, unique, sizeof(T), [&](Buffer &b) {
-                    b.append(&value, sizeof(T));
+                    T vvalue = hton(value);
+                    b.append(&vvalue, sizeof(T));
                 });
     }
 
