@@ -60,12 +60,28 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
 }
 
 template <>
+Buffer *KeyValueStorage::get(const String &key, Buffer* fallback) {
+    // key does not exist
+    if (mKeys.count(key) == 0) {
+        // set value to fallback if specified
+        if (fallback != nullptr) {
+            set(key, *fallback);
+            return get<Buffer>(key);
+        }
+    } else if (mInternal.count(key) == 1) {
+        return &mInternal.find(key)->second;        // return value
+    }
+
+    return nullptr;     // multiple values for key
+}
+
+template <>
 bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(const Buffer &)> callback) const {
     return iterEqualRange<Type::const_iterator>(key, [&](Type::const_iterator it) -> IterStatus {
         if (!callback(it->second))           // callback decided to break
-            return IterStatus::BREAK;
+            return IterStatus::Break;
 
-        return IterStatus::CONTINUE;
+        return IterStatus::Continue;
     });
 }
 
@@ -73,11 +89,11 @@ template <>
 bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &)> callback) {
     return iterEqualRange<Type::iterator>(key, [&](Type::iterator it) -> IterStatus {
         if (!callback(it->second))           // callback decided to break
-            return IterStatus::BREAK;
+            return IterStatus::Break;
 
         // tainted value will be reflected automatically in multimap since callback takes a reference
 
-        return IterStatus::CONTINUE;
+        return IterStatus::Continue;
     });
 }
 

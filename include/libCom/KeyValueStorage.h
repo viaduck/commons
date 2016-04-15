@@ -21,9 +21,9 @@ class KeyValueStorage : public Serializable {
 
     using Type = std::unordered_multimap<const String, Buffer>;
     enum class IterStatus {
-        BREAK,
-        CONTINUE,
-        ERROR
+        Break,
+        Continue,
+        Error
     };
 
     // helper for template instantiation which indicates deriving from Serializable
@@ -132,8 +132,9 @@ public:
                 set(key, *fallback);
                 return get<T>(key);
             }
-        } else if (mInternal.count(key) == 1)
-            return &mInternal.find(key)->second;        // return value
+        } else if (mInternal.count(key) == 1) {
+            return static_cast<T*>(mInternal.find(key)->second.data());        // return value casted to T
+        }
 
         return nullptr;     // multiple values for key
     }
@@ -165,11 +166,11 @@ private:
         return iterEqualRange(key, [&](Type::const_iterator it) -> IterStatus {
             T t;
             if (!t.deserialize(it->second))
-                return IterStatus::ERROR;       // error, cannot deserialize
+                return IterStatus::Error;       // error, cannot deserialize
             if (!callback(t))           // callback decided to break
-                return IterStatus::BREAK;
+                return IterStatus::Break;
 
-            return IterStatus::CONTINUE;
+            return IterStatus::Continue;
         });
     }
 
@@ -178,13 +179,13 @@ private:
         return iterEqualRange<Type::const_iterator>(key, [&](Type::const_iterator it) -> IterStatus {
             const Buffer &b = it->second;
             if (b.size() < sizeof(T))       // Buffer not big enough -> does not contain the requested value
-                return IterStatus::ERROR;
+                return IterStatus::Error;
 
             const T *data = static_cast<const T *>(b.const_data());
             if (!callback(*data))           // callback decided to break
-                return IterStatus::BREAK;
+                return IterStatus::Break;
 
-            return IterStatus::CONTINUE;
+            return IterStatus::Continue;
         });
     }
 
@@ -194,16 +195,16 @@ private:
         return iterEqualRange<Type::iterator>(key, [&](Type::iterator it) -> IterStatus {
             Buffer &b = it->second;
             if (b.size() < sizeof(T))       // Buffer not big enough -> does not contain the requested value
-                return IterStatus::ERROR;
+                return IterStatus::Error;
 
             T *data = static_cast<T *>(b.data());
             if (!callback(*data))           // callback decided to break
-                return IterStatus::BREAK;
+                return IterStatus::Break;
 
             // replace value since it could have been tainted by callback
             b.write(data, sizeof(T), 0);
 
-            return IterStatus::CONTINUE;
+            return IterStatus::Continue;
         });
     }
     template<typename T>
@@ -211,16 +212,16 @@ private:
         return iterEqualRange<Type::iterator>(key, [&](Type::iterator it) -> IterStatus {
             T t;
             if (!t.deserialize(it->second))
-                return IterStatus::ERROR;       // error, cannot deserialize
+                return IterStatus::Error;       // error, cannot deserialize
             bool ret = callback(t);
 
             // replace value since it could have been tainted by callback
             t.serialize(it->second);
 
             if (!ret)         // callback decided to break
-                return IterStatus::BREAK;
+                return IterStatus::Break;
 
-            return IterStatus::CONTINUE;
+            return IterStatus::Continue;
         });
     }
 
@@ -251,11 +252,11 @@ private:
         // iterate range and call callback with every found value
         for (auto it = range.first; it != range.second; it++) {
             switch (f(it)) {
-                case IterStatus::BREAK:
+                case IterStatus::Break:
                     return true;
-                case IterStatus::CONTINUE:
+                case IterStatus::Continue:
                     continue;   // for loop
-                case IterStatus::ERROR:
+                case IterStatus::Error:
                     return false;    // error found, aborting
             }
         }
@@ -274,11 +275,11 @@ private:
         // iterate range and call callback with every found value
         for (auto it = range.first; it != range.second; it++) {
             switch (f(it)) {
-                case IterStatus::BREAK:
+                case IterStatus::Break:
                     return true;
-                case IterStatus::CONTINUE:
+                case IterStatus::Continue:
                     continue;   // for loop
-                case IterStatus::ERROR:
+                case IterStatus::Error:
                     return false;    // error found, aborting
             }
         }
@@ -347,5 +348,8 @@ bool KeyValueStorage::get<Buffer>(const String &key, std::function<bool(Buffer &
  */
 template <>
 bool KeyValueStorage::set<Buffer>(const String &key, const Buffer &value, bool unique);
+
+template <>
+Buffer * KeyValueStorage::get<Buffer>(const String &key, Buffer *fallback);
 
 #endif //CORE_KEYVALUESTORAGE_H
