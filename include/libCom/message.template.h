@@ -280,7 +280,7 @@ public:
             if v[3] == "var":           # variable type
                 continue
             if v[3] is not None:        # array
-                cog.outl("    {name}(static_cast<{type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
+                cog.outl("    {name}(static_cast<const {type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
             else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
         cog.outl("}")
@@ -308,12 +308,12 @@ public:
             if v[3] != "var":
                 otherargs += ["_{name}".format(name=v[1])]
 
-        cog.out(") : {name}()".format(name=v[1])+" {\n")
+        cog.out(") : {name}()".format(name=name)+" {\n")
         for v in vars:
             if v[3] == "var":           # variable type
                 continue
             if v[3] is not None:        # array
-                cog.outl("    {name}(static_cast<{type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
+                cog.outl("    {name}(static_cast<const {type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
             else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
         cog.outl("}")
