@@ -5,6 +5,8 @@
 #ifndef PUSHCLIENT_CONVERSIONS_H
 #define PUSHCLIENT_CONVERSIONS_H
 
+#include <algorithm>
+
 extern "C" {
     #include "libCom/_conversions_crossplatform.h"
 };
@@ -119,12 +121,28 @@ template <typename T>
 T _bswap_float_double(T v) {
     switch (sizeof(v)) {
         case sizeof(uint32_t): {
-            uint32_t intermediate = bswap(*reinterpret_cast<uint32_t *>(&v));
-            return *reinterpret_cast<T *>(&intermediate);
+            uint32_t dst;
+
+            char *src = reinterpret_cast<char *>(&v);
+            std::copy(src, src+sizeof(uint32_t), reinterpret_cast<char*>(&dst));
+            dst = bswap(dst);
+
+            src = reinterpret_cast<char *>(&dst);
+            std::copy(src, src+sizeof(uint32_t), reinterpret_cast<char*>(&v));
+
+            return v;
         }
         case sizeof(uint64_t): {
-            uint64_t intermediate = bswap(*reinterpret_cast<uint64_t *>(&v));
-            return *reinterpret_cast<T*>(&intermediate);
+            uint64_t dst;
+
+            char *src = reinterpret_cast<char *>(&v);
+            std::copy(src, src+sizeof(uint64_t), reinterpret_cast<char*>(&dst));
+            dst = bswap(dst);
+
+            src = reinterpret_cast<char *>(&dst);
+            std::copy(src, src+sizeof(uint64_t), reinterpret_cast<char*>(&v));
+
+            return v;
         }
         default:
             return bswap(v);
