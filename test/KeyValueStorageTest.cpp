@@ -104,7 +104,7 @@ TEST_F(KeyValueStorageTest, GetUniqueFallback) {
 }
 
 TEST_F(KeyValueStorageTest, SetUnique) {
-    std::vector<String> test1Values = {"123", "somethingNew"};
+    std::vector<String> test1Values = {"somethingNew"};
     std::vector<String> test2Values = {"abc", "123"};
 
     KeyValueStorage testContainer;
@@ -125,6 +125,7 @@ TEST_F(KeyValueStorageTest, SetUnique) {
         return true;
     }));
     ASSERT_EQ(1u, count);
+    ASSERT_EQ(0u, test1Values.size());
 
     // overwrite fails since key has 2 asssoicated values
     ASSERT_FALSE(testContainer.set("2vals", String("456"), true));
