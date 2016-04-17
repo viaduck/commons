@@ -36,6 +36,8 @@ public:
     [[[cog
     vars = list(g.do(filename))
     cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
+    cranges = sum(1 if (v[3] != None and v[3] != "var") else 0 for v in vars)    # number of range fields
+
     if cstatic > 0:
         cog.out(name+"(")
         first = True
@@ -266,7 +268,7 @@ public:
     // -- construct from ranges
     [[[cog
     vars = list(g.do(filename))
-    if cstatic > 0:
+    if cstatic > 0 and cranges > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
             if v[3] == "var":           # variable array
@@ -289,7 +291,7 @@ public:
 
     [[[cog
     vars = list(g.do(filename))
-    if cstatic > 0:
+    if cstatic > 0 and cranges > 0:
         outVars = []
         cog.out(name+"(")
         for v in vars:
