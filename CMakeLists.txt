@@ -24,8 +24,10 @@ add_subdirectory(external)
 include(external/includes.cmake)
 config_compiler_and_linker()
 
-include(external/openssl-cmake/openssl-config.cmake)
-config_openssl(external/openssl-cmake)
+if (NOT TARGET ssl)
+    include(external/openssl-cmake/openssl-config.cmake)
+    config_openssl(external/openssl-cmake)
+endif()
 
 # includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
