@@ -19,15 +19,16 @@ if (OPTION_SECURE_UNIQUEPTR)
     add_definitions(-DOPTION_SECURE_UNIQUEPTR)
 endif()
 
-# externals
-add_subdirectory(external)
-include(external/includes.cmake)
-config_compiler_and_linker()
-
+# configure openssl dirs
 if (NOT TARGET ssl)
     include(external/openssl-cmake/openssl-config.cmake)
     config_openssl(external/openssl-cmake)
 endif()
+
+# externals
+add_subdirectory(external)
+include(external/includes.cmake)
+config_compiler_and_linker()
 
 # includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
