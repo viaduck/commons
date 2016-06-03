@@ -47,7 +47,8 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/errorcodes.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/ValidPtr.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/KeyValueStorage.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Decoder.h)
 
 # targets
 ## get list of messages that must be generated
