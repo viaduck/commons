@@ -67,7 +67,7 @@ public:
             UTF8Char character = mCharacters[index];
 
             if (!character.isValid()) {       // error, skip this byte
-                out.append(BufferRangeConst(mSource, streamPos, 1));        // add to output, since we don't want to drop it
+                out.append(mSource.const_data(streamPos), 1);        // add to output, since we don't want to drop it
                 streamPos++;
                 index++;
                 continue;
@@ -85,7 +85,7 @@ public:
                 for (uint32_t i = oldIndex; i < index; i++)
                     streamPos += mCharacters[i].encodedSize();
             } else {
-                out.append(BufferRangeConst(mSource, streamPos, character.encodedSize()));     // or add original
+                out.append(mSource.const_data(streamPos), character.encodedSize());     // or add original
                 streamPos += character.encodedSize();
             }
 
