@@ -43,7 +43,14 @@ public:
      * @param Replacer template interface
      */
     UTF8Decoder(const String &source, Replacer &replacer) : mSource(source), mReplacer(replacer) {
-
+        uint32_t index = 0;
+        while (index < mSource.size()) {
+            UTF8Char c = decodeCodepoint(mSource, index);
+            // don't check for validness of UTF8Char, we need to know if there is an invalid codepoint. Otherwise
+            // byte stream and codepoint array will be out-of-sync.
+            mCharacters.push_back(c);
+            index += c.isValid() ? c.encodedSize() : 1;     // if codepoint is invalid, skip one byte
+        }
     }
 
     /**
@@ -52,30 +59,36 @@ public:
      */
     String replace() {
         uint32_t index = 0, oldIndex;
+        uint32_t streamPos = 0;
         String out;
 
-        while (index < mSource.size()) {
+        while (index < mCharacters.size()) {
             // got a multibyte char, extract codepoint
-            UTF8Char character = decodeCodepoint(mSource, index);
+            UTF8Char character = mCharacters[index];
 
             if (!character.isValid()) {       // error, skip this byte
-                out.append(BufferRangeConst(mSource, index, 1));        // add to output, since we don't want to drop it
+                out.append(BufferRangeConst(mSource, streamPos, 1));        // add to output, since we don't want to drop it
+                streamPos++;
                 index++;
                 continue;
             }
 
             oldIndex = index;
-            index += character.encodedSize();
+            index++;
 
             bool replaced = false;
             String replacement = mReplacer.replace(*this, character, replaced, index);
 
-            if (replaced)         // add replacement if specified
+            if (replaced) {         // add replacement if specified
                 out += replacement;
-            else {
-                out.append(BufferRangeConst(mSource, oldIndex, character.encodedSize()));     // or add original
-                index = oldIndex + character.encodedSize();
+                // need to forward stream position UTF8 codepoints' bytes added by replacement
+                for (uint32_t i = oldIndex; i < index; i++)
+                    streamPos += mCharacters[i].encodedSize();
+            } else {
+                out.append(BufferRangeConst(mSource, streamPos, character.encodedSize()));     // or add original
+                streamPos += character.encodedSize();
             }
+
         }
 
         return out;
@@ -88,8 +101,8 @@ public:
      * @return The decoded Unicode codepoint.
      */
     UTF8Char nextCodepoint(uint32_t &index) {
-        UTF8Char c = decodeCodepoint(mSource, index);
-        index += c.encodedSize();
+        UTF8Char c = mCharacters[index];
+        index++;
         return c;
     }
 
@@ -147,6 +160,7 @@ private:
 
     const String &mSource;
     Replacer &mReplacer;
+    std::vector<UTF8Char> mCharacters;
 };
 
 #endif // UTF8DECODER_H
