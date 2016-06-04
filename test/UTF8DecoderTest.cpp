@@ -5,16 +5,16 @@
 // generic Replacer interface implementation used by tests
 class ReplacerImpl {
 public:
-    ReplacerImpl(std::function<String(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &, bool &, uint32_t &)> replacerFn) : mReplacerFn(replacerFn) {
+    ReplacerImpl(std::function<bool(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &, String &, uint32_t &)> replacerFn) : mReplacerFn(replacerFn) {
 
     }
 
-    String replace(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &aChar, bool &replaced, uint32_t &index) {
-        return mReplacerFn(decoder, aChar, replaced, index);
+    bool replace(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &aChar, String &out, uint32_t &index) {
+        return mReplacerFn(decoder, aChar, out, index);
     }
 
 private:
-    std::function<String(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &, bool &, uint32_t &)> mReplacerFn;
+    std::function<bool(UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &, String &, uint32_t &)> mReplacerFn;
 };
 
 #define PILE_OF_POO "\xf0\x9f\x92\xa9"  // U+1F4A9
@@ -24,9 +24,8 @@ private:
 #define BLACK_MAN "\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbf"            // U+1F468 U+1F3FF
 #define WHITE_MAN "\xf0\x9f\x91\xa8\xf0\x9f\x8f\xbb"            // U+1F468 U+1F3FB
 
-ReplacerImpl noop([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &, bool &replaced, uint32_t &) -> String {
-    replaced = false;
-    return "";
+ReplacerImpl noop([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &, String &, uint32_t &) -> bool {
+    return false;
 });
 
 TEST(UTF8DecoderTest, NoReplacementASCII) {
@@ -72,17 +71,16 @@ TEST(UTF8DecoderTest, NoReplacementUnicode) {
 }
 
 TEST(UTF8DecoderTest, ReplacementUnicode) {
-    ReplacerImpl replaceUnicode([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, bool &replaced, uint32_t &) -> String {
+    ReplacerImpl replaceUnicode([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, String &out, uint32_t &) -> bool {
         switch (c.codepoint()) {
             case 0x1F4A9:           // PILE OF POO
-                replaced = true;
-                return "<CENSORED>";
+                out += "<CENSORED>";
+                return true;
             case 0x1F4A3:           // BOMB
-                replaced = true;
-                return "<CAUGHT!>";
+                out += "<CAUGHT!>";
+                return true;
             default:
-                replaced = false;
-                return "";
+                return false;
         }
     });
 
@@ -100,17 +98,16 @@ TEST(UTF8DecoderTest, ReplacementUnicode) {
 }
 
 TEST(UTF8DecoderTest, ReplacementASCII) {
-    ReplacerImpl replaceASCII([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, bool &replaced, uint32_t &) -> String {
+    ReplacerImpl replaceASCII([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, String &out, uint32_t &) -> bool {
         switch (c.codepoint()) {
             case 'A':
-                replaced = true;
-                return "a";
+                out += "a";
+                return true;
             case 'Z':
-                replaced = true;
-                return "z";
+                out += "z";
+                return true;
             default:
-                replaced = false;
-                return "";
+                return false;
         }
     });
     {
@@ -122,37 +119,35 @@ TEST(UTF8DecoderTest, ReplacementASCII) {
 
 
 TEST(UTF8DecoderTest, ReplacementMultipleUnicode) {
-    ReplacerImpl replaceUnicode([] (UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &c, bool &replaced, uint32_t &index) -> String {
+    ReplacerImpl replaceUnicode([] (UTF8Decoder<ReplacerImpl> &decoder, const UTF8Char &c, String &out, uint32_t &index) -> bool {
         uint32_t oldIndex = index;
         switch (c.codepoint()) {
             case 0x1F4A9:           // PILE OF POO
-                replaced = true;
-                return "<CENSORED>";
+                out += "<CENSORED>";
+                return true;
             case 0x1F468:           // MAN
                 if (decoder.nextCodepoint(index).codepoint() == 0x1F3FF) {        // BLACK
-                    replaced = true;
-                    return "*";
+                    out += "*";
+                    return true;
                 }
                 index = oldIndex;       // reset index since it was modified by nextCodepoint(..)
                 if (decoder.nextCodepoint(index).codepoint() == 0x1F3FB) {        // WHITE
-                    replaced = true;
-                    return "+";
+                    out += "+";
+                    return true;
                 }
                 break;
             case 0x1F469:           // WOMAN HEART WOMAN
                 if (decoder.nextCodepoint(index).codepoint() == 0x200D && decoder.nextCodepoint(index).codepoint() == 0x2764 &&
                         decoder.nextCodepoint(index).codepoint() == 0xFE0f && decoder.nextCodepoint(index).codepoint() == 0x200D &&
                         decoder.nextCodepoint(index).codepoint() == 0x1F469) {
-                    replaced = true;
-                    return "<3";
+                    out += "<3";
+                    return true;
                 }
                 break;
             default:
-                replaced = false;
-                return "";
+                break;
         }
-        replaced = false;
-        return "";
+        return false;
     });
 
     {
@@ -169,15 +164,14 @@ TEST(UTF8DecoderTest, ReplacementMultipleUnicode) {
 }
 
 TEST(UTF8DecoderTest, InvalidUTF8) {
-    ReplacerImpl replaceASCII([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, bool &replaced, uint32_t &) -> String {
+    ReplacerImpl replaceASCII([] (UTF8Decoder<ReplacerImpl> &, const UTF8Char &c, String &out, uint32_t &) -> bool {
         switch (c.codepoint()) {
             case 0xf09f:
-                replaced = true;
                 ADD_FAILURE() << "Must NOT replace invalid codepoint, e.g. codepoint must NOT be recognized!";
-                return "_";
+                out += "_";
+                return true;
             default:
-                replaced = false;
-                return "";
+                return false;
         }
     });
     {

@@ -37,7 +37,7 @@ public:
      * Constructs an UTF8Decoder.
      *
      * Replacer template interface implementation must provide the following method:
-     *     String replace(const UTF8Char &, bool &, uint32_t &);
+     *     bool replace(UTF8Decoder &decoder, const UTF8Char &character, String &out, uint32_t &index);
      *
      * @param source Source byte stream
      * @param Replacer template interface
@@ -76,11 +76,9 @@ public:
             oldIndex = index;
             index++;
 
-            bool replaced = false;
-            String replacement = mReplacer.replace(*this, character, replaced, index);
+            bool replaced = mReplacer.replace(*this, character, out, index);
 
             if (replaced) {         // add replacement if specified
-                out += replacement;
                 // need to forward stream position UTF8 codepoints' bytes added by replacement
                 for (uint32_t i = oldIndex; i < index; i++)
                     streamPos += mCharacters[i].encodedSize();
