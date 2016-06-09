@@ -9,6 +9,7 @@ enum class IOResult {
     // internal error codes
     ERROR_INVALID_PACKAGE,
     ERROR_INTERNAL,
+    ERROR_SIZE,
     ERROR_INVALID_HEADER,
 
     // server results
