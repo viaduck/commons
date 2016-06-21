@@ -99,6 +99,8 @@ public:
      * @return The decoded Unicode codepoint.
      */
     UTF8Char nextCodepoint(uint32_t &index) {
+        if (index >= mCharacters.size())
+            return UTF8Char(0, 0);
         UTF8Char c = mCharacters[index];
         index++;
         return c;

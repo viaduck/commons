@@ -186,3 +186,27 @@ TEST(UTF8DecoderTest, InvalidUTF8) {
         ASSERT_EQ(String("abcdef\xf0\x9f", 8), decoder.replace());
     }
 }
+
+
+TEST(UTF8DecoderTest, AccessOutOfRange) {
+    ReplacerImpl replaceASCII([] (UTF8Decoder<ReplacerImpl> &replacer, const UTF8Char &c, String &, uint32_t &index) -> bool {
+        uint32_t oldIndex = index;
+        switch (c.codepoint()) {
+            case 'x': {       // 'x' is last character in string
+                // acessing next should return empty codepoint object and not crash
+                UTF8Char c2 = replacer.nextCodepoint(oldIndex);
+                EXPECT_EQ(0u, c2.codepoint());
+                EXPECT_EQ(0u, c2.encodedSize());
+                EXPECT_FALSE(c2.isValid());
+                return false;
+            }
+            default:
+                return false;
+        }
+    });
+    {
+        const String source("abcdef\xf0\x9fzZzZzyyx");
+        UTF8Decoder<ReplacerImpl> decoder(source, replaceASCII);
+        ASSERT_EQ(String("abcdef\xf0\x9fzZzZzyyx"), decoder.replace());     // no replace
+    }
+}
