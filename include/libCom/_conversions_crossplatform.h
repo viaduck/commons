@@ -15,6 +15,9 @@
 #if (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
 
 #	define __WINDOWS__
+#   define __bswap_16(x) __builtin_bswap16(x);
+#   define __bswap_32(x) __builtin_bswap32(x);
+#   define __bswap_64(x) __builtin_bswap64(x);
 
 #endif
 
