@@ -13,10 +13,6 @@ void global_initOpenSSL() {
 	}
 #endif
 
-#ifndef LIBCOM_OPENSSL_HOOK_NO_READD_ALGOS
-    OpenSSL_add_all_algorithms();
-#endif
-
     OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
 
     opensslInitialized = true;
