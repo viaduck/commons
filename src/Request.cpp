@@ -50,7 +50,7 @@ void printError() {
 int Request::initSsl(int fd) {
 	const SSL_METHOD *method;
 
-	method = TLSv1_2_client_method();
+	method = TLS_client_method();
 	if (method == nullptr) {
 		return -3;
 	}

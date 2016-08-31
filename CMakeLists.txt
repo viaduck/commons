@@ -12,6 +12,7 @@ find_package(PythonInterp 3 REQUIRED)       # use Python 3 - Python2 is not comp
 
 # compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibility
 
 # user settable settings
 set(OPTION_SECURE_UNIQUEPTR ON CACHE BOOL "Erase memory on unique ptr deletion")

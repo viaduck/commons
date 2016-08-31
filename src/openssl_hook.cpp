@@ -17,8 +17,7 @@ void global_initOpenSSL() {
     OpenSSL_add_all_algorithms();
 #endif
 
-    SSL_library_init();
-    SSL_load_error_strings();
+    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
 
     opensslInitialized = true;
 }
