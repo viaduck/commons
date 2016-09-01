@@ -57,14 +57,12 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/p
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_PROTOCOL)
 
 ## command that provides to be generated messages
+file(GLOB_RECURSE THX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/protocol/)
 add_custom_command(
     OUTPUT ${GENERATED_PROTOCOL}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/ ${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/message.template.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/database/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/network/*.thx
-        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/push/*.thx ${CMAKE_CURRENT_SOURCE_DIR}/protocol/client/*.thx
-        ${CMAKE_CURRENT_SOURCE_DIR}/protocol/test/*.thx
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/message.template.h ${THX_FILES}
 )
 
 ## and the target
