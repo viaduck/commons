@@ -31,6 +31,9 @@
 #  define le32toh(x) htole32(x)
 #  define be64toh(x) htobe64(x)
 #  define le64toh(x) htole64(x)
+#  define __bswap_16(x) __builtin_bswap16(x);
+#  define __bswap_32(x) __builtin_bswap32(x);
+#  define __bswap_64(x) __builtin_bswap64(x);
 #endif
 
 #elif defined(__APPLE__)
