@@ -71,6 +71,7 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 # build
 add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
 add_dependencies(libCom protocol_generation)
+add_dependencies(libCom openssl)
 target_link_libraries(libCom ssl crypto)
 if (WIN32)
     target_link_libraries(libCom ws2_32)

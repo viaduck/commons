@@ -3,7 +3,7 @@ set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp 
         KeyValueStorageTest.cpp KeyValueStorageTest.h SecureStorageTest.cpp SecureStorageTest.h ConversionTest.cpp ConversionTest.h UTF8DecoderTest.cpp UTF8DecoderTest.h)
 
 ### coverage
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fexceptions")
 
 ###
 add_executable(AllUnitTests ${TEST_FILES})
@@ -18,6 +18,6 @@ add_test(Tests AllUnitTests)
 
 ## code coverage
 include(CodeCoverage)
-if (LCOV_PATH)
+if (LCOV_PATH AND NOT ANDROID)
     setup_target_for_coverage(Coverage AllUnitTests ${CMAKE_CURRENT_BINARY_DIR}/coverage)
 endif()
