@@ -114,9 +114,22 @@ TEST_F(BlockCacheTest, WriteReadExceedCapacity) {
     ASSERT_EQ(5, static_cast<int32_t>(cache.size()));
     ASSERT_EQ(20, static_cast<int32_t>(cache.read(6)));       // newly inserted
 
-    cache.write(1, 42);
+    uint32_t ix;
+    for (ix=1; ix<6; ix++) {
+        if (cache.read(ix) == 0)     // detected the overwritten index
+            break;
+    }
+    ASSERT_LE(5u, ix);
+
+    for (uint32_t i=1; i<7; i++) {
+        // all entries except the overwritten one must still be present
+        if (i != ix) {
+            ASSERT_TRUE(cache.write(i, 42));
+            ASSERT_NE(42u, cache.read(i));           // write has no effect -> stays the same, since already present
+        }
+    }
+    //cache.write(ix, 42);
     ASSERT_EQ(5, static_cast<int32_t>(cache.size()));
-    ASSERT_EQ(10, static_cast<int32_t>(cache.read(1)));       // should stay the same, since already present
 
     cache.write(20, 40);
     ASSERT_EQ(5, static_cast<int32_t>(cache.size()));
