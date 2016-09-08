@@ -119,7 +119,7 @@ TEST_F(BlockCacheTest, WriteReadExceedCapacity) {
         if (cache.read(ix) == 0)     // detected the overwritten index
             break;
     }
-    ASSERT_LE(5u, ix);
+    ASSERT_GE(5u, ix);
 
     for (uint32_t i=1; i<7; i++) {
         // all entries except the overwritten one must still be present
