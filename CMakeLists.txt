@@ -26,8 +26,10 @@ include(external/includes.cmake)
 config_compiler_and_linker()
 
 # configure openssl dirs
-include(external/openssl-cmake/openssl-config.cmake)
-config_openssl(external/openssl-cmake)
+if (EXISTS external/openssl-cmake/openssl-config.cmake)
+    include(external/openssl-cmake/openssl-config.cmake)
+    config_openssl(external/openssl-cmake)
+endif()
 
 # includes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
