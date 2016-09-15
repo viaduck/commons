@@ -3,9 +3,11 @@ image: debian:openssl-build
 stages:
     - build         # contains build and test and deploy
 
+before_script:
+    - git submodule update --init --recursive
+
 linux-x86_64:
     script:
-        - git submodule update --init
         - mkdir build
         - cd build
         - cmake ../ -DPREBUILT_BRANCH=x86_64-linux
@@ -20,3 +22,23 @@ linux-x86_64:
         paths:
         - build/test/coverage/           # coverage data
         - build/doc/html/                # doxygen documentation
+
+windows-x86:
+    script:
+        - mkdir build-windows-x86
+        - cd build-windows-x86
+        - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 ../
+        - make
+    stage: build
+    only:
+        - master
+
+windows-x86_64:
+    script:
+        - mkdir build-windows-x86_64
+        - cd build-windows-x86_64
+        - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 ../
+        - make
+    stage: build
+    only:
+        - master
