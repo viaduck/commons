@@ -1,3 +1,0 @@
-uint8_t(20) pkeyhash
-uint8_t(32) contactName
-uint32_t    chatID
