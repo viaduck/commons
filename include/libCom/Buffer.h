@@ -184,8 +184,9 @@ public:
 
     /**
      * Clears the buffer. This resets used and consumed bytes counts.
+     * @param shred Wether to overwrite all managed memory (slows down operation)
      */
-    virtual void clear();
+    virtual void clear(bool shred = false);
 
     /**
      * Compares two Buffers.

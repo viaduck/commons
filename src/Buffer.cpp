@@ -147,9 +147,13 @@ void Buffer::unuse(uint32_t n) {
     mUsed -= n;
 }
 
-void Buffer::clear() {
+void Buffer::clear(bool shred) {
     mUsed = 0;
     mOffset = 0;
+
+    // overwrite memory securely
+    if (shred)
+        SecureUniquePtrPRNG::shred(mData().get(), mReserved);
 }
 
 bool Buffer::operator==(const Buffer &other) const {
