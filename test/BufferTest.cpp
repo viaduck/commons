@@ -442,6 +442,34 @@ TEST_F(BufferTest, UnuseTest) {
     ASSERT_EQ(0, static_cast<int32_t>(b.size()));
 }
 
+TEST_F(BufferTest, ConsumeUseTest) {
+    {
+        Buffer b(10);
+
+        b.append("abcdefgh", 8);
+
+        b.consume(3);
+        ASSERT_EQ(5, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "defgh", b.data(), 5);
+
+        b.use(50);
+        ASSERT_EQ(7, static_cast<int32_t>(b.size()));
+    }
+
+    {
+        Buffer b(10);
+
+        b.append("abcdefgh", 8);
+
+        b.consume(3);
+        ASSERT_EQ(5, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "defgh", b.data(), 5);
+
+        b.use(3);
+        ASSERT_EQ(7, static_cast<int32_t>(b.size()));
+    }
+}
+
 TEST_F(BufferTest, ResetTest) {
     Buffer a(100);
     ASSERT_EQ(0, static_cast<int32_t>(a.size()));
