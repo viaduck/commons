@@ -11,6 +11,12 @@ Buffer::Buffer(const Buffer &buffer) : mData(buffer.mReserved), mReserved(buffer
     memcpy(mData().get(), &buffer.mData()[buffer.mOffset], mUsed);
 }
 
+Buffer::Buffer(Buffer &&buffer) : mData(std::move(buffer.mData)), mReserved(buffer.mReserved), mUsed(buffer.mUsed), mOffset(buffer.mOffset) {
+    buffer.mReserved = 0;
+    buffer.mUsed = 0;
+    buffer.mOffset = 0;
+}
+
 Buffer::~Buffer() { }
 
 BufferRangeConst Buffer::append(const void *data, uint32_t len) {

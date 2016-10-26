@@ -33,6 +33,12 @@ public:
     Buffer(const Buffer &buffer);
 
     /**
+     * Move consutructor. Other Buffer will be left in default state.
+     * @param buffer Other buffer's rvalue reference
+     */
+    Buffer(Buffer &&buffer);
+
+    /**
      * Destructor
      */
     virtual ~Buffer();

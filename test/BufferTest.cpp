@@ -31,6 +31,27 @@ TEST_F(BufferTest, CopyConstructor) {
     EXPECT_ARRAY_EQ(const uint8_t, "cdef", a.data(2), 4);
 }
 
+TEST_F(BufferTest, MoveConstructor) {
+    Buffer a(20);
+    a.append("abcdefghijkl", 12);
+    void *aOldInternal = a.data();
+    uint32_t aOldSize = a.size();
+
+    Buffer b(std::move(a));
+    ASSERT_EQ(0u, a.size());
+    ASSERT_EQ(nullptr, a.data());
+
+    ASSERT_EQ(aOldSize, b.size());
+    ASSERT_EQ(aOldInternal, b.data());
+
+    Buffer c = std::move(b);
+    ASSERT_EQ(0u, b.size());
+    ASSERT_EQ(nullptr, b.data());
+
+    ASSERT_EQ(aOldSize, c.size());
+    ASSERT_EQ(aOldInternal, c.data());
+}
+
 TEST_F(BufferTest, UnsafeDataAccess) {
     // tests for invalid values of raw data pointer offset
     Buffer a(20);
