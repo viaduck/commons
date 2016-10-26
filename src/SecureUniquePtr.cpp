@@ -5,6 +5,9 @@
 #include "libCom/SecureUniquePtr.h"
 
 volatile void *SecureUniquePtrPRNG::shred(volatile void *dst, size_t len) {
+    if (dst == nullptr)
+        return dst;
+
     volatile char *buf;
 
     for (buf = (volatile char *) dst; len; buf[--len] = SecureUniquePtrPRNG::get());
