@@ -49,6 +49,12 @@ public:
     SecureUniquePtr() : ptr(new T()) { }
 
     /**
+     * Move constructor. Other SecureUniquePtr will be reset.
+     * @param other
+     */
+    SecureUniquePtr(SecureUniquePtr &&other) : ptr(std::move(other.ptr)) { }
+
+    /**
      * Securely overwrite memory used by std::unique_ptr<T>
      */
     ~SecureUniquePtr() {
@@ -106,6 +112,8 @@ public:
     SecureUniquePtr(SecureUniquePtr<T[]> && other) {
         ptr = std::move(other.ptr);
         mSize = other.mSize;
+
+        other.mSize = 0;
     }
 
     /**
