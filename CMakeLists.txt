@@ -51,6 +51,9 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Decoder.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Encoder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h)
+        
+set(CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/curve25519/curve25519.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/curve25519.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/x25519-x86_64.cpp)
 
 # targets
 ## get list of messages that must be generated
@@ -71,9 +74,11 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 
 # build
 add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
+add_library(curve25519 STATIC ${CURVE25519_SOURCES})
 add_dependencies(libCom protocol_generation)
 add_dependencies(libCom openssl)
-target_link_libraries(libCom ssl crypto)
+add_dependencies(libCom curve25519)
+target_link_libraries(libCom ssl crypto curve25519)
 if (WIN32)
     target_link_libraries(libCom ws2_32)
 endif()

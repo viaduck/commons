@@ -1,9 +1,13 @@
 set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} custom_assert.h BufferTest.cpp BufferTest.h ContainerTest.cpp ContainerTest.h
         BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h DevNullTest.cpp ValidPtrTest.cpp ValidPtrTest.h
-        KeyValueStorageTest.cpp KeyValueStorageTest.h SecureStorageTest.cpp SecureStorageTest.h ConversionTest.cpp ConversionTest.h UTF8DecoderTest.cpp UTF8DecoderTest.h BitfieldTest.cpp BitfieldTest.h)
+        KeyValueStorageTest.cpp KeyValueStorageTest.h SecureStorageTest.cpp SecureStorageTest.h ConversionTest.cpp
+        ConversionTest.h UTF8DecoderTest.cpp UTF8DecoderTest.h BitfieldTest.cpp BitfieldTest.h
+        X25519Test.cpp X25519Test.h ED25519Test.cpp ED25519Test.h file_test.cpp)
 
 ### coverage
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fexceptions")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ed25519_tests.txt ${CMAKE_CURRENT_BINARY_DIR}/ed25519_tests.txt COPYONLY)
 
 ###
 add_executable(AllUnitTests ${TEST_FILES})
