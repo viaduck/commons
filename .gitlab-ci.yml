@@ -18,8 +18,6 @@ linux-x86_64:
         - make Coverage                 # generate code coverage
         - make libCom_doc               # generate doxygen code documentation
     stage: build
-    only:
-        - master
     artifacts:
         paths:
         - build/test/coverage/           # coverage data
@@ -34,8 +32,6 @@ windows-x86:
         - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 ../
         - make
     stage: build
-    only:
-        - master
 
 windows-x86_64:
     script:
@@ -46,5 +42,3 @@ windows-x86_64:
         - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 ../
         - make
     stage: build
-    only:
-        - master
