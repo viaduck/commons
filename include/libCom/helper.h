@@ -24,4 +24,27 @@ inline size_t strlen_s(const char *str) {
     return strlen(str);
 }
 
+template<char... digits>
+struct conv2bin;
+
+template<char high, char... digits>
+struct conv2bin<high, digits...> {
+    static_assert(high == '0' || high == '1', "no bin num!");
+    static int const value = (high - '0') * (1 << sizeof...(digits)) +
+                             conv2bin<digits...>::value;
+};
+
+template<char... digits>
+constexpr uint64_t operator "" _b() {
+    return conv2bin<digits...>::value;
+}
+
+template<char high>
+struct conv2bin<high> {
+    static_assert(high == '0' || high == '1', "no bin num!");
+    static uint64_t const value = (high - '0');
+};
+
+
+
 #endif //LIBCOM_HELPER_H
