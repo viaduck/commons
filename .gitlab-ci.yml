@@ -12,7 +12,9 @@ linux-x86_64:
         - cd build
         - cmake ../ -DPREBUILT_BRANCH=x86_64-linux
         - make
-        - test/AllUnitTests             # runs gtest target
+        - cd test
+        - ./AllUnitTests             # runs gtest target
+        - cd ..
         - make Coverage                 # generate code coverage
         - make libCom_doc               # generate doxygen code documentation
     stage: build
