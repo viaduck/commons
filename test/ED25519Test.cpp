@@ -7,7 +7,7 @@
 #include "file_test.h"
 
 TEST_F(ED25519Test, testSignature) {
-    FileTest t("ed25519_tests.txt");
+    FileTest t(CMAKE_CURRENT_BINARY_DIR "/ed25519_tests.txt");
     ASSERT_TRUE(t.is_open());
 
     std::vector<uint8_t> private_key, public_key, message, expected_signature;
