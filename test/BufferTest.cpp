@@ -52,6 +52,20 @@ TEST_F(BufferTest, MoveConstructor) {
     ASSERT_EQ(aOldInternal, c.data());
 }
 
+TEST_F(BufferTest, Swap) {
+    Buffer a(20);
+    Buffer b(40);
+
+    a.append("abcdefghijkl", 12);
+    b.append("0123456789", 10);
+
+    libcom::swap(a, b);
+    EXPECT_EQ(10u, a.size());
+    EXPECT_EQ(12u, b.size());
+    EXPECT_ARRAY_EQ(const uint8_t, "0123456789", a.const_data(), 10);
+    EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijkl", b.const_data(), 12);
+}
+
 TEST_F(BufferTest, UnsafeDataAccess) {
     // tests for invalid values of raw data pointer offset
     Buffer a(20);

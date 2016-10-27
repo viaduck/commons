@@ -247,6 +247,18 @@ public:
         return true;
     }
 
+    /**
+     * Implementation of Swappable concept, used for std::swap.
+     * @param one
+     * @param two
+     */
+    friend void swap(Buffer &one, Buffer &two) {
+        libcom::swap(one.mData, two.mData);
+        libcom::swap(one.mReserved, two.mReserved);
+        libcom::swap(one.mUsed, two.mUsed);
+        libcom::swap(one.mOffset, two.mOffset);
+    }
+
 private:
     SecureUniquePtr<uint8_t[]> mData;
     uint32_t mReserved;

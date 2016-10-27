@@ -45,6 +45,18 @@ struct conv2bin<high> {
     static uint64_t const value = (high - '0');
 };
 
+namespace libcom {
+/**
+ * Shortcut template to elimate need for "using std::swap" before every swap call.
+ * @param one
+ * @param two
+ */
+template<typename T>
+void swap(T &one, T &two) {
+    using std::swap;
+    swap(one, two);
+}
+}
 
 
 #endif //LIBCOM_HELPER_H
