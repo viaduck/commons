@@ -2,6 +2,7 @@
 // Created by steffen on 13.08.15.
 //
 
+#include "test/VarMsg.h"
 #include "libCom/conversions.h"
 #include "libCom/Buffer.h"
 #include "test/sometest.h"
@@ -35,7 +36,6 @@ TEST_F(ContainerTest, SimpleRead) {
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", const_cast<const uint8_t*>(c.buf()+3), 7);
 }
 
-
 TEST_F(ContainerTest, SimpleWrite) {
     Buffer a(25);
 
@@ -56,4 +56,30 @@ TEST_F(ContainerTest, SimpleWrite) {
     uint16_t bla = hton_uint16_t(0xDEAD);
     ASSERT_EQ(bla, *reinterpret_cast<const uint16_t*>(c.buffer().const_data(5)));
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buffer().const_data(7), 10);      // no need to respect endianess, since it's a byte-sequence
+}
+
+TEST_F(ContainerTest, BitField) {
+    VarMsg msg;
+
+    EXPECT_EQ(15u, msg.squeezed_one_size());
+    EXPECT_EQ(4u, msg.squeezed_two_size());
+
+    EXPECT_EQ(0u, msg.squeezed_one());
+    EXPECT_EQ(0u, msg.squeezed_two());
+
+    msg.squeezed_one(1337);
+    EXPECT_EQ(1337u, msg.squeezed_one());
+    EXPECT_EQ(0u, msg.squeezed_two());
+
+    msg.squeezed_two(15);
+    EXPECT_EQ(1337u, msg.squeezed_one());
+    EXPECT_EQ(15u, msg.squeezed_two());
+
+    msg.squeezed_two(0);
+    EXPECT_EQ(1337u, msg.squeezed_one());
+    EXPECT_EQ(0u, msg.squeezed_two());
+
+    msg.squeezed_one(987);
+    EXPECT_EQ(987u, msg.squeezed_one());
+    EXPECT_EQ(0u, msg.squeezed_two());
 }

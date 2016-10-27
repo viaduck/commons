@@ -23,6 +23,7 @@ cog.outl("#define {name}_H".format(name=name))
 #include "libCom/Buffer.h"
 #include "libCom/Range.h"
 #include "libCom/conversions.h"
+#include "libCom/Bitfield.h"
 #include <cstring>
 
 
@@ -44,7 +45,10 @@ public:
         for v in vars:
             if v[3] == "var":
                 continue
-            if v[3] is not None:
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.out((", " if not first else "")+"{type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+            elif v[3] is not None:
                 cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
             else:
                 cog.out((", " if not first else "")+"{type} _{name}".format(type=v[0], name=v[1]))
@@ -54,7 +58,10 @@ public:
         for v in vars:
             if v[3] == "var":
                 continue
-            if v[3] is not None:
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.outl("    {name}(_{name});".format(name=sub['name']))
+            elif v[3] is not None:
                 cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
                 offset += v[2]*v[3]     # sizeof type * array element count
             else:
@@ -114,15 +121,29 @@ public:
                 offset += v[2]*v[3]     # sizeof type * array element count
         else:
         # non-array types
-            cog.outl("inline {type} {name}() const {{\n"
-                     "    return {conversion}(*static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
-                     "}}\n"
-                     "inline void {name}({type} v) {{\n"
-                     "    *static_cast<{type}*>(mBuffer.data({offset})) = {conversion}(v);\n"
-                     "}}\n"
-                     "static inline uint32_t {name}_size() {{\n"
-                     "    return sizeof({type});\n"
-                     "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton_"+v[0]))
+            if v[4] is not None:            # subs
+                shift_offset = 0
+                for sub in v[4]:
+                    cog.outl("inline {sub_type} {sub_name}() const {{\n"
+                    "    return Bitfield::get<{sub_type}>({shift_offset}, {sub_bits}, *static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
+                    "}}\n"
+                    "inline void {sub_name}({sub_type} v) {{\n"
+                    "    Bitfield::set({shift_offset}, {sub_bits}, v, *static_cast<{type}*>(mBuffer.data({offset})));\n"
+                    "}}\n"
+                    "static inline uint32_t {sub_name}_size() {{\n"
+                    "    return {sub_bits};\n"
+                    "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=g.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton_"+v[0], conversion_sub="hton_"+g.bits_to_type(sub['bits'])))
+                    shift_offset += sub['bits']
+            else:
+                cog.outl("inline {type} {name}() const {{\n"
+                         "    return {conversion}(*static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
+                         "}}\n"
+                         "inline void {name}({type} v) {{\n"
+                         "    *static_cast<{type}*>(mBuffer.data({offset})) = {conversion}(v);\n"
+                         "}}\n"
+                         "static inline uint32_t {name}_size() {{\n"
+                         "    return sizeof({type});\n"
+                         "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton_"+v[0]))
             offset += v[2]
     ]]]
     [[[end]]]
@@ -246,7 +267,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable array
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.out(", {type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+            elif v[3] is not None:        # array
                 cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
             else:                       # normal type
                 cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
@@ -255,7 +279,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable type
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.outl("    {name}(_{name});".format(name=sub['name']))
+            elif v[3] is not None:        # array
                 cog.outl("    memcpy(mBuffer.data({offset}), _{name}, {size});".format(offset=offset, type=v[0], name=v[1], size=v[2]*v[3]))
                 offset += v[2]*v[3]     # sizeof type * array element count
             else:                   # normal type
@@ -273,7 +300,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable array
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.out(", {type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+            elif v[3] is not None:        # array
                 cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
             else:                       # normal type
                 cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
@@ -281,7 +311,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable type
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.outl("    {name}(_{name});".format(name=sub['name']))
+            elif v[3] is not None:        # array
                 cog.outl("    {name}(static_cast<const {type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
             else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))
@@ -297,7 +330,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable array
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    outVars += ["{type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name'])]
+            elif v[3] is not None:        # array
                 #cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
                 outVars += ["const BufferRangeConst _{name}".format(type=v[0], name=v[1])]
             else:                       # normal type
@@ -314,7 +350,10 @@ public:
         for v in vars:
             if v[3] == "var":           # variable type
                 continue
-            if v[3] is not None:        # array
+            if v[4] is not None:
+                for sub in v[4]:
+                    cog.outl("    {name}(_{name});".format(name=sub['name']))
+            elif v[3] is not None:        # array
                 cog.outl("    {name}(static_cast<const {type}*>(_{name}.const_data()), _{name}.size());".format(type=v[0], name=v[1], size=v[2]*v[3]))
             else:                   # normal type
                 cog.outl("    {name}(_{name});".format(type=v[0], name=v[1]))

@@ -23,4 +23,5 @@ for root, dirs, files in os.walk(argv[1]):
             if not os.path.exists(os.path.dirname(fullfname)):
                 os.makedirs(os.path.dirname(fullfname))
             l = ['"'+executable+'"', "-m cogapp", "-d", "-I tools/", "-D filename="+fname, "-D base_path="+protocol_dir, "-o "+fullfname, "include/libCom/message.template.h"]
-            call(" ".join(l), shell=True)
+            if call(" ".join(l), shell=True) != 0:
+                raise Exception("cog processing error on file: "+fname)

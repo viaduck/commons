@@ -6,3 +6,4 @@ uint16_t     third
 uint8_t(var)     bufVar
 uint8_t(var)     bufVar2
 uint32_t     this_is_a_cool_property
+uint32_t     squeezed_one(15), squeezed_two(4)
