@@ -37,7 +37,9 @@ public:
                                 (~static_cast<U>(0))        // build as many 1s as needed for the field's size
                                 ^ (((1<<static_cast<U>(width))-1) << offset)        // remove 1s at the position of the bits going to be replaced
                         ) & field       // apply the mask
-                ) | static_cast<U>(val)<<offset;        // OR the value to this masked value
+                ) |             // OR the value to this masked value
+                ((static_cast<U>(val) & ((1<<static_cast<U>(width))-1))     // clamp the value to guarantee, at most "width" bits are set
+                        << offset);                  // move value by offset
     }
 
     /**

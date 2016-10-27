@@ -119,3 +119,12 @@ TEST_F(BitfieldTest, Complex64bit) {
         EXPECT_EQ(110010011010100000000010111000_b, a);
     }
 }
+
+TEST_F(BitfieldTest, InconsistentParameters) {
+    {
+        uint8_t a = 0;
+        // We say, we want to set only 4 bits, but pass 6 bits. Clamping must be done.
+        Bitfield::set(0, 4, 111111_b, a);
+        EXPECT_EQ(1111_b, a);
+    }
+}
