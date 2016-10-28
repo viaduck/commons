@@ -1,3 +1,4 @@
 uint8_t(32) groupName
 uint8_t(20) groupID
+uint8_t(32) groupSharedSymkey
 uint8_t(10) groupMembersFilename

@@ -1,3 +1,4 @@
-uint8_t(32)     adminGivenName
-uint8_t(20)     groupMemberHash
-uint8_t(7000)   groupMemberPubkey
+uint8_t(32)     givenName
+uint8_t(64)     inviterSig
+uint8_t(20)     inviterHash
+uint8_t(32)     ECPubkey
