@@ -37,7 +37,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/openssl_hook.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp) #
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.cpp) #
 
 set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
@@ -50,7 +50,7 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/ValidPtr.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/KeyValueStorage.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Decoder.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Encoder.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.h)
         
 set(CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/curve25519/curve25519.h
         ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/curve25519.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/x25519-x86_64.cpp)
