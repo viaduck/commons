@@ -17,7 +17,7 @@ Connection::~Connection() {
 
 Connection::ConnectResult Connection::connect() {
     struct addrinfo addressQuery;
-    memset(&addressQuery, 1, sizeof(addressQuery));
+    memset(&addressQuery, 0, sizeof(addressQuery));
 
 
     // address query parameters
@@ -37,12 +37,15 @@ Connection::ConnectResult Connection::connect() {
     // iterate over all available addresses
     for (struct addrinfo *it = addressInfo.get(); it; it = it->ai_next) {
         mSocket = socket(it->ai_family, it->ai_socktype, it->ai_protocol);
+        if (mSocket == -1)
+            return ConnectResult ::ERROR_INTERNAL;
 
         // call global connect function
         res = ::connect(mSocket, it->ai_addr, it->ai_addrlen);
-        if (res == -1)
+        if (res == -1) {
             ::close(mSocket);
-        else        // if there is a successful connection, return success
+            mSocket = -1;
+        } else        // if there is a successful connection, return success
             return ConnectResult::SUCCESS;
     }
 
@@ -52,5 +55,9 @@ Connection::ConnectResult Connection::connect() {
 }
 
 bool Connection::close() {
+    if (mSocket != -1) {
+        ::close(mSocket);
+        return true;
+    }
     return false;
 }
