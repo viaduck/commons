@@ -1,4 +1,13 @@
-uint8_t(32) groupName
-uint8_t(20) groupID
-uint8_t(32) groupSharedSymkey
-uint8_t(10) groupMembersFilename
+uint8_t(32) name
+uint8_t(20) ID
+uint8_t     is_muted(1), is_prio(1), is_noupdate(1)
+uint8_t(20) adminHash
+
+# files used to store group data
+uint8_t(10) membersFilename
+uint8_t(10) historyFilename
+uint8_t(10) pendingFilename
+
+# shared symmetric key and ephemeral identity for group
+uint8_t(32) sharedSymkey
+uint8_t(32) ephemIdent
