@@ -1,4 +1,4 @@
 uint8_t(32)     givenName
 uint8_t(64)     inviterSig
 uint8_t(20)     inviterHash
-uint8_t(32)     ECPubkey
+uint8_t(64)     ECPubkey
