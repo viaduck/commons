@@ -37,7 +37,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/openssl_hook.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.cpp) #
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/network/Connection.cpp) #
 
 set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
