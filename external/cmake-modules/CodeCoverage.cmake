@@ -136,6 +136,9 @@ ENDIF() # NOT CMAKE_BUILD_TYPE STREQUAL "Debug"
 # Optional fourth parameter: Paths to exclude from coverage report (in list form)
 # Optional fifth parameter is passed as arguments to _testrunner
 #   Pass them in list form, e.g.: "-j;2" for -j 2
+# Optional sixth parameter: 2nd test runner
+# Optional seventh parameter is passed as arguments to 2nd test runner
+#   Pass them in list form, e.g.: "-j;2" for -j 2
 FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
     IF(NOT GCOV_PATH)
@@ -158,6 +161,8 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
             # Run tests
             COMMAND ${_testrunner} ${ARGV4}
+
+            COMMAND ${ARGV5} ${ARGV6}
 
             # Capturing lcov counters and generating report
             COMMAND ${LCOV_PATH} --rc lcov_branch_coverage=1 --directory . --capture --output-file ${_outputname}.info
