@@ -3,14 +3,15 @@ Used from protcol message template header
 """
 
 import re
+from collections import OrderedDict
 
 # maps variable type to its  byte size
-i = {
-    "uint64_t": 8,
-    "uint32_t": 4,
-    "uint16_t": 2,
-    "uint8_t": 1
-}
+i = OrderedDict([
+    ("uint64_t", 8),
+    ("uint32_t", 4),
+    ("uint16_t", 2),
+    ("uint8_t", 1),
+])
 
 def type_to_bits(type):
     return i[type]*8
