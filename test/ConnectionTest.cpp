@@ -35,9 +35,6 @@ int close(int __fd) {
 }
 }
 
-void ConnectionTest::SetUpTestCase() {
-}
-
 TEST_F(ConnectionTest, noHost) {
     mocks[currentTestName()]["getaddrinfo"] =   (void*)+([] (const char *__restrict, const char *__restrict,
                                                              const struct addrinfo *__restrict,

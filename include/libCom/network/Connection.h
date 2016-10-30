@@ -36,6 +36,7 @@ public:
     };
 
     enum class Protocol {
+        UNSET,
         IPv4,
         IPv6
     };
@@ -81,7 +82,7 @@ public:
 protected:
     std::string mHost;
     uint16_t mPort;
-    Protocol mProtocol;
+    Protocol mProtocol = Protocol::UNSET;
     Status mStatus = Status::UNKNOWN;
 
     //

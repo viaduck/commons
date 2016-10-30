@@ -5,8 +5,7 @@
 #include <gtest/gtest.h>
 
 class ConnectionTest : public ::testing::Test {
-public:
-    static void SetUpTestCase();
+
 };
 
 

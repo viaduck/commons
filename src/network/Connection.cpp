@@ -4,9 +4,6 @@
 #include <libCom/network/Connection.h>
 
 Connection::Connection(std::string host, uint16_t port) : mHost(host), mPort(port) {
-    // TODO detect IPv6 and set protocol accordingly
-    mProtocol = Protocol::IPv4;
-
     global_initOpenSSL();
 }
 
@@ -27,7 +24,7 @@ Connection::ConnectResult Connection::connect() {
 
     // resolve hostname
     struct addrinfo *addressInfoTmp = nullptr;
-    int res = getaddrinfo(mHost.c_str(), nullptr, &addressQuery, &addressInfoTmp);
+    int res = getaddrinfo(mHost.c_str(), std::to_string(mPort).c_str(), &addressQuery, &addressInfoTmp);
 
     std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &freeaddrinfo);
 
@@ -45,8 +42,17 @@ Connection::ConnectResult Connection::connect() {
         if (res == -1) {
             ::close(mSocket);
             mSocket = -1;
-        } else        // if there is a successful connection, return success
+        } else {       // if there is a successful connection, return success
+            switch (it->ai_family) {
+                case AF_INET:
+                    mProtocol = Protocol::IPv4; break;
+                case AF_INET6:
+                    mProtocol = Protocol::IPv6; break;
+                default:
+                    mProtocol = Protocol::UNSET;
+            }
             return ConnectResult::SUCCESS;
+        }
     }
 
     // no resolved address has been successful
