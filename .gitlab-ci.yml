@@ -13,7 +13,8 @@ linux-x86_64:
         - cmake ../ -DPREBUILT_BRANCH=x86_64-linux
         - make
         - test/AllUnitTests             # runs gtest target
-        - make Coverage                 # generate code coverage
+        - test/libCom_TestNetwork       # runs gtest target for network tests
+        - make libCom_CoverageAll       # generate code coverage
         - make libCom_doc               # generate doxygen code documentation
     stage: build
     artifacts:
