@@ -1,9 +1,8 @@
-uint8_t(32) name
 uint8_t(20) ID
-uint8_t     is_muted(1), is_prio(1), is_noupdate(1)
 uint8_t(20) adminHash
 
 # files used to store group data
+uint8_t(10) settingsFilename
 uint8_t(10) membersFilename
 uint8_t(10) historyFilename
 uint8_t(10) pendingFilename

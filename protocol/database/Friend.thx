@@ -1,7 +1,3 @@
-uint8_t         version
-uint16_t        friendsize
-
-uint8_t(32)     name
 uint8_t         symkeystatus
 uint8_t         pubkeystatus
 
@@ -17,4 +13,5 @@ uint8_t(7000)   pubkey
 
 uint8_t(10)     historyFile
 uint8_t(10)     pendingFile
+uint8_t(10)     settingsFile
 uint8_t(32)     AIT

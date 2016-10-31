@@ -1,4 +1,3 @@
-uint8_t(32)     internalName
 uint8_t(20)     pubkeyHash
 uint32_t        keysize
 uint8_t(7000)   key
