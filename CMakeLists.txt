@@ -50,9 +50,9 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/ValidPtr.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/KeyValueStorage.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Decoder.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Encoder.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/CertificateStorage.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/ConnectionInfo.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/SSLContext.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/FastStringMap.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/CertificateStorage.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/ConnectionInfo.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/SSLContext.h)
         
 set(CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/curve25519/curve25519.h
         ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/curve25519.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/x25519-x86_64.cpp)
