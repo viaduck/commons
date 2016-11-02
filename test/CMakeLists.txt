@@ -2,15 +2,17 @@ set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} ${CURVE25519_SOURCES} custom_as
         BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h DevNullTest.cpp ValidPtrTest.cpp ValidPtrTest.h
         KeyValueStorageTest.cpp KeyValueStorageTest.h SecureStorageTest.cpp SecureStorageTest.h ConversionTest.cpp
         ConversionTest.h UTF8DecoderTest.cpp UTF8DecoderTest.h BitfieldTest.cpp BitfieldTest.h
-        X25519Test.cpp X25519Test.h ED25519Test.cpp ED25519Test.h file_test.cpp)
+        X25519Test.cpp X25519Test.h ED25519Test.cpp ED25519Test.h file_test.cpp winsock_mock.h)
 
 set(TEST_FILES_NETWORK ${SOURCE_FILES} ${LIBCOM_HEADERS} ${CURVE25519_SOURCES} custom_assert.h ConnectionTest.cpp ConnectionTest.h)
 
 ### coverage
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fexceptions")
 
-add_definitions(-DCMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+add_definitions(-DCMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}" -DCONNECTION_TEST=1)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ed25519_tests.txt ${CMAKE_CURRENT_BINARY_DIR}/ed25519_tests.txt COPYONLY)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 ###
 add_executable(AllUnitTests ${TEST_FILES})

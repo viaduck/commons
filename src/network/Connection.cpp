@@ -1,7 +1,7 @@
 #include <unistd.h>
 
-#include <libCom/openssl_hook.h>
 #include <libCom/network/Connection.h>
+#include <libCom/openssl_hook.h>
 
 Connection::Connection(std::string host, uint16_t port) : mHost(host), mPort(port) {
     global_initOpenSSL();
@@ -41,7 +41,7 @@ Connection::ConnectResult Connection::connect() {
         res = ::connect(mSocket, it->ai_addr, it->ai_addrlen);
         if (res == -1) {
             ::close(mSocket);
-            mSocket = -1;
+            mSocket = INVALID_SOCKET;
         } else {       // if there is a successful connection, return success
             switch (it->ai_family) {
                 case AF_INET:

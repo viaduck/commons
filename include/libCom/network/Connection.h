@@ -7,8 +7,13 @@
 #include "libCom/Buffer.h"
 
 /* network includes */
-#ifdef __WIN32
-#include <winsock2.h>
+#if defined(__WIN32)
+    #if defined(CONNECTION_TEST)
+        #include "winsock_mock.h"
+    #else
+        #include <winsock2.h>
+        #include <ws2tcpip.h>
+    #endif
 #else
 #include <sys/socket.h>
 #include <arpa/inet.h>

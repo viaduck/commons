@@ -1,4 +1,3 @@
-#include <netdb.h>
 #include <unordered_map>
 
 #include <libCom/network/Connection.h>
