@@ -2,8 +2,8 @@
 // Created by pcpcpc on 27.10.2015.
 //
 
-#ifndef CORE_ERRORCODES_H
-#define CORE_ERRORCODES_H
+#ifndef LIBCOM_ERRORCODES_H
+#define LIBCOM_ERRORCODES_H
 
 enum class IOResult {
     // internal error codes
@@ -18,4 +18,4 @@ enum class IOResult {
     STATUS_MORE_MESSAGES = 130
 };
 
-#endif //CORE_ERRORCODES_H
+#endif //LIBCOM_ERRORCODES_H
