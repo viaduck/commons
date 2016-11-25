@@ -2,7 +2,6 @@
 
 #include <libCom/network/Connection.h>
 #include <libCom/openssl_hook.h>
-#include <openssl/ssl.h>
 
 #include "NativeWrapper.h"
 
@@ -36,7 +35,7 @@ Connection::ConnectResult Connection::connect() {
     // iterate over all available addresses
     for (struct addrinfo *it = addressInfo.get(); it; it = it->ai_next) {
         mSocket = NativeWrapper::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
-        if (mSocket == -1)
+        if (mSocket == INVALID_SOCKET)
             return ConnectResult::ERROR_INTERNAL;
 
         // call global connect function
@@ -71,7 +70,7 @@ Connection::ConnectResult Connection::connect() {
 }
 
 bool Connection::close() {
-    if (mSocket != SOCKET_ERROR) {
+    if (mSocket != INVALID_SOCKET) {
         NativeWrapper::close(mSocket);
         mStatus = Status::UNCONNECTED;
         return true;

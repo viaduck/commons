@@ -14,5 +14,9 @@ int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) 
 }
 
 int ::NativeWrapper::close(int __fd) {
+#if defined(__WIN32)
+    return ::closesocket(__fd);
+#else
     return ::close(__fd);
+#endif
 }

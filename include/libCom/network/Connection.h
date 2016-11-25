@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <string>
-#include <openssl/ossl_typ.h>
+#include <openssl/ssl.h>
 
 #include "libCom/Buffer.h"
 
