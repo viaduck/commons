@@ -60,6 +60,7 @@ Connection::ConnectResult Connection::connect() {
                 return ConnectResult::ERROR_SSL;
             }
 
+            mStatus = Status::CONNECTED;
             return ConnectResult::SUCCESS;
         }
     }
@@ -72,6 +73,7 @@ Connection::ConnectResult Connection::connect() {
 bool Connection::close() {
     if (mSocket != SOCKET_ERROR) {
         NativeWrapper::close(mSocket);
+        mStatus = Status::UNCONNECTED;
         return true;
     }
     return false;

@@ -47,6 +47,7 @@ TEST_F(ConnectionTest, noHost) {
 
     Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
+    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
 TEST_F(ConnectionTest, hostButNoAddresses) {
@@ -66,6 +67,7 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
 
     Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_CONNECT, conn.connect());
+    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
 TEST_F(ConnectionTest, invalidSocket) {
@@ -106,6 +108,7 @@ TEST_F(ConnectionTest, invalidSocket) {
 
     Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_INTERNAL, conn.connect());
+    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
 TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
@@ -153,6 +156,7 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
     Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }
 
 
@@ -233,6 +237,7 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     checkClose = false;
 
     ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }
 
 TEST_F(ConnectionTest, real) {
@@ -244,4 +249,5 @@ TEST_F(ConnectionTest, real) {
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }
