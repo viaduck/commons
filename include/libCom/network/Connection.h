@@ -6,25 +6,9 @@
 
 #include "libCom/Buffer.h"
 
-/* network includes */
-#if defined(__WIN32)
-    #if defined(CONNECTION_TEST)
-        #include "winsock_mock.h"
-    #else
-        #include <winsock2.h>
-        #include <ws2tcpip.h>
-    #endif
-#else
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
-#endif
-
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
-#ifndef SOCKET_ERROR
+#if ! defined(__WIN32)
 #define SOCKET int
-#define SOCKET_ERROR (-1)
 #endif
 
 /**

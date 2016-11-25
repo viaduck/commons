@@ -4,6 +4,10 @@
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
+// private include
+#include "../src/network/NativeWrapper.h"
+
+// let's mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->name();
 }
@@ -12,26 +16,21 @@ static std::unordered_map<std::string, std::unordered_map<std::string, void*>> m
 
 #define callMockFunction(Function,...) (*(decltype(&Function)) (mocks[currentTestName()][#Function]))(__VA_ARGS__)
 
-// let's mock the socket functions to emulate network behavior
-extern "C" {
-int getaddrinfo (const char *__restrict __name,
-                 const char *__restrict __service,
-                 const struct addrinfo *__restrict __req,
-                 struct addrinfo **__restrict __pai) {
+int ::NativeWrapper::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
+                                 struct addrinfo **__pai) {
     return callMockFunction(getaddrinfo, __name, __service, __req, __pai);
 }
 
-int socket(int __domain, int __type, int __protocol) {
+int ::NativeWrapper::socket(int __domain, int __type, int __protocol) {
     return callMockFunction(socket, __domain, __type, __protocol);
 }
 
-int connect(int __fd, const sockaddr *__addr, socklen_t __len) {
+int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
     return callMockFunction(connect, __fd, __addr, __len);
 }
 
-int close(int __fd) {
+int ::NativeWrapper::close(int __fd) {
     return callMockFunction(close, __fd);
-}
 }
 
 TEST_F(ConnectionTest, noHost) {

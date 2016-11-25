@@ -73,7 +73,7 @@ add_custom_command(
 add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 
 # build
-add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
+add_library(libCom STATIC ${SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/src/network/NativeWrapper.cpp ${LIBCOM_HEADERS})
 add_library(curve25519 STATIC ${CURVE25519_SOURCES})
 add_dependencies(libCom protocol_generation)
 add_dependencies(libCom openssl)

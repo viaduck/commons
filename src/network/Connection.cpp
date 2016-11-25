@@ -3,6 +3,8 @@
 #include <libCom/network/Connection.h>
 #include <libCom/openssl_hook.h>
 
+#include "NativeWrapper.h"
+
 Connection::Connection(std::string host, uint16_t port) : mHost(host), mPort(port) {
     global_initOpenSSL();
 }
@@ -16,7 +18,6 @@ Connection::ConnectResult Connection::connect() {
     struct addrinfo addressQuery;
     memset(&addressQuery, 0, sizeof(addressQuery));
 
-
     // address query parameters
     addressQuery.ai_family = PF_UNSPEC;
     addressQuery.ai_socktype = SOCK_STREAM;
@@ -24,7 +25,7 @@ Connection::ConnectResult Connection::connect() {
 
     // resolve hostname
     struct addrinfo *addressInfoTmp = nullptr;
-    int res = getaddrinfo(mHost.c_str(), std::to_string(mPort).c_str(), &addressQuery, &addressInfoTmp);
+    int res = NativeWrapper::getaddrinfo(mHost.c_str(), std::to_string(mPort).c_str(), &addressQuery, &addressInfoTmp);
 
     std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &freeaddrinfo);
 
@@ -33,14 +34,14 @@ Connection::ConnectResult Connection::connect() {
 
     // iterate over all available addresses
     for (struct addrinfo *it = addressInfo.get(); it; it = it->ai_next) {
-        mSocket = socket(it->ai_family, it->ai_socktype, it->ai_protocol);
+        mSocket = NativeWrapper::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
         if (mSocket == -1)
-            return ConnectResult ::ERROR_INTERNAL;
+            return ConnectResult::ERROR_INTERNAL;
 
         // call global connect function
-        res = ::connect(mSocket, it->ai_addr, it->ai_addrlen);
+        res = NativeWrapper::connect(mSocket, it->ai_addr, it->ai_addrlen);
         if (res == -1) {
-            ::close(mSocket);
+            NativeWrapper::close(mSocket);
             mSocket = INVALID_SOCKET;
         } else {       // if there is a successful connection, return success
             switch (it->ai_family) {
@@ -61,8 +62,8 @@ Connection::ConnectResult Connection::connect() {
 }
 
 bool Connection::close() {
-    if (mSocket != -1) {
-        ::close(mSocket);
+    if (mSocket != SOCKET_ERROR) {
+        NativeWrapper::close(mSocket);
         return true;
     }
     return false;
