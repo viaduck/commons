@@ -13,18 +13,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ed25519_tests.txt ${CMAKE_CURRENT_BIN
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 ###
-add_executable(AllUnitTests ${TEST_FILES})
-add_dependencies(AllUnitTests protocol_generation)
-add_dependencies(AllUnitTests gtest_main)
-add_dependencies(AllUnitTests libCom)
-target_link_libraries(AllUnitTests gtest_main)
-target_link_libraries(AllUnitTests libCom)
-
-##
-add_test(Tests AllUnitTests)
+add_executable(libCom_Test ${TEST_FILES})
+add_dependencies(libCom_Test protocol_generation)
+target_link_libraries(libCom_Test gtest_main)
+target_link_libraries(libCom_Test libCom)
 
 ## code coverage
 include(CodeCoverage)
 if (LCOV_PATH AND NOT ANDROID)
-    setup_target_for_coverage(libCom_CoverageAll AllUnitTests ${CMAKE_CURRENT_BINARY_DIR}/coverage)
+    setup_target_for_coverage(libCom_Coverage libCom_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage)
 endif()
