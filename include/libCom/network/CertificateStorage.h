@@ -10,6 +10,9 @@
 #include <unordered_map>
 #include <openssl/ssl.h>
 
+/**
+ * Storage for certificate verification management
+ */
 class CertificateStorage {
 public:
     using RSA_ref = std::unique_ptr<RSA, decltype(&RSA_free)>;
@@ -29,14 +32,36 @@ public:
      * Data structure for stored public keys
      */
     struct PublicKey {
+        /**
+         * Unique id in CertificateStorage
+         */
         uint16_t id;
+        /**
+         * Operational mode for this key
+         */
         Mode mode;
+        /**
+         * Key data as OpenSSL structure
+         */
         RSA_ref data;
 
-        PublicKey() : data(nullptr, &RSA_free) { }
+        /**
+         * Creates an empty PublicKey with nullptr data
+         */
+        PublicKey() : id(0), mode(Mode::UNDECIDED), data(nullptr, &RSA_free) { }
 
+        /**
+         * Creates an PublicKey with supplied data
+         * @param id Unique id
+         * @param mode Operational mode
+         * @param data Key data as OpenSSL structure
+         */
         PublicKey(uint16_t id, Mode mode, RSA_ref &data) : id(id), mode(mode), data(std::move(data)) { }
 
+        /**
+         * Move constructor to support map insertion operations
+         * @param other Other public key, data is set to nullptr
+         */
         PublicKey(PublicKey &&other) : id(other.id), mode(other.mode), data(std::move(other.data)) { }
     };
 
@@ -50,16 +75,25 @@ public:
         INTERNAL,           /**< Internal OpenSSL failure **/
     };
 
+    /**
+     * @return Singleton application-wide instance
+     */
     static CertificateStorage &getInstance() {
         return mInstance;
     }
 
+    /**
+     * @return OpenSSL data index for user supplied data to verification callback function
+     */
     static int getOpenSSLDataIndex() {
         if (mOpensslDataIndex == -1)
             mOpensslDataIndex = SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
         return mOpensslDataIndex;
     }
 
+    /**
+     * Creats an empty CertificateStorage
+     */
     CertificateStorage() { }
 
     /**

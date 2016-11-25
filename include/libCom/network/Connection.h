@@ -18,19 +18,36 @@
  */
 class Connection {
 public:
+    /**
+     * Connection result codes
+     */
     enum class ConnectResult {
-        UNKNOWN, ERROR_INTERNAL, ERROR_RESOLVE, ERROR_CONNECT, ERROR_SSL_GENERAL, ERROR_SSL_VERIFY, SUCCESS,
-        ERROR_INVALID_CERTPATH
+        UNKNOWN,                    /**< Unknown result **/
+        ERROR_INTERNAL,             /**< Internal OpenSSL error **/
+        ERROR_RESOLVE,              /**< Error resolving hostname **/
+        ERROR_CONNECT,              /**< Error connecting to host **/
+        ERROR_SSL_GENERAL,          /**< General SSL failure (e.g. protocol, ..) **/
+        ERROR_SSL_VERIFY,           /**< Error verifying host certificate **/
+        SUCCESS,                    /**< Successful connect **/
+        ERROR_INVALID_CERTPATH      /**< Invalid system certificate path **/
     };
 
+    /**
+     * Connection state
+     */
     enum class Status {
-        CONNECTED, UNCONNECTED, UNKNOWN
+        CONNECTED,                  /**< Connected to host **/
+        UNCONNECTED,                /**< Not connected to host **/
+        UNKNOWN                     /**< No connection established yet **/
     };
 
+    /**
+     * Network layer protocol
+     */
     enum class Protocol {
-        UNSET,
-        IPv4,
-        IPv6
+        UNSET,                      /**< Not yet connected **/
+        IPv4,                       /**< Internet protocol 4 **/
+        IPv6                        /**< Internet protocol 6 **/
     };
 
     /**
