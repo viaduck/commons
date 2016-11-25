@@ -1,5 +1,28 @@
 #include "NativeWrapper.h"
 
+/**
+ * One-Time initialization for winsock
+ */
+class OneTimeInit {
+public:
+    OneTimeInit() {
+#ifdef __WIN32
+        WSADATA w;
+        if (WSAStartup(MAKEWORD(2,2), &w) != 0) {
+            // TODO proper fatal shutdown
+            return;
+        }
+#endif
+    }
+
+    ~OneTimeInit() {
+#ifdef __WIN32
+        WSACleanup();
+#endif
+    }
+};
+OneTimeInit go;
+
 int ::NativeWrapper::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
                                  struct addrinfo **__pai) {
     return ::getaddrinfo(__name, __service, __req, __pai);

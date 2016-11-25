@@ -1,12 +1,10 @@
 #include <unistd.h>
 
 #include <libCom/network/Connection.h>
-#include <libCom/openssl_hook.h>
 
 #include "NativeWrapper.h"
 
 Connection::Connection(std::string host, uint16_t port, bool ssl) : mHost(host), mPort(port), mUsesSSL(ssl) {
-    global_initOpenSSL();
 }
 
 Connection::~Connection() {

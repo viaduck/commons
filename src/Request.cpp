@@ -3,7 +3,6 @@
 
 #include <libCom/Buffer.h>
 #include <libCom/Range.h>
-#include <libCom/openssl_hook.h>
 #include <libCom/Request.h>
 
 #include <openssl/ssl.h>
@@ -35,8 +34,6 @@ Request::Request(std::string host, u_short port, bool IPv6, bool stickyPubKey) {
 	this->port = port;
 	this->ipv6 = IPv6;
     this->stickyPubKey = stickyPubKey;
-
-	global_initOpenSSL();
 }
 
 Request::~Request() {

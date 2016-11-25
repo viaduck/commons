@@ -7,6 +7,29 @@
 // private include
 #include "../src/network/NativeWrapper.h"
 
+/**
+ * One-Time initialization for winsock (taken from Native-Wrapper)
+ */
+class OneTimeInit {
+public:
+    OneTimeInit() {
+#ifdef __WIN32
+        WSADATA w;
+        if (WSAStartup(MAKEWORD(2,2), &w) != 0) {
+            // TODO proper fatal shutdown
+            return;
+        }
+#endif
+    }
+
+    ~OneTimeInit() {
+#ifdef __WIN32
+        WSACleanup();
+#endif
+    }
+};
+OneTimeInit go;
+
 // let's mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->name();
@@ -244,7 +267,11 @@ TEST_F(ConnectionTest, real) {
     mocks[currentTestName()]["getaddrinfo"] = (void*)&::getaddrinfo;
     mocks[currentTestName()]["socket"] = (void*)&::socket;
     mocks[currentTestName()]["connect"] = (void*)&::connect;
+#ifdef __WIN32
+    mocks[currentTestName()]["close"] = (void*)&::closesocket;
+#else
     mocks[currentTestName()]["close"] = (void*)&::close;
+#endif
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
