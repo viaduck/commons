@@ -274,7 +274,7 @@ TEST_F(ConnectionTest, real) {
 #endif
 
     // tries to establish a connection to viaduck servers
-    Connection conn("viaduck.org", 443);
+    Connection conn("gl.viaduck.org", 443);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }

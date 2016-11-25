@@ -6,6 +6,7 @@
 #include <openssl/ssl.h>
 
 #include "libCom/Buffer.h"
+#include "CertificateStorage.h"
 
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
 #if ! defined(__WIN32)
@@ -18,7 +19,8 @@
 class Connection {
 public:
     enum class ConnectResult {
-        UNKNOWN, ERROR_INTERNAL, ERROR_RESOLVE, ERROR_CONNECT, ERROR_SSL, SUCCESS
+        UNKNOWN, ERROR_INTERNAL, ERROR_RESOLVE, ERROR_CONNECT, ERROR_SSL_GENERAL, ERROR_SSL_VERIFY, SUCCESS,
+        ERROR_INVALID_CERTPATH
     };
 
     enum class Status {
@@ -36,8 +38,10 @@ public:
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
      * @param ssl Whether to use SSL or not
+     * @param certPath Path to system certificates directory. If left empty, no system certificates are unused.
+     * @param certStore CertificateStorage that holds allowed/denied certificates. Default: application-wide singleton
      */
-    Connection(std::string host, uint16_t port, bool ssl=true);
+    Connection(std::string host, uint16_t port, bool ssl = true, std::string certPath = "", CertificateStorage &certStore = CertificateStorage::getInstance());
 
     /**
      * Closes the connection and frees up allocated resources.
@@ -136,14 +140,21 @@ public:
     }
 
 protected:
-    enum class SSLResult {
-        ERROR_INTERNAL, ERROR_CONNECT, SUCCESS
-    };
-    SSLResult initSsl();
+    /**
+     * Initializes the SSL connection
+     * @return Result
+     */
+    ConnectResult initSsl();
+    /**
+     * Initializes certificate verification routines
+     */
+    bool initVerification();
 
     std::string mHost;
     uint16_t mPort;
     bool mUsesSSL;
+    std::string mCertPath;
+    CertificateStorage &mCertStore;
     Protocol mProtocol = Protocol::UNSET;
     Status mStatus = Status::UNKNOWN;
 

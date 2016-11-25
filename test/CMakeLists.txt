@@ -2,7 +2,7 @@ set(TEST_FILES ${SOURCE_FILES} ${LIBCOM_HEADERS} ${CURVE25519_SOURCES} Connectio
         BlockCacheTest.cpp BlockCacheTest.h StringTest.cpp StringTest.h DevNullTest.cpp ValidPtrTest.cpp ValidPtrTest.h
         KeyValueStorageTest.cpp KeyValueStorageTest.h SecureStorageTest.cpp SecureStorageTest.h ConversionTest.cpp
         ConversionTest.h UTF8DecoderTest.cpp UTF8DecoderTest.h BitfieldTest.cpp BitfieldTest.h
-        X25519Test.cpp X25519Test.h ED25519Test.cpp ED25519Test.h file_test.cpp)
+        X25519Test.cpp X25519Test.h ED25519Test.cpp ED25519Test.h file_test.cpp CertificateStorageTest.cpp CertificateStorageTest.h)
 
 ### coverage
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fexceptions")

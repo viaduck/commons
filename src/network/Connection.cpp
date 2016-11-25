@@ -1,11 +1,15 @@
 #include <unistd.h>
 
 #include <libCom/network/Connection.h>
+#include <openssl/rsa.h>
+#include <libCom/network/CertificateStorage.h>
+#include <openssl/err.h>
+#include <openssl/x509_vfy.h>
 
 #include "NativeWrapper.h"
 
-Connection::Connection(std::string host, uint16_t port, bool ssl) : mHost(host), mPort(port), mUsesSSL(ssl) {
-}
+Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore) :
+        mHost(host), mPort(port), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore) { }
 
 Connection::~Connection() {
     close();
@@ -52,10 +56,9 @@ Connection::ConnectResult Connection::connect() {
             }
 
             // try to establish SSL session
-            if (mUsesSSL && initSsl() != SSLResult::SUCCESS) {
-                // TODO more verbose error reporting
-                return ConnectResult::ERROR_SSL;
-            }
+            ConnectResult res;
+            if (mUsesSSL &&  (res = initSsl()) != ConnectResult::SUCCESS)
+                return res;
 
             mStatus = Status::CONNECTED;
             return ConnectResult::SUCCESS;
@@ -146,38 +149,92 @@ bool Connection::write(const Buffer &buffer) {
     return writtenbytes == buffer.size();
 }
 
-Connection::SSLResult Connection::initSsl() {
+Connection::ConnectResult Connection::initSsl() {
     const SSL_METHOD *method = TLS_client_method();
     if (method == nullptr) {
         // TODO more verbose error reporting
-        return SSLResult::ERROR_INTERNAL;
+        return ConnectResult::ERROR_INTERNAL;
     }
 
     mSSLContext = SSL_CTX_new(method);
     if (mSSLContext == nullptr) {
         // TODO more verbose error reporting
-        return SSLResult::ERROR_INTERNAL;
+        return ConnectResult::ERROR_INTERNAL;
     }
 
     // simplify application logic
     SSL_CTX_set_mode(mSSLContext, SSL_MODE_AUTO_RETRY);
 
-    // TODO certificate verification
+    if (!initVerification())  {
+        // TODO more verbose error reporting
+        return ConnectResult::ERROR_INVALID_CERTPATH;
+    }
+
     mSSL = SSL_new(mSSLContext);
     if (mSSL == nullptr) {
         // TODO more verbose error reporting
-        return SSLResult::ERROR_INTERNAL;
+        return ConnectResult::ERROR_INTERNAL;
     }
+
+    SSL_set_tlsext_host_name(mSSL, mHost.c_str());
+    // storing this to access CertificateStorage member
+    SSL_set_ex_data(mSSL, CertificateStorage::getOpenSSLDataIndex(), this);
 
     if (SSL_set_fd(mSSL, mSocket) == 0) {
         // TODO more verbose error reporting
-        return SSLResult::ERROR_INTERNAL;
+        return ConnectResult::ERROR_INTERNAL;
     }
 
-    if (SSL_connect(mSSL) != 1) {
-        // TODO more verbose error reporting
-        return SSLResult::ERROR_CONNECT;
+    int ret;
+    if ((ret = SSL_connect(mSSL)) != 1) {
+        switch (SSL_get_error(mSSL, ret)) {
+            case SSL_ERROR_SSL: {
+                unsigned long err = ERR_peek_last_error();
+                int lib = ERR_GET_LIB(err);
+                int reason = ERR_GET_REASON(err);
+
+                if (lib == ERR_LIB_SSL && reason == SSL_R_CERTIFICATE_VERIFY_FAILED)
+                    return ConnectResult::ERROR_SSL_VERIFY;
+                else
+                    return ConnectResult::ERROR_SSL_GENERAL;
+            }
+            case SSL_ERROR_NONE:
+                return ConnectResult::ERROR_CONNECT;
+            default:
+                return ConnectResult::ERROR_SSL_GENERAL;
+        }
     }
 
-    return SSLResult::SUCCESS;
+    return ConnectResult::SUCCESS;
+}
+
+bool Connection::initVerification() {
+    if (mCertPath != "")
+        if (SSL_CTX_load_verify_locations(mSSLContext, nullptr, mCertPath.c_str()) == 0)
+            return false;
+
+    SSL_CTX_set_verify(mSSLContext, SSL_VERIFY_PEER, [] (int preVerify, X509_STORE_CTX *ctx) -> int {
+        // preVerify indicates success of last level. 1 is success, 0 is fail
+        // return value: 1 is success, 0 is fail
+
+        X509 *cert = X509_STORE_CTX_get_current_cert(ctx);
+        if (cert) {
+            EVP_PKEY *pubKey = X509_get_pubkey(cert);
+
+            // get context user data
+            SSL *ssl = static_cast<SSL*>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
+            Connection *thiz = static_cast<Connection*>(SSL_get_ex_data(ssl, CertificateStorage::getOpenSSLDataIndex()));
+
+            switch (thiz->mCertStore.check(pubKey, CertificateStorage::Mode::UNDECIDED)) {
+                case CertificateStorage::Mode::DENY:
+                    return 0;
+                case CertificateStorage::Mode::ALLOW:
+                    return 1;
+                case CertificateStorage::Mode::UNDECIDED:
+                    return preVerify;
+            }
+        }
+        return 0;
+    });
+    return true;
 }
