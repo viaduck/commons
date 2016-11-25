@@ -1,6 +1,7 @@
 #include <unordered_map>
 
 #include <libCom/network/Connection.h>
+#include <libCom/String.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
@@ -274,7 +275,7 @@ TEST_F(ConnectionTest, real) {
 #endif
 
     // tries to establish a connection to viaduck servers
-    Connection conn("gl.viaduck.org", 443);
+    Connection conn("viaduck.org", 443, true, "/etc/ssl/certs");
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }
