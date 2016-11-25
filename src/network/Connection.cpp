@@ -2,10 +2,11 @@
 
 #include <libCom/network/Connection.h>
 #include <libCom/openssl_hook.h>
+#include <openssl/ssl.h>
 
 #include "NativeWrapper.h"
 
-Connection::Connection(std::string host, uint16_t port) : mHost(host), mPort(port) {
+Connection::Connection(std::string host, uint16_t port, bool ssl) : mHost(host), mPort(port), mUsesSSL(ssl) {
     global_initOpenSSL();
 }
 
@@ -43,7 +44,7 @@ Connection::ConnectResult Connection::connect() {
         if (res == -1) {
             NativeWrapper::close(mSocket);
             mSocket = INVALID_SOCKET;
-        } else {       // if there is a successful connection, return success
+        } else {
             switch (it->ai_family) {
                 case AF_INET:
                     mProtocol = Protocol::IPv4; break;
@@ -52,6 +53,13 @@ Connection::ConnectResult Connection::connect() {
                 default:
                     mProtocol = Protocol::UNSET;
             }
+
+            // try to establish SSL session
+            if (mUsesSSL && initSsl() != SSLResult::SUCCESS) {
+                // TODO more verbose error reporting
+                return ConnectResult::ERROR_SSL;
+            }
+
             return ConnectResult::SUCCESS;
         }
     }
@@ -67,4 +75,40 @@ bool Connection::close() {
         return true;
     }
     return false;
+}
+
+Connection::SSLResult Connection::initSsl() {
+    const SSL_METHOD *method = TLS_client_method();
+    if (method == nullptr) {
+        // TODO more verbose error reporting
+        return SSLResult::ERROR_INTERNAL;
+    }
+
+    mSSLContext = SSL_CTX_new(method);
+    if (mSSLContext == nullptr) {
+        // TODO more verbose error reporting
+        return SSLResult::ERROR_INTERNAL;
+    }
+
+    // simplify application logic
+    SSL_CTX_set_mode(mSSLContext, SSL_MODE_AUTO_RETRY);
+
+    // TODO certificate verification
+    mSSL = SSL_new(mSSLContext);
+    if (mSSL == nullptr) {
+        // TODO more verbose error reporting
+        return SSLResult::ERROR_INTERNAL;
+    }
+
+    if (SSL_set_fd(mSSL, mSocket) == 0) {
+        // TODO more verbose error reporting
+        return SSLResult::ERROR_INTERNAL;
+    }
+
+    if (SSL_connect(mSSL) != 1) {
+        // TODO more verbose error reporting
+        return SSLResult::ERROR_CONNECT;
+    }
+
+    return SSLResult::SUCCESS;
 }

@@ -45,7 +45,7 @@ TEST_F(ConnectionTest, noHost) {
                 // noop
             });
 
-    Connection conn("localhost", 1337);
+    Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
 }
 
@@ -64,7 +64,7 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
                 // noop
             });
 
-    Connection conn("localhost", 1337);
+    Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_CONNECT, conn.connect());
 }
 
@@ -104,7 +104,7 @@ TEST_F(ConnectionTest, invalidSocket) {
                 // noop
             });
 
-    Connection conn("localhost", 1337);
+    Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::ERROR_INTERNAL, conn.connect());
 }
 
@@ -150,7 +150,7 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
             });
 
 
-    Connection conn("localhost", 1337);
+    Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
 }
@@ -226,11 +226,22 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
                     ASSERT_EQ(1, i) << "Only close failed sockets!";
             });
 
-    Connection conn("localhost", 1337);
+    Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     // do not execute the assert in close if connect was already successful because a successful socket will be closed
     // there too
     checkClose = false;
 
     ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
+}
+
+TEST_F(ConnectionTest, real) {
+    mocks[currentTestName()]["getaddrinfo"] = (void*)&::getaddrinfo;
+    mocks[currentTestName()]["socket"] = (void*)&::socket;
+    mocks[currentTestName()]["connect"] = (void*)&::connect;
+    mocks[currentTestName()]["close"] = (void*)&::close;
+
+    // tries to establish a connection to viaduck servers
+    Connection conn("viaduck.org", 443);
+    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
 }

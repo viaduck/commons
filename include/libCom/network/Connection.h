@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <openssl/ossl_typ.h>
 
 #include "libCom/Buffer.h"
 
@@ -17,7 +18,7 @@
 class Connection {
 public:
     enum class ConnectResult {
-        UNKNOWN, ERROR_INTERNAL, ERROR_RESOLVE, ERROR_CONNECT, SUCCESS
+        UNKNOWN, ERROR_INTERNAL, ERROR_RESOLVE, ERROR_CONNECT, ERROR_SSL, SUCCESS
     };
 
     enum class Status {
@@ -34,8 +35,9 @@ public:
      * Creates a connection object with the specified target. Does not connect yet.
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
+     * @param ssl Whether to use SSL or not
      */
-    Connection(std::string host, uint16_t port);
+    Connection(std::string host, uint16_t port, bool ssl=true);
 
     /**
      * Closes the connection and frees up allocated resources.
@@ -69,13 +71,21 @@ public:
     }
 
 protected:
+    enum class SSLResult {
+        ERROR_INTERNAL, ERROR_CONNECT, SUCCESS
+    };
+    SSLResult initSsl();
+
     std::string mHost;
     uint16_t mPort;
+    bool mUsesSSL;
     Protocol mProtocol = Protocol::UNSET;
     Status mStatus = Status::UNKNOWN;
 
     //
     SOCKET mSocket;
+    SSL_CTX *mSSLContext;
+    SSL *mSSL;
 };
 
 
