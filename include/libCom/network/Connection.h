@@ -70,6 +70,71 @@ public:
         return mProtocol;
     }
 
+    /**
+	 * Read from remote into the buffer (greed - as max bytes as available)
+	 * @param buffer Buffer receiving the read data
+     * @param min Minimum size to read
+	 * @return Success (true) or not (false)
+	 */
+    bool read(Buffer &buffer, const uint32_t min = 0);
+
+    /**
+	 * Read at most size bytes from remote into the buffer
+	 * @param buffer Buffer receiving the read data
+     * @param size Maximum bytes to read
+	 * @return >0: Actual bytes read. 0: (clean) shutdown. <0: error occurred
+	 */
+    int32_t readMax(Buffer &buffer, const uint32_t size);
+
+    /**
+     * Read exactly size bytes from remote into the buffer
+     * @param buffer Buffer receiving the read data
+     * @param size Exact count of bytes to read
+     * @return True if exactly bytes have been red, false if not
+     */
+    bool readExactly(Buffer &buffer, const uint32_t size);
+
+    /**
+     * Write from buffer to remote
+     * @param buffer Buffer to send to remote
+     * @return Success (true) or not (false)
+     */
+    bool write(const Buffer &buffer);
+
+    /**
+     * Write a protocol generated class to the request stream
+     * @param pclass the class to write, needs to have T::serialize(const Buffer&)
+     *
+     * @return True on success
+     */
+    template<typename T>
+    bool writeProtoClass(const T &pclass) {
+        Buffer outBuf;
+        pclass.serialize(outBuf);
+        return write(outBuf);
+    }
+
+    /**
+     * Reads a protocol generated class from request stream
+     * @param pclass the protocol generated class to be filled from buffer, needs to have T::deserialize(const Buffer&, uint32_t &missing)
+     *
+     * @return True on success
+     */
+    template<typename T>
+    bool readProtoClass(T &pclass) {
+        Buffer inBuf;
+        uint32_t missing = 0;
+        // try to deserialize, read missing bytes
+        while(!pclass.deserialize(inBuf, missing)) {
+            if(missing == 0) // no bytes missing, but class cannot be deserialized => error
+                return false;
+
+            if(!readExactly(inBuf, missing))
+                return false;
+        }
+        return true;
+    }
+
 protected:
     enum class SSLResult {
         ERROR_INTERNAL, ERROR_CONNECT, SUCCESS
