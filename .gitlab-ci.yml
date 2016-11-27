@@ -1,42 +1,72 @@
 image: custom/debian:jessie-mod
 
 stages:
-    - build         # contains build and test and deploy
+    - build
+    - test
+    - coverage
+    - documentation
 
 before_script:
     - git submodule update --init --recursive
 
-linux-x86_64:
+build:linux:x86_64:
+    stage: build
     script:
         - mkdir build
         - cd build
-        - cmake ../ -DPREBUILT_BRANCH=x86_64-linux
-        - make
-        - test/libCom_Test              # runs gtest target
-        - make libCom_Coverage          # generate code coverage
-        - make libCom_doc               # generate doxygen code documentation
-    stage: build
+        - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build/
+
+test:linux:x86_64:
+    stage: test
+    script:
+        - cd build
+        - test/libCom_Test             # runs gtest target
+    dependencies:
+    - build:linux:x86_64
+
+coverage:linux:x86_64:
+    stage: coverage
+    script:
+        - cd build
+        - ninja libCom_Coverage        # generate code coverage
     artifacts:
         paths:
-        - build/test/coverage/           # coverage data
-        - build/doc/html/                # doxygen documentation
+        - build/test/coverage/         # coverage data
+    dependencies:
+    - build:linux:x86_64
 
-windows-x86:
+documentation:linux:x86_64:
+    stage: documentation
+    script:
+        - cd build
+        - ninja libCom_doc             # generate doxygen code documentation
+    artifacts:
+        paths:
+        - build/doc/html/                # doxygen documentation
+    dependencies:
+    - build:linux:x86_64
+
+build:windows:x86:
+    stage: build
     script:
         - update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix        # fix c++11 threading support on debian
         - update-alternatives --set i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-gcc-posix
         - mkdir build-windows-x86
         - cd build-windows-x86
-        - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 ../
-        - make
-    stage: build
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 ../
+        - ninja
 
-windows-x86_64:
+build:windows:x86_64:
+    stage: build
     script:
         - update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix        # fix c++11 threading support on debian
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 ../
-        - make
-    stage: build
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 ../
+        - ninja
