@@ -10,8 +10,9 @@
 
 #include "NativeWrapper.h"
 
-Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore) :
-        mHost(host), mPort(port), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore) { }
+Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore,
+                       uint16_t timeout) :
+        mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore) { }
 
 Connection::~Connection() {
     close();
@@ -40,6 +41,14 @@ Connection::ConnectResult Connection::connect() {
         mSocket = NativeWrapper::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
         if (mSocket == INVALID_SOCKET)
             return ConnectResult::ERROR_INTERNAL;
+
+        // set socket options
+        if (mTimeout != 0) {
+            struct timeval tv;
+            tv.tv_sec = mTimeout;
+            tv.tv_usec = 0;
+            setsockopt(mSocket, SOL_SOCKET, SO_RCVTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(struct timeval));
+        }
 
         // call global connect function
         res = NativeWrapper::connect(mSocket, it->ai_addr, it->ai_addrlen);
