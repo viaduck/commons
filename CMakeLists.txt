@@ -35,7 +35,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Request.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/network/Connection.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/network/CertificateStorage.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/network/SSLContext.cpp) #
@@ -44,7 +44,7 @@ set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Range.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Request.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/errorcodes.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/ValidPtr.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/KeyValueStorage.h
