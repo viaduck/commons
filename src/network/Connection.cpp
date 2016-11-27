@@ -1,10 +1,12 @@
 #include <unistd.h>
 
-#include <libCom/network/Connection.h>
 #include <openssl/rsa.h>
-#include <libCom/network/CertificateStorage.h>
 #include <openssl/err.h>
 #include <openssl/x509_vfy.h>
+
+#include <libCom/network/Connection.h>
+#include <libCom/network/ConnectionInfo.h>
+#include <libCom/network/SSLContext.h>
 
 #include "NativeWrapper.h"
 
@@ -13,7 +15,6 @@ Connection::Connection(std::string host, uint16_t port, bool ssl, std::string ce
 
 Connection::~Connection() {
     close();
-    // TODO cleanup?
 }
 
 Connection::ConnectResult Connection::connect() {
@@ -72,6 +73,15 @@ Connection::ConnectResult Connection::connect() {
 
 bool Connection::close() {
     if (mSocket != INVALID_SOCKET) {
+        if (mUsesSSL && status() == Status::CONNECTED) {
+            // save current SSL session
+            SSLContext::getInstance().saveSession(*this, SSL_get1_session(mSSL));
+
+            // disconnect & cleanup SSL
+            SSL_shutdown(mSSL);
+            SSL_free(mSSL);
+        }
+
         NativeWrapper::close(mSocket);
         mStatus = Status::UNCONNECTED;
         return true;
@@ -150,27 +160,12 @@ bool Connection::write(const Buffer &buffer) {
 }
 
 Connection::ConnectResult Connection::initSsl() {
-    const SSL_METHOD *method = TLS_client_method();
-    if (method == nullptr) {
-        // TODO more verbose error reporting
-        return ConnectResult::ERROR_INTERNAL;
-    }
-
-    mSSLContext = SSL_CTX_new(method);
-    if (mSSLContext == nullptr) {
-        // TODO more verbose error reporting
-        return ConnectResult::ERROR_INTERNAL;
-    }
-
-    // simplify application logic
-    SSL_CTX_set_mode(mSSLContext, SSL_MODE_AUTO_RETRY);
-
     if (!initVerification())  {
         // TODO more verbose error reporting
         return ConnectResult::ERROR_INVALID_CERTPATH;
     }
 
-    mSSL = SSL_new(mSSLContext);
+    mSSL = SSL_new(SSLContext::getInstance());
     if (mSSL == nullptr) {
         // TODO more verbose error reporting
         return ConnectResult::ERROR_INTERNAL;
@@ -184,6 +179,11 @@ Connection::ConnectResult Connection::initSsl() {
         // TODO more verbose error reporting
         return ConnectResult::ERROR_INTERNAL;
     }
+
+    // set stored session
+    SSL_SESSION *session = SSLContext::getInstance().getSession(*this);
+    if (session != nullptr)
+        SSL_set_session(mSSL, session);
 
     int ret;
     if ((ret = SSL_connect(mSSL)) != 1) {
@@ -205,15 +205,19 @@ Connection::ConnectResult Connection::initSsl() {
         }
     }
 
+    // count how often we saved the user's traffic
+    if (SSL_session_reused(mSSL))
+        SSLContext::getInstance().mSessionsResumed++;
+
     return ConnectResult::SUCCESS;
 }
 
 bool Connection::initVerification() {
     if (mCertPath != "")
-        if (SSL_CTX_load_verify_locations(mSSLContext, nullptr, mCertPath.c_str()) == 0)
+        if (SSL_CTX_load_verify_locations(SSLContext::getInstance(), nullptr, mCertPath.c_str()) == 0)
             return false;
 
-    SSL_CTX_set_verify(mSSLContext, SSL_VERIFY_PEER, [] (int preVerify, X509_STORE_CTX *ctx) -> int {
+    SSL_CTX_set_verify(SSLContext::getInstance(), SSL_VERIFY_PEER, [] (int preVerify, X509_STORE_CTX *ctx) -> int {
         // preVerify indicates success of last level. 1 is success, 0 is fail
         // return value: 1 is success, 0 is fail
 

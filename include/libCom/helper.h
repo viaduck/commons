@@ -6,6 +6,7 @@
 #define LIBCOM_HELPER_H
 
 #include <cstring>
+#include <functional>
 #include "libCom/conversions.h"
 
 inline bool comparisonHelper(const void *one, const void *two, uint32_t size) {
@@ -44,6 +45,19 @@ struct conv2bin<high> {
     static_assert(high == '0' || high == '1', "no bin num!");
     static uint64_t const value = (high - '0');
 };
+
+/**
+ * Helper method for std::hash<> specialisations to combine a proper hash value
+ * @tparam T Type of value to hash
+ * @param seed Current hash value, will be updated
+ * @param v Value to hash
+ */
+template <class T>
+inline void hash_combine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
 
 namespace libcom {
 /**

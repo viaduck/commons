@@ -2,6 +2,7 @@
 
 #include <libCom/network/Connection.h>
 #include <libCom/String.h>
+#include <libCom/network/SSLContext.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
@@ -278,4 +279,39 @@ TEST_F(ConnectionTest, real) {
     Connection conn("viaduck.org", 443, true, "/etc/ssl/certs");
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
+    ASSERT_TRUE(conn.isSSL());
+    conn.close();
+}
+
+TEST_F(ConnectionTest, sessionResumption) {
+    mocks[currentTestName()]["getaddrinfo"] = (void*)&::getaddrinfo;
+    mocks[currentTestName()]["socket"] = (void*)&::socket;
+    mocks[currentTestName()]["connect"] = (void*)&::connect;
+#ifdef __WIN32
+    mocks[currentTestName()]["close"] = (void*)&::closesocket;
+#else
+    mocks[currentTestName()]["close"] = (void*)&::close;
+#endif
+
+    // tries to establish a connection to viaduck servers
+    Connection conn("viaduck.org", 443, true, "/etc/ssl/certs");
+    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
+    ASSERT_TRUE(conn.isSSL());
+    conn.close();       // this saves SSL session
+
+    uint16_t resumptionCount = SSLContext::getInstance().sessionsResumed();
+
+    // following connections should use stored ssl sessions
+    Connection conn2("viaduck.org", 443, true, "/etc/ssl/certs");
+    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn2.connect());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn2.status());
+    ASSERT_EQ(resumptionCount+1, SSLContext::getInstance().sessionsResumed());
+    ASSERT_TRUE(conn2.isSSL());
+    conn2.close();
+
+    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn2.connect());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn2.status());
+    ASSERT_EQ(resumptionCount+2, SSLContext::getInstance().sessionsResumed());
+    ASSERT_TRUE(conn2.isSSL());
 }

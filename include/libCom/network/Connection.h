@@ -3,10 +3,11 @@
 
 #include <cstdint>
 #include <string>
+
 #include <openssl/ssl.h>
 
-#include "libCom/Buffer.h"
-#include "CertificateStorage.h"
+#include <libCom/Buffer.h>
+#include <libCom/network/CertificateStorage.h>
 
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
 #if ! defined(__WIN32)
@@ -89,6 +90,27 @@ public:
      */
     Protocol protocol() const {
         return mProtocol;
+    }
+
+    /**
+     * @return Hostname
+     */
+    const std::string &host() const {
+        return mHost;
+    }
+
+    /**
+     * @return Port
+     */
+    uint16_t port() const {
+        return mPort;
+    }
+
+    /**
+     * @return Wether connection is using SSL
+     */
+    bool isSSL() const {
+        return mUsesSSL;
     }
 
     /**
@@ -177,7 +199,6 @@ protected:
 
     //
     SOCKET mSocket;
-    SSL_CTX *mSSLContext;
     SSL *mSSL;
 };
 
