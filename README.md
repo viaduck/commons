@@ -1,25 +1,35 @@
 # libCom
 ## Introduction
-Provides common communication and management features used by all subprojects of SecChat.
+Provides common communication and management features used by all subprojects of ViaDuck.
 
 ## What's included (by now)?
-- wrapper around`std::unique_ptr` which securely erases the used memory on deletion
-- simple binary protocol helper (convenience get-set access to members) based on compile-time code generation
-- automatic OpenSSL compilation (cloned from official git repository) with custom flags deactivating unnecessary features
+- Smart pointers:
+    - `SecureUniquePtr`: Wrapper around`std::unique_ptr` which securely erases the used memory on deletion
+    - `ValidPtr`: Pointer that tracks the state of encapsulated object
+- Simple binary protocol helper (convenience get-set access to members) based on compile-time code generation
+- `Bitfield`: Convenient bitfield manipulation functions
+- `BlockCache`: Generation based fixed-cache
+- `Buffer`: Dynamic raw buffers making use of secure memory erase
+    - `String`: Secure strings based on buffer
+- `KeyValueStorage`: Storage for key-value-pairs with (de)serialization
+- `SecureStorage`: Secure RAM storage buffer, that prevents data tampering (only useful in conjunction with encryption methods exposed by core)
+- `UTF8Decoder/UTF8Encoder`: UTF8 decoding and encoding with codepoint manipulation
+
 
 ## Requirements
-- CMake
-- Compiler and linker platform supported by Cmake
+- CMake 3.0
+- Compiler and linker platform supported by CMake
 - Python 3
 - cogapp (python package)
+- Google Test (referenced by submodule)
+- openssl-cmake (referenced by submodule)
 
-### On Windows (for OpenSSL):
-- mingw
-- msys (bundled with perl)
+### Windows notes:
+- Only mingw-w64 compiler infrastructure is supported (32 and 64 bits)
 
 ## How to use
 ### Adding to project
-#### Init git submodules:
+#### Init git submodule
 ```
 $ git submodule add <repo url> <path>
 ```
@@ -27,24 +37,16 @@ $ git submodule add <repo url> <path>
 $ git submodule update --init --recursive
 ```
 
-#### CMake:
-libCom
+#### CMake
 ```
 include_directories(<path-to-libcom>/include/)
 ```
 ```
 add_subdirectory(<path-to-libcom>)
-add_dependencies(YourProject libCom)
 target_link_libraries(YourProject libCom)
 ```
-<path-to-libcom> was supplied in submodules initialization
-
-OpenSSL:
-```
-add_dependencies(YourProject openssl)
-target_link_libraries(YourProject ssl crypto)
-```
+`<path-to-libcom>` was supplied in submodules initialization
 
 ### Binary protocol
-To add new mesages and their specifications, create a new file in `protocol/` describing the message (available data types and structures
-can be found in `tool/generator.py`. After that, add the message specification file name to `protocol/protocol.messages`.
+To add new messages and their specifications, create a new file in `protocol/` (arbitrary subdirectory) describing the message (available data types and structures
+can be found in examples (see `protocol/test/`). Message specification is automatically picked up by CMake (a CMake reload is necessary).
