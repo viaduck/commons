@@ -31,7 +31,7 @@ TEST_F(FastStringMapTest, testBasic) {
     // check existence
     ASSERT_TRUE(map.lookup("a", &otest));
     // check value
-    ASSERT_EQ(123, otest);
+    ASSERT_EQ(123u, otest);
 
     // add keys with other reference
     map.add(test2, 1337);

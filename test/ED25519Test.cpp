@@ -15,12 +15,12 @@ TEST_F(ED25519Test, testSignature) {
     FileTest::ReadResult ret;
     for(int i = 0; (ret = t.ReadNext()) == FileTest::kReadSuccess; i++) {
         EXPECT_TRUE(t.GetBytes(&private_key, "PRIV"));
-        EXPECT_EQ(ED25519_PRIVATE_KEY_LEN, private_key.size());
+        EXPECT_EQ(static_cast<uint32_t>(ED25519_PRIVATE_KEY_LEN), private_key.size());
         EXPECT_TRUE(t.GetBytes(&public_key, "PUB"));
-        EXPECT_EQ(ED25519_PUBLIC_KEY_LEN, public_key.size());
+        EXPECT_EQ(static_cast<uint32_t>(ED25519_PUBLIC_KEY_LEN), public_key.size());
         EXPECT_TRUE(t.GetBytes(&message, "MESSAGE"));
         EXPECT_TRUE(t.GetBytes(&expected_signature, "SIG"));
-        EXPECT_EQ(ED25519_SIGNATURE_LEN, expected_signature.size());
+        EXPECT_EQ(static_cast<uint32_t>(ED25519_SIGNATURE_LEN), expected_signature.size());
 
         uint8_t signature[64];
         EXPECT_EQ(1, ED25519_sign(signature, message.data(), message.size(), private_key.data())) << "failed at " << i;
