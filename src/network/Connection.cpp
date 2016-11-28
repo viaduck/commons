@@ -38,6 +38,9 @@ Connection::ConnectResult Connection::connect() {
 
     // iterate over all available addresses
     for (struct addrinfo *it = addressInfo.get(); it; it = it->ai_next) {
+        if (!handleSpecialDNS(it))
+            return ConnectResult::ERROR_RESOLVE;
+
         mSocket = NativeWrapper::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
         if (mSocket == INVALID_SOCKET)
             return ConnectResult::ERROR_INTERNAL;
@@ -235,5 +238,17 @@ bool Connection::initVerification() {
         }
         return 0;
     });
+    return true;
+}
+
+bool Connection::handleSpecialDNS(const struct addrinfo *address) {
+    const static uint32_t DNS_NAME_COLLISION = ntoh(static_cast<uint32_t>(0x7f003535));       // 127.0.53.53
+
+    // IPv4
+    if (address->ai_family == AF_INET) {
+        // see https://www.icann.org/news/announcement-2-2014-08-01-en
+        if (reinterpret_cast<sockaddr_in *>(address->ai_addr)->sin_addr.s_addr == DNS_NAME_COLLISION)
+            return false;
+    }
     return true;
 }

@@ -103,6 +103,36 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
     ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
+TEST_F(ConnectionTest, dnsCollision) {
+    mocks[currentTestName()]["getaddrinfo"] =   (void*)+([] (const char *__restrict, const char *__restrict,
+                                                             const struct addrinfo *__restrict,
+                                                             struct addrinfo **__restrict outAddr) {
+                // define addrinfo used for resolve mock
+                struct addrinfo *addr = new addrinfo;
+                memset(addr, 0, sizeof(addrinfo));
+
+                addr->ai_family = AF_INET;
+                addr->ai_socktype = SOCK_STREAM;
+                addr->ai_protocol = IPPROTO_TCP;
+                struct sockaddr_in *saddr = new sockaddr_in;
+                inet_pton(AF_INET, "127.0.53.53", &(saddr->sin_addr));
+                addr->ai_addr = (sockaddr*)saddr;
+                // --
+
+                *outAddr = addr;
+                return 0;
+            });
+
+    mocks[currentTestName()]["close"] =
+            (void*)+([] (int ) {
+                // noop
+            });
+
+    Connection conn("localhost", 1337, false);
+    ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
+    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
+}
+
 TEST_F(ConnectionTest, invalidSocket) {
     mocks[currentTestName()]["getaddrinfo"] =
             (void*)+([] (const char *__restrict, const char *__restrict, const struct addrinfo *__restrict,

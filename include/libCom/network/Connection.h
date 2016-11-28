@@ -184,6 +184,15 @@ public:
 
 protected:
     /**
+     * Handles special DNS resolved addresses
+     *
+     * Currently handled:
+     * - 127.0.53.53: DNS name collision (https://www.icann.org/news/announcement-2-2014-08-01-en)
+     * @param address Input address
+     * @return False indicates a failure, true success
+     */
+    bool handleSpecialDNS(const struct addrinfo *address);
+    /**
      * Initializes the SSL connection
      * @return Result
      */
