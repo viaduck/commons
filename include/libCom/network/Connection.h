@@ -56,7 +56,7 @@ public:
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
      * @param ssl Whether to use SSL or not
-     * @param certPath Path to system certificates directory. If left empty, no system certificates are unused.
+     * @param certPath Path to system certificates directory. If left empty, no system certificates are used.
      * @param certStore CertificateStorage that holds allowed/denied certificates. Default: application-wide singleton
      * @param timeout Receive timeout in seconds. 0 indicates no timeout
      */
@@ -67,10 +67,11 @@ public:
      * Creates a connection object with the specified target. Does not connect yet.
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
+     * @param ssl Whether to use SSL or not
      * @param timeout Receive timeout in seconds. 0 indicates no timeout
      */
-    Connection(std::string host, uint16_t port, uint16_t timeout = 0) :
-            Connection(host, port, true, "", CertificateStorage::getInstance(), timeout) { }
+    Connection(std::string host, uint16_t port, bool ssl, uint16_t timeout) :
+            Connection(host, port, ssl, "", CertificateStorage::getInstance(), timeout) { }
 
     /**
      * Closes the connection and frees up allocated resources.
@@ -85,7 +86,7 @@ public:
 
     /**
      * Closes the connection (if connected)
-     * @return Wether the connection was closed (true) or there is no active connection (false)
+     * @return Whether the connection was closed (true) or there is no active connection (false)
      */
     bool close();
 
@@ -118,19 +119,11 @@ public:
     }
 
     /**
-     * @return Wether connection is using SSL
+     * @return Whether connection is using SSL
      */
     bool isSSL() const {
         return mUsesSSL;
     }
-
-    /**
-	 * Read from remote into the buffer (greed - as max bytes as available)
-	 * @param buffer Buffer receiving the read data
-     * @param min Minimum size to read
-	 * @return Success (true) or not (false)
-	 */
-    bool read(Buffer &buffer, const uint32_t min = 0);
 
     /**
 	 * Read at most size bytes from remote into the buffer
@@ -141,12 +134,12 @@ public:
     int32_t readMax(Buffer &buffer, const uint32_t size);
 
     /**
-     * Read exactly size bytes from remote into the buffer
+     * Read exactly size bytes from remote into the buffer. Blocks while waiting
      * @param buffer Buffer receiving the read data
      * @param size Exact count of bytes to read
-     * @return True if exactly bytes have been red, false if not
+     * @return True if exactly bytes have been read, false if not
      */
-    bool readExactly(Buffer &buffer, const uint32_t size);
+    bool read(Buffer &buffer, const uint32_t size);
 
     /**
      * Write from buffer to remote
@@ -183,7 +176,7 @@ public:
             if(missing == 0) // no bytes missing, but class cannot be deserialized => error
                 return false;
 
-            if(!readExactly(inBuf, missing))
+            if(!read(inBuf, missing))
                 return false;
         }
         return true;

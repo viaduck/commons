@@ -98,30 +98,21 @@ bool Connection::close() {
     return false;
 }
 
-bool Connection::read(Buffer &buffer, const uint32_t min) {
+bool Connection::read(Buffer &buffer, const uint32_t size) {
     if (status() != Status::CONNECTED)
         return false;
 
     uint32_t read = 0;
     int res;
-    uint8_t iters = 0;
-    buffer.increase(buffer.size() + 512 * 4);     // must be big enough to hold at least 512 bytes (*4 for 4 iterations)
+    buffer.increase(size, true);        // must be big enough to hold at least size bytes
 
-    // TODO read timeout, non-blocking?
-    while ((res = SSL_read(mSSL, buffer.data(buffer.size()), 512)) > 0) {
-        buffer.use(static_cast<uint32_t>(res));
+    // TODO read timeout
+    while (read != size && (res = SSL_read(mSSL, buffer.data(buffer.size()), size-read)) > 0) {
         read += res;
-
-        if (res != 512 || read >= min)
-            break;
-
-        iters++;
-        if (iters == 4) {      // buffer is not big enough for another iteration -> increase it (another 4 iterations)
-            buffer.increase(buffer.size() + 512 * 4);
-            iters = 0;
-        }
+        buffer.use(static_cast<uint32_t>(res));
     }
-    return res > 0;
+
+    return read == size;
 }
 
 int32_t Connection::readMax(Buffer &buffer, const uint32_t size) {
@@ -137,23 +128,6 @@ int32_t Connection::readMax(Buffer &buffer, const uint32_t size) {
         buffer.use(static_cast<uint32_t>(res));
 
     return res;
-}
-
-bool Connection::readExactly(Buffer &buffer, const uint32_t size) {
-    if (status() != Status::CONNECTED)
-        return false;
-
-    uint32_t read = 0;
-    int res;
-    buffer.increase(size, true);        // must be big enough to hold at least size bytes
-
-    // TODO read timeout
-    while (read != size && (res = SSL_read(mSSL, buffer.data(buffer.size()), size-read)) > 0) {
-        read += res;
-        buffer.use(static_cast<uint32_t>(res));
-    }
-
-    return read == size;
 }
 
 bool Connection::write(const Buffer &buffer) {
