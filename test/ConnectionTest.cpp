@@ -1,5 +1,12 @@
 #include <unordered_map>
 
+#if defined(__WIN32)
+#undef WINVER
+#define WINVER 0x0600
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
+
 #include <libCom/network/Connection.h>
 #include <libCom/String.h>
 #include <libCom/network/SSLContext.h>
@@ -115,7 +122,7 @@ TEST_F(ConnectionTest, dnsCollision) {
                 addr->ai_socktype = SOCK_STREAM;
                 addr->ai_protocol = IPPROTO_TCP;
                 struct sockaddr_in *saddr = new sockaddr_in;
-                inet_pton(AF_INET, "127.0.53.53", &(saddr->sin_addr));
+                ::inet_pton(AF_INET, "127.0.53.53", &(saddr->sin_addr));
                 addr->ai_addr = (sockaddr*)saddr;
                 // --
 
