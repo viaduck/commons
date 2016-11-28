@@ -58,6 +58,14 @@ int ::NativeWrapper::close(int __fd) {
     return callMockFunction(close, __fd);
 }
 
+ssize_t ::NativeWrapper::recv(int /*socket*/, void */*buffer*/, size_t /*length*/) {
+    return 0;           // unused for now
+}
+
+ssize_t ::NativeWrapper::send(int /*socket*/, const void */*buffer*/, size_t /*length*/) {
+    return 0;           // unused for now
+}
+
 TEST_F(ConnectionTest, noHost) {
     mocks[currentTestName()]["getaddrinfo"] =   (void*)+([] (const char *__restrict, const char *__restrict,
                                                              const struct addrinfo *__restrict,
@@ -265,7 +273,7 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
 }
 
-TEST_F(ConnectionTest, real) {
+TEST_F(ConnectionTest, realSSL) {
     mocks[currentTestName()]["getaddrinfo"] = (void*)&::getaddrinfo;
     mocks[currentTestName()]["socket"] = (void*)&::socket;
     mocks[currentTestName()]["connect"] = (void*)&::connect;
@@ -280,6 +288,24 @@ TEST_F(ConnectionTest, real) {
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
     ASSERT_TRUE(conn.isSSL());
+    conn.close();
+}
+
+TEST_F(ConnectionTest, realNoSSL) {
+    mocks[currentTestName()]["getaddrinfo"] = (void*)&::getaddrinfo;
+    mocks[currentTestName()]["socket"] = (void*)&::socket;
+    mocks[currentTestName()]["connect"] = (void*)&::connect;
+#ifdef __WIN32
+    mocks[currentTestName()]["close"] = (void*)&::closesocket;
+#else
+    mocks[currentTestName()]["close"] = (void*)&::close;
+#endif
+
+    // tries to establish a connection to viaduck servers
+    Connection conn("viaduck.org", 80, false);
+    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
+    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
+    ASSERT_FALSE(conn.isSSL());
     conn.close();
 }
 

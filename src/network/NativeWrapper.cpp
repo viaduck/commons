@@ -43,3 +43,11 @@ int ::NativeWrapper::close(int __fd) {
     return ::close(__fd);
 #endif
 }
+
+ssize_t ::NativeWrapper::recv(int socket, void *buffer, size_t length) {
+    return ::recv(socket, buffer, length, 0);
+}
+
+ssize_t::NativeWrapper::send(int socket, const void *buffer, size_t length) {
+    return ::send(socket, buffer, length, 0);
+}

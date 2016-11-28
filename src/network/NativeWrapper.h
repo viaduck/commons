@@ -24,6 +24,10 @@ namespace NativeWrapper {
     int connect(int __fd, const sockaddr *__addr, socklen_t __len);
 
     int close(int __fd);
+
+    ssize_t recv(int socket, void *buffer, size_t length);
+
+    ssize_t send(int socket, const void *buffer, size_t length);
 }
 
 #endif //LIBCOM_NATIVEWRAPPER_H

@@ -103,11 +103,15 @@ bool Connection::read(Buffer &buffer, const uint32_t size) {
         return false;
 
     uint32_t read = 0;
-    int res;
+    ssize_t res;
     buffer.increase(size, true);        // must be big enough to hold at least size bytes
 
-    // TODO read timeout
-    while (read != size && (res = SSL_read(mSSL, buffer.data(buffer.size()), size-read)) > 0) {
+    if (mUsesSSL)
+        res = SSL_read(mSSL, buffer.data(buffer.size()), size-read);
+    else
+        res = NativeWrapper::recv(mSocket, buffer.data(buffer.size()), size-read);
+
+    while (read != size && (res > 0)) {
         read += res;
         buffer.use(static_cast<uint32_t>(res));
     }
@@ -115,15 +119,18 @@ bool Connection::read(Buffer &buffer, const uint32_t size) {
     return read == size;
 }
 
-int32_t Connection::readMax(Buffer &buffer, const uint32_t size) {
+ssize_t Connection::readMax(Buffer &buffer, const uint32_t size) {
     if (status() != Status::CONNECTED)
         return -1;
 
-    int res;
+    ssize_t res;
     buffer.increase(size, true);     // must be big enough to hold at least size bytes
 
-    // TODO read timeout, non-blocking?
-    res = SSL_read(mSSL, buffer.data(buffer.size()), size);
+    if (mUsesSSL)
+        res = SSL_read(mSSL, buffer.data(buffer.size()), size);
+    else
+        res = NativeWrapper::recv(mSocket, buffer.data(buffer.size()), size);
+
     if (res > 0)
         buffer.use(static_cast<uint32_t>(res));
 
@@ -134,9 +141,14 @@ bool Connection::write(const Buffer &buffer) {
     if (status() != Status::CONNECTED)
         return false;
 
-    // TODO: writeExactly
-    int res = SSL_write(mSSL, buffer.const_data(), buffer.size());
-    if (res <= 0) return false;
+    ssize_t res;
+    if (mUsesSSL)
+        res = SSL_write(mSSL, buffer.const_data(), buffer.size());
+    else
+        res = NativeWrapper::send(mSocket, buffer.const_data(), buffer.size());
+
+    if (res <= 0)
+        return false;
 
     uint32_t writtenbytes = static_cast<uint32_t>(res);
     return writtenbytes == buffer.size();
