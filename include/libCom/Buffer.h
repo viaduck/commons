@@ -98,6 +98,14 @@ public:
      * @param offset Starting position
      * @return Range containing information about added range within Buffer
      */
+    virtual BufferRangeConst write(const BufferRange &other, uint32_t offset);
+    /**
+     * Overloaded variant of write(const void *data, uint32_t len, uint32_t offset) which writes the contents of another
+     * buffer described by a Range to this buffer.
+     * @param other Other Buffer
+     * @param offset Starting position
+     * @return Range containing information about added range within Buffer
+     */
     virtual BufferRangeConst write(const BufferRangeConst &other, uint32_t offset);
 
     /**

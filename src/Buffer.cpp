@@ -53,6 +53,10 @@ BufferRangeConst Buffer::write(const Buffer &other, uint32_t offset) {
     return write(other.const_data(), other.size(), offset);
 }
 
+BufferRangeConst Buffer::write(const BufferRange &other, uint32_t offset) {
+    return write(other.const_data(), other.size(), offset);
+}
+
 BufferRangeConst Buffer::write(const BufferRangeConst &other, uint32_t offset) {
     return write(other.const_data(), other.size(), offset);
 }
