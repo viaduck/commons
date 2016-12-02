@@ -12,8 +12,10 @@ public:
      * @param obj T
      * @param offset Offset in Object to start at
      * @param size Range's size
+     * @param resizable Defines if the Range is resizable
      */
-    Range(T &obj, uint32_t offset, uint32_t size) : mObj(obj), mSize(size), mOffset(offset) { }
+    Range(T &obj, uint32_t offset, uint32_t size, bool resizable = false) :
+            mObj(obj), mSize(size), mOffset(offset), mResizable(resizable) { }
 
     /**
      * Overload constructor with offset = 0 and size = obj.size()
@@ -81,6 +83,20 @@ public:
     }
 
     /**
+     * @return If the Range is resizable
+     */
+    inline bool isResizable() const {
+        return mResizable;
+    }
+    /**
+     * Sets the resizable property
+     * @param resizable If the Range is resizable
+     */
+    inline void isResizable(bool resizable) {
+        mResizable = resizable;
+    }
+
+    /**
      * Getter: const underlying data (of T)
      */
     inline const void *const_data() const {
@@ -114,6 +130,7 @@ private:
     T &mObj;
     uint32_t mSize;
     uint32_t mOffset;
+    bool mResizable = false;
 };
 
 #endif //LIBCOM_RANGE_H
