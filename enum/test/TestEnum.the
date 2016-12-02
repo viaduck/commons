@@ -1,0 +1,5 @@
+# this is a comment
+VALUE_1             # this is an inline comment
+VALUE_3,/**< this is a doxygen documentation string. It can also contain ,,,,, !! It is optional though**/      # comments possible here, too
+VALUE_BLA,// this is a standard c comment. Will be rendered, of course.
+NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY

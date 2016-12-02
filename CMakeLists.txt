@@ -61,6 +61,8 @@ set(CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/curve25519/cur
 ## get list of messages that must be generated
 execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_list.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_PROTOCOL)
+execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_list.py ${CMAKE_CURRENT_SOURCE_DIR}/enum/
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_ENUM)
 
 ## command that provides to be generated messages
 file(GLOB_RECURSE THX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/protocol/*.thx)
@@ -71,13 +73,23 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/protocol.template.h ${THX_FILES}
 )
 
+file(GLOB_RECURSE THE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/enum/*.the)
+add_custom_command(
+    OUTPUT ${GENERATED_ENUM}
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/enum/ ${CMAKE_BINARY_DIR} enum
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum/generator.py ${THE_FILES}
+)
+
 ## and the target
 add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
+add_custom_target(enum_generation ALL DEPENDS ${GENERATED_ENUM})
 
 # build
 add_library(libCom STATIC ${SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/src/network/NativeWrapper.cpp ${LIBCOM_HEADERS})
 add_library(curve25519 STATIC ${CURVE25519_SOURCES})
 add_dependencies(libCom protocol_generation)
+add_dependencies(libCom enum_generation)
 add_dependencies(libCom openssl)
 add_dependencies(libCom curve25519)
 add_dependencies(curve25519 openssl)
