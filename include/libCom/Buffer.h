@@ -147,6 +147,13 @@ public:
     void padd(const uint32_t newSize, const uint8_t value);
 
     /**
+     * Overload variant of padd(const uint32_t offset, const uint32_t size, const uint8_t value) which accepts a Range.
+     * @param range Range to padd the Buffer. The assigned object is not checked.
+     * @param value Byte value of padded bytes.
+     */
+     void padd(BufferRange range, uint8_t value = 0);
+
+    /**
      * Returns the Buffer's size.
      */
     virtual uint32_t size() const;

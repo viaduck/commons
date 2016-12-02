@@ -576,6 +576,17 @@ TEST_F(BufferTest, PaddTest) {
         EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789", b.data(), 36);
         EXPECT_ARRAY_EQ(const uint8_t, "\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", b.data(40), 10);
     }
+    {
+        // padd with range (out of range)
+        Buffer b(30);
+        ASSERT_EQ(0, static_cast<int32_t>(b.size()));
+        b.append("abcdefghijklmnopqrstuvwxyz0123456789", 36);
+        ASSERT_EQ(36, static_cast<int32_t>(b.size()));
+        b.padd(BufferRange(b, 40, 10), 0xBE);
+        ASSERT_EQ(50, static_cast<int32_t>(b.size()));
+        EXPECT_ARRAY_EQ(const uint8_t, "abcdefghijklmnopqrstuvwxyz0123456789", b.data(), 36);
+        EXPECT_ARRAY_EQ(const uint8_t, "\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE\xBE", b.data(40), 10);
+    }
 }
 
 TEST_F(BufferTest, IncreaseTest) {

@@ -116,6 +116,10 @@ void Buffer::padd(const uint32_t newSize, const uint8_t value) {
         padd(mUsed, newSize-mUsed, value);
 }
 
+void Buffer::padd(BufferRange range, uint8_t value) {
+    padd(range.offset(), range.size(), value);
+}
+
 uint32_t Buffer::size() const {
     return mUsed;
 }
