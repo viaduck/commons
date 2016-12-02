@@ -782,3 +782,12 @@ TEST_F(BufferTest, ComparisonTest) {
         ASSERT_TRUE(b != b2);
     }
 }
+
+TEST_F(BufferTest, End) {
+    Buffer b(30);
+    b.append("abcdefghijklmnop", 16);
+    BufferRange end = b.end();
+    EXPECT_EQ(16u, end.offset());
+    EXPECT_EQ(0u, end.size());
+    EXPECT_TRUE(end.isResizable());
+}

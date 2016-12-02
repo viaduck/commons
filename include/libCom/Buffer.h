@@ -192,6 +192,14 @@ public:
     const BufferRangeConst const_data(uint32_t offset, uint32_t size) const;
 
     /**
+     * Create a resizable Range pointing to Buffer's end. Size is 0.
+     * @return Constructed Range
+     */
+    BufferRange end() {
+        return BufferRange(*this, size(), 0, true);
+    }
+
+    /**
      * Marks n bytes used. This increases Buffer's size.
      * @param n Number of bytes
      */
