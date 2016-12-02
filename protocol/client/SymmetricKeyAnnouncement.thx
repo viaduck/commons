@@ -1,6 +1,6 @@
 uint8_t     messageType     # used to detect which message type was used
 
 uint8_t(32) AIT
-uint8_t(33) ecpubkey1
-uint8_t(33) ecpubkey2
+uint8_t(32) ecpubkey1
+uint8_t(32) ecpubkey2
 uint64_t    timestamp
