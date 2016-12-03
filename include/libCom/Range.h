@@ -21,7 +21,7 @@ public:
      * Overload constructor with offset = 0 and size = obj.size()
      * @param obj T
      */
-    Range(T &obj) : Range(obj, 0, obj.size()) { }
+    Range(T &obj) : Range(obj, 0, obj.size(), true) { }
 
     /**
      * Compares two Ranges
