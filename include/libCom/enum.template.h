@@ -35,7 +35,7 @@ cog.outl("#define {name}_H".format(name=name))
 };
 
 [[[cog
-    cog.outl("std::string toString(const {name} &e) {{".format(name=name))
+    cog.outl("inline std::string toString(const {name} &e) {{".format(name=name))
     cog.outl("    switch (e) {")
     for val in vals:
         id = val[0]
@@ -47,7 +47,7 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 [[[cog
-cog.outl("std::ostream &operator<<(std::ostream &os, const {name} &e) {{".format(name=name))
+cog.outl("inline std::ostream &operator<<(std::ostream &os, const {name} &e) {{".format(name=name))
 cog.outl("    return (os << toString(e));")
 cog.outl("}");
 ]]]
