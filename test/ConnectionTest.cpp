@@ -65,11 +65,11 @@ int ::NativeWrapper::close(int __fd) {
     return callMockFunction(close, __fd);
 }
 
-ssize_t ::NativeWrapper::recv(int /*socket*/, void */*buffer*/, size_t /*length*/) {
+ssize_t (::NativeWrapper::recv(int /*socket*/, void */*buffer*/, size_t /*length*/)) {
     return 0;           // unused for now
 }
 
-ssize_t ::NativeWrapper::send(int /*socket*/, const void */*buffer*/, size_t /*length*/) {
+ssize_t (::NativeWrapper::send(int /*socket*/, const void */*buffer*/, size_t /*length*/)) {
     return 0;           // unused for now
 }
 
