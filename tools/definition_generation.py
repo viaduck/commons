@@ -29,7 +29,7 @@ for root, dirs, files in os.walk(argv[1]):
 
             if not os.path.exists(os.path.dirname(fullfname)):
                 os.makedirs(os.path.dirname(fullfname))
-            l = ['"' + executable +'"', "-m cogapp", "-d", "-I tools/" + gen_type +"/", "-D filename=" + fname,
+            l = ['"' + executable +'"', "-m cogapp", "-d", "-I tools/", "-D filename=" + fname,
                  "-D base_path=" + definition_dir, "-o " + fullfname, "include/libCom/" + gen_type + ".template.h"]
             if call(" ".join(l), shell=True) != 0:
                 raise Exception("cog processing error on file: "+fname)

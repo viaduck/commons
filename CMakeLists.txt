@@ -70,7 +70,7 @@ add_custom_command(
     OUTPUT ${GENERATED_PROTOCOL}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/ ${CMAKE_BINARY_DIR} protocol
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/protocol.template.h ${THX_FILES}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/protocol.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generator.py ${THX_FILES}
 )
 
 file(GLOB_RECURSE THE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/enum/*.the)
@@ -78,7 +78,7 @@ add_custom_command(
     OUTPUT ${GENERATED_ENUM}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/enum/ ${CMAKE_BINARY_DIR} enum
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum/generator.py ${THE_FILES}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum_generator.py ${THE_FILES}
 )
 
 ## and the target

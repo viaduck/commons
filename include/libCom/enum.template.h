@@ -1,7 +1,10 @@
 [[[cog
 import cog
-import generator as g
+import enum_generator as g
+import common as c
+
 from os.path import basename, splitext
+import math
 
 name = splitext(basename(filename[:-4]))[0]
 filename = base_path+filename
@@ -22,9 +25,12 @@ cog.outl("#define {name}_H".format(name=name))
 #include <iostream>
 
 [[[cog
-    cog.outl("enum class "+name+" {")
-
     vals = list(g.do(filename))
+    val_bits = int(math.log(len(vals)))
+    enum_type = c.bits_to_type(val_bits)
+
+    cog.outl("enum class "+name+" : {type} {{".format(type=enum_type))
+
     # iterate over enum values
     for val in vals:
         id = val[0]
@@ -42,6 +48,21 @@ cog.outl("#define {name}_H".format(name=name))
         cog.outl('    case {name}::{value}: return "{name}::{value}";'.format(name=name, value=id))
     cog.outl('    }');
     cog.outl('    return "";');
+    cog.outl("}");
+]]]
+[[[end]]]
+
+[[[cog
+    cog.outl("inline {type} toInt(const {name} &e) {{".format(type=enum_type, name=name))
+    cog.outl('    return static_cast<{type}>(e);'.format(type=enum_type, name=name))
+    cog.outl("}");
+]]]
+[[[end]]]
+
+[[[cog
+    cog.outl("inline {name} to{name}({type} val) {{".format(type=enum_type, name=name))
+    cog.outl('    if (val > {max_val}) return {name}::{invalid_val};'.format(max_val=len(vals)-1, name=name, invalid_val=vals[-1][0]))
+    cog.outl('    return static_cast<{name}>(val);'.format(type=enum_type, name=name))
     cog.outl("}");
 ]]]
 [[[end]]]

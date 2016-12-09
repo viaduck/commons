@@ -1,6 +1,7 @@
 [[[cog
 import cog
-import generator as g
+import protocol_generator as g
+import common as c
 from os.path import basename, splitext
 
 name = splitext(basename(filename[:-4]))[0]
@@ -47,7 +48,7 @@ public:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
-                    cog.out((", " if not first else "")+"{type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+                    cog.out((", " if not first else "")+"{type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name']))
             elif v[3] is not None:
                 cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
             else:
@@ -132,7 +133,7 @@ public:
                     "}}\n"
                     "static inline uint32_t {sub_name}_size() {{\n"
                     "    return {sub_bits};\n"
-                    "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=g.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton_"+v[0], conversion_sub="hton_"+g.bits_to_type(sub['bits'])))
+                    "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=c.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton_"+v[0], conversion_sub="hton_"+c.bits_to_type(sub['bits'])))
                     shift_offset += sub['bits']
             else:
                 cog.outl("inline {type} {name}() const {{\n"
@@ -269,7 +270,7 @@ public:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
-                    cog.out(", {type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+                    cog.out(", {type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name']))
             elif v[3] is not None:        # array
                 cog.out(", const {type} *_{name}".format(type=v[0], name=v[1]))
             else:                       # normal type
@@ -302,7 +303,7 @@ public:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
-                    cog.out(", {type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name']))
+                    cog.out(", {type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name']))
             elif v[3] is not None:        # array
                 cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
             else:                       # normal type
@@ -332,7 +333,7 @@ public:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
-                    outVars += ["{type} _{name}".format(type=g.bits_to_type(sub['bits']), name=sub['name'])]
+                    outVars += ["{type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name'])]
             elif v[3] is not None:        # array
                 #cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
                 outVars += ["const BufferRangeConst _{name}".format(type=v[0], name=v[1])]

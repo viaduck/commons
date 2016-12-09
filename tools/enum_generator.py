@@ -32,3 +32,5 @@ def do(filename):
                 raise Exception("Parsing error in line: "+line)
 
             yield (value, comment)
+
+        yield ("INVALID_ENUM_VALUE", "// invalid enum values are mapped to this")
