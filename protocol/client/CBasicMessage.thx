@@ -1,0 +1,9 @@
+# BasicMessage as defined in protocol spec
+
+uint64_t        timestamp
+uint8_t(10)     nonce
+uint8_t(32)     signature
+
+# payload with type
+uint8_t         payloadType
+uint8_t(var)    payload
