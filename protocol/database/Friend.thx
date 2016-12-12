@@ -8,8 +8,7 @@ uint8_t(32)     symmetricKey1
 uint8_t(32)     symmetricKey2
 
 uint8_t(20)     pubkeyhash
-uint32_t        pubkeysize
-uint8_t(7000)   pubkey
+uint8_t(64)     pubkey
 
 uint8_t(10)     historyFile
 uint8_t(10)     pendingFile

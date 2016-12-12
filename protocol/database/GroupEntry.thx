@@ -9,5 +9,4 @@ uint8_t(10) pendingFilename
 
 # shared symmetric key and ephemeral identity for group
 uint8_t(32) sharedSymkey
-uint8_t(32) identPriv # 32 byte x25519
-uint8_t(64) identSignPriv # 64 byte ed25519
+uint8_t(96) ephIdentity

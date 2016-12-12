@@ -1,6 +1,5 @@
 uint8_t(20)     pubkeyHash
-uint32_t        keysize
-uint8_t(7000)   key
+uint8_t(96)     key
 uint8_t(10)     friendFile
 uint8_t(10)     groupFile
 uint8_t(10)     settingsFile
