@@ -5,11 +5,7 @@ LIST_ERROR,             /**<  error listing something */
 PASS_DERIVE_ERROR,      /**<  error deriving password */
 RND_ERROR,              /**<  error generating rnd data */
 PIPELINE_FAIL,          /**<  pipeline failed for any reason */
-
-RSA_GEN_ERROR,          /**<  error generating RSA key */
-RSA_SERIALIZE_ERROR,    /**<  error serializing RSA key */
-RSA_DESERIALIZE_ERROR,  /**<  error deserializing RSA key */
-RSA_ENC_ERROR,          /**<  error encrypting using RSA key */
+HASH_ERROR              /**<  error hashing data */
 
 EC_KEY_GEN_ERROR,       /**<  error generating RSA key */
 EC_KEY_SERIALIZE_ERROR, /**<  error serializing RSA key */
@@ -60,9 +56,6 @@ MSG_TOO_LARGE,          /**<  message size too big */
 MSG_PARSE_ERROR,        /**<  message parts could not be recognized */
 MSG_MAC_ERROR,          /**<  message MAC is invalid */
 MSG_TIMESTAMP_ERROR,    /**<  message timestamp is invalid */
-
-PK_DL_ERROR,            /**<  error downloading publickey */
-PK_UL_ERROR,            /**<  error uploading publickey */
 
 BN_SERIALIZE_ERROR,     /**<  error serializing bignum */
 BN_DESERIALIZE_ERROR,   /**<  error deserializing bignum */
