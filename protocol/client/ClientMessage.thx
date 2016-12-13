@@ -1,3 +1,0 @@
-uint8_t         encryptionStatus
-uint8_t(16)     messageMAC
-uint8_t(var)    payload

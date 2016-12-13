@@ -13,4 +13,6 @@ uint8_t(64)     pubkey
 uint8_t(10)     historyFile
 uint8_t(10)     pendingFile
 uint8_t(10)     settingsFile
-uint8_t(32)     AIT
+
+uint8_t(32)     sHint
+uint8_t(32)     pHint
