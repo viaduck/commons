@@ -1,6 +1,7 @@
 [[[cog
 import cog
 import protocol_generator as g
+from protocol_generator import variable_arrays, variable_arrays_type
 import common as c
 from os.path import basename, splitext
 
@@ -37,14 +38,14 @@ public:
     // constructor without provided buffer
     [[[cog
     vars = list(g.do(filename))
-    cstatic = sum(1 if v[3] != "var" else 0 for v in vars)      # number of static elements (<-> not variable array)
-    cranges = sum(1 if (v[3] != None and v[3] != "var") else 0 for v in vars)    # number of range fields
+    cstatic = sum(1 if v[3] not in variable_arrays else 0 for v in vars)      # number of static elements (<-> not variable array)
+    cranges = sum(1 if (v[3] != None and v[3] not in variable_arrays) else 0 for v in vars)    # number of range fields
 
     if cstatic > 0:
         cog.out(name+"(")
         first = True
         for v in vars:
-            if v[3] == "var":
+            if v[3] in variable_arrays:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -57,7 +58,7 @@ public:
         cog.out(") : {name}()".format(name=name)+" {\n")        # call buffer allocating constructor
         offset = 0
         for v in vars:
-            if v[3] == "var":
+            if v[3] in variable_arrays:
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -89,7 +90,7 @@ public:
         cog.outl("// - "+v[1]+" - //")
         # array types
         if v[3] is not None:
-            if v[3] == "var":       # variable array
+            if v[3] in variable_arrays:       # variable array
                 cog.outl("inline const Buffer &const_{name}() const {{\n"
                          "    return const_cast<const Buffer&>(mBuffer_{name});\n"
                          "}}\n"
@@ -156,11 +157,11 @@ public:
         [[[cog
             for v in vars:
                 # variable array
-                if v[3] == "var":
+                if v[3] in variable_arrays:
                     cog.outl("// - {name} - //\n"
-                             "const uint32_t {name}_size = hton_uint32_t(mBuffer_{name}.size());\n"
-                             "out.append(static_cast<const void *>(&{name}_size), sizeof(uint32_t));\n"
-                             "out.append(mBuffer_{name});\n".format(name=v[1]))
+                             "const {type} {name}_size = hton_{type}(mBuffer_{name}.size());\n"
+                             "out.append(static_cast<const void *>(&{name}_size), sizeof({type}));\n"
+                             "out.append(mBuffer_{name});\n".format(name=v[1], type=variable_arrays_type[v[3]]))
         ]]]
         [[[end]]]
     }
@@ -197,25 +198,25 @@ public:
             for i in range(nvars):
                 v = vars[i]
                 # variable array
-                if v[3] == "var":
+                if v[3] in variable_arrays_type:
                     if not first:
                         cog.outl("// now variable data")
                         cog.outl("uint32_t offset = STATIC_SIZE;")
                         first = True
                     cog.outl("// - {name} - //\n"
-                             "if (in.size()-offset < sizeof(uint32_t)) {{    // not big enough to hold size indicator for buffer\n"
-                             "    missing = sizeof(uint32_t)-(in.size()-offset);\n"
+                             "if (in.size()-offset < sizeof({type})) {{    // not big enough to hold size indicator for buffer\n"
+                             "    missing = sizeof({type})-(in.size()-offset);\n"
                              "    return false;\n"
                              "}}\n"
-                             "const uint32_t mBuffer_{name}_size = ntoh_uint32_t(*static_cast<const uint32_t*>(in.const_data(offset)));\n"
-                             "if (in.size()-offset < mBuffer_{name}_size+sizeof(uint32_t)) {{       // not big enough to hold var buffer\n"
-                             "    missing = mBuffer_{name}_size-(in.size()-offset-sizeof(uint32_t));\n"
+                             "const {type} mBuffer_{name}_size = ntoh_{type}(*static_cast<const {type}*>(in.const_data(offset)));\n"
+                             "if (in.size()-offset < mBuffer_{name}_size+sizeof({type})) {{       // not big enough to hold var buffer\n"
+                             "    missing = mBuffer_{name}_size-(in.size()-offset-sizeof({type}));\n"
                              "    return false;\n"
                              "}}\n"
                              "mBuffer_{name}.clear();\n"
-                             "mBuffer_{name}.append(BufferRangeConst(in, offset+sizeof(uint32_t), mBuffer_{name}_size));".format(name=v[1]))
+                             "mBuffer_{name}.append(BufferRangeConst(in, offset+sizeof({type}), mBuffer_{name}_size));".format(name=v[1], type=variable_arrays_type[v[3]]))
                     if i != (nvars-1):
-                        cog.outl("offset += sizeof(uint32_t) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1]))
+                        cog.outl("offset += sizeof({type}) + mBuffer_{name}_size;         // go past the size indicator and the var buffer\n".format(name=v[1], type=variable_arrays_type[v[3]]))
         ]]]
         [[[end]]]
         return true;
@@ -231,8 +232,8 @@ public:
             [[[cog
                 for v in vars:
                     # variable array
-                    if v[3] == "var":
-                        cog.outl("mBuffer_{name}.size()+sizeof(uint32_t)+".format(name=v[1]))
+                    if v[3] in variable_arrays:
+                        cog.outl("mBuffer_{name}.size()+sizeof({type})+".format(name=v[1], type=variable_arrays_type[v[3]]))
             ]]]
             [[[end]]]
             STATIC_SIZE;
@@ -262,7 +263,7 @@ public:
     vars = list(g.do(filename))
     cog.out(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true)")
     for v in vars:
-        if v[3] == "var":           # variable type
+        if v[3] in variable_arrays:           # variable type
             cog.out(", mBuffer_{name}(other.mBuffer_{name})".format(name=v[1]))
     cog.outl("\n{ }")
     ]]]
@@ -274,7 +275,7 @@ public:
     if cstatic > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
-            if v[3] == "var":           # variable array
+            if v[3] in variable_arrays:           # variable array
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -286,7 +287,7 @@ public:
         cog.out(") : {name}(buffer)".format(name=name)+" {\n")
         offset = 0
         for v in vars:
-            if v[3] == "var":           # variable type
+            if v[3] in variable_arrays:           # variable type
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -307,7 +308,7 @@ public:
     if cstatic > 0 and cranges > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
-            if v[3] == "var":           # variable array
+            if v[3] in variable_arrays:           # variable array
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -318,7 +319,7 @@ public:
                 cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
         cog.out(") : {name}(buffer)".format(name=name)+" {\n")
         for v in vars:
-            if v[3] == "var":           # variable type
+            if v[3] in variable_arrays:           # variable type
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -337,27 +338,25 @@ public:
         outVars = []
         cog.out(name+"(")
         for v in vars:
-            if v[3] == "var":           # variable array
+            if v[3] in variable_arrays:           # variable array
                 continue
             if v[4] is not None:
                 for sub in v[4]:
                     outVars += ["{type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name'])]
             elif v[3] is not None:        # array
-                #cog.out(", const BufferRangeConst _{name}".format(type=v[0], name=v[1]))
                 outVars += ["const BufferRangeConst _{name}".format(type=v[0], name=v[1])]
             else:                       # normal type
-                #cog.out(", {type} _{name}".format(type=v[0], name=v[1]))
                 outVars += ["{type} _{name}".format(type=v[0], name=v[1])]
         cog.out(', '.join(outVars))
 
         otherargs = []
         for v in vars:
-            if v[3] != "var":
+            if v[3] not in variable_arrays:
                 otherargs += ["_{name}".format(name=v[1])]
 
         cog.out(") : {name}()".format(name=name)+" {\n")
         for v in vars:
-            if v[3] == "var":           # variable type
+            if v[3] in variable_arrays:           # variable type
                 continue
             if v[4] is not None:
                 for sub in v[4]:
@@ -387,7 +386,7 @@ private:
     [[[cog
         for v in vars:
             # variable array
-            if v[3] == "var":
+            if v[3] in variable_arrays:
                 cog.outl("// - "+v[1]+" - //")
                 cog.outl("Buffer mBuffer_{name};\n".format(name=v[1]))
     ]]]

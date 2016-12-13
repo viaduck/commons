@@ -8,7 +8,9 @@ import common
 
 # tuple of variable types that have array support
 arr_supported = ('uint8_t',)
-line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_]*)(?:\((?P<arr_size>(?:\d*)|(?:var))\))?\s*(?P<name>[(), a-z_0-9A-Z]*)\s*#?.*")
+variable_arrays = ("var", "Var", "VAR")
+variable_arrays_type = {"var": "uint8_t", "Var": "uint16_t", "VAR": "uint32_t"}
+line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_]*)(?:\((?P<arr_size>(?:\d*)|(?:var)|(?:Var)|(?:VAR))\))?\s*(?P<name>[(), a-z_0-9A-Z]*)\s*#?.*")
 squeeze_matcher = re.compile("(?P<name>\w*)\((?P<bits>\d*)\),?\s*?")
 
 
@@ -48,7 +50,7 @@ def do(filename):
 
             # array requested
             if arr_size is not None:
-                if arr_size != "var":
+                if arr_size not in ("var", "Var", "VAR"):
                     arr = int(arr_size)
                 else:
                     arr = arr_size
