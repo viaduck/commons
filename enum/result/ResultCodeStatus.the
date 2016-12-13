@@ -11,6 +11,9 @@ EC_KEY_GEN_ERROR,           /**<  error generating EC key */
 EC_KEY_SERIALIZE_ERROR,     /**<  error serializing EC key */
 EC_KEY_DESERIALIZE_ERROR,   /**<  error deserializing EC key */
 
+ECIES_ENC_ERROR,            /**<  error encrypting with ECIES */
+ECIES_DEC_ERROR,            /**<  error decrypting with ECIES */
+
 VFS_CREATE_FAILED,          /**<  error creating a file in VFS */
 VFS_OPEN_FAILED,            /**<  error opening a file in VFS */
 
