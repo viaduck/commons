@@ -3,6 +3,25 @@
 
 #include "helper.h"
 
+/**
+ * SFINAE test for checking the presence of a function padd
+ * @tparam T Class, which is checked for member function presence
+ */
+template <typename T>
+class has_padd
+{
+    typedef char one;
+    typedef long two;
+
+    static_assert(sizeof(char) != sizeof(long), "Unsupported platform: sizeof(char) == sizeof(long)");
+
+    template <typename C> static one test(decltype(&C::padd));
+    template <typename C> static two test(...);
+
+public:
+    enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
 template <typename T>
 class Range {
 
@@ -124,6 +143,27 @@ public:
         mOffset += addition;
         mSize -= addition;
         return *this;
+    }
+
+    /**
+     * Padds the Range to size (if possible).
+     * @param dest Range to padd
+     * @param size Target size
+     * @return True if Range has the required size or can be increased to size
+     */
+    template<typename = std::enable_if<has_padd<T>::value, int>>
+    static bool applyPolicy(Range<T> &dest, uint32_t size) {
+        // not enough size and not resizable -> fail
+        if (size > dest.size() && !dest.isResizable())
+            return false;
+
+        // not enough size and resizable -> increase size (will be applied to buffer in padd)
+        else if (size > dest.size())
+            dest.size(size);
+
+        // the range in the buffer will be allocated and initialized to zero
+        dest.object().padd(dest);
+        return true;
     }
 
 private:
