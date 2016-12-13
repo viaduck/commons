@@ -165,6 +165,14 @@ public:
         [[[end]]]
     }
 
+    bool serialize(BufferRange &range) const {
+        bool ret = range.applyPolicy(range, size());
+        if (ret)
+            serialize(range.object());
+
+        return ret;
+    }
+
     bool deserialize(const Buffer &in) {
         uint32_t unused;
         return deserialize(in, unused);
