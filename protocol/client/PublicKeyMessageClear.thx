@@ -1,6 +1,0 @@
-uint8_t     messageType    # used to detect which message type was used
-
-uint8_t(32) AIT
-uint32_t    pubkeyServerId
-uint8_t(32) pubkeySymmetricKey
-uint64_t    timestamp

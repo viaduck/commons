@@ -1,7 +1,0 @@
-uint8_t         messageType     # used for detecting which message type was used
-
-uint64_t        timestamp
-uint8_t         payloadType
-uint8_t         numAttachments  # TODO: is 256 enough?
-uint8_t         flags
-uint8_t(var)    payload

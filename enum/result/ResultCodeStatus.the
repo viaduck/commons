@@ -10,6 +10,8 @@ HASH_ERROR,                 /**<  error hashing data */
 EC_KEY_GEN_ERROR,           /**<  error generating EC key */
 EC_KEY_SERIALIZE_ERROR,     /**<  error serializing EC key */
 EC_KEY_DESERIALIZE_ERROR,   /**<  error deserializing EC key */
+EC_SIGN_ERROR,              /**<  error signing with EC key */
+EC_SIGN_CHECK_ERROR,        /**<  error checking EC key signature */
 
 ECIES_ENC_ERROR,            /**<  error encrypting with ECIES */
 ECIES_DEC_ERROR,            /**<  error decrypting with ECIES */
@@ -34,6 +36,7 @@ FR_WRITEBACK_ERROR,         /**<  error writing friend back to disk */
 FR_NOT_EXISTS_ERROR,        /**<  error looking for non existing friend */
 FR_HIST_UPD_ERROR,          /**<  error updating friends history */
 FR_NO_KEYXCHG_ERROR,        /**<  error key not exchanged */
+FR_COPY_ERROR,              /**<  error copying data to/from friend */
 
 GR_INIT_ERROR,              /**<  error initializing group */
 GR_EXISTS_ERROR,            /**<  error group ID already registered */
@@ -52,14 +55,15 @@ KVS_LOAD_ERROR,             /**<  error loading a KVS */
 KVS_GET_ERROR,              /**<  error getting a value from KVS */
 
 SRV_SENDMSG_ERROR,          /**<  sending all messages failed */
-SRV_GETMSG_ERROR,           /**<  getting any messages failed or processing callback failed */
+SRV_GETMSG_ERROR,           /**<  getting any message failed */
 MSG_TYPE_UNKNOWN,           /**<  message type is not known */
-MSG_COMPOSE_ERROR,
+MSG_COMPOSE_ERROR,          /**<  composing a message failed */
 
 MSG_TOO_LARGE,              /**<  message size too big */
 MSG_PARSE_ERROR,            /**<  message parts could not be recognized */
 MSG_MAC_ERROR,              /**<  message MAC is invalid */
 MSG_TIMESTAMP_ERROR,        /**<  message timestamp is invalid */
+MSG_PROCESS_ERROR,          /**<  message processing failed */
 
 BN_SERIALIZE_ERROR,         /**<  error serializing bignum */
 BN_DESERIALIZE_ERROR,       /**<  error deserializing bignum */
