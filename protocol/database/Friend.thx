@@ -1,5 +1,4 @@
 uint8_t         symkeystatus
-uint8_t         pubkeystatus
 
 uint8_t(32)     ecPrivKey1
 uint8_t(32)     ecPrivKey2
