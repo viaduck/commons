@@ -1,6 +1,6 @@
 # BasicMessage as defined in protocol spec
 
-uint8_t(32)     signature   # signature needs to go first to be able to skip it on signature check
+uint8_t(64)     signature   # signature needs to go first to be able to skip it on signature check
 
 uint64_t        timestamp
 uint8_t(10)     nonce
