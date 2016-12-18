@@ -3,9 +3,11 @@ OK,                         /**< success */
 INVALID_ARGS,               /**<  arguments are invalid */
 LIST_ERROR,                 /**<  error listing something */
 PASS_DERIVE_ERROR,          /**<  error deriving password */
-RND_ERROR,                  /**<  error generating rnd data */
 PIPELINE_FAIL,              /**<  pipeline failed for any reason */
+
+RND_ERROR,                  /**<  error generating rnd data */
 HASH_ERROR,                 /**<  error hashing data */
+XOR_ERROR,                  /**<  error xoring data */
 
 EC_KEY_GEN_ERROR,           /**<  error generating EC key */
 EC_KEY_SERIALIZE_ERROR,     /**<  error serializing EC key */

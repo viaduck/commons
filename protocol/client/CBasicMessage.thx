@@ -7,4 +7,4 @@ uint8_t(10)     nonce
 
 # payload with type
 uint8_t         payloadType
-uint8_t(var)    payload
+uint8_t(Var)    payload

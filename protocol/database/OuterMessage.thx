@@ -1,4 +1,4 @@
 uint8_t         delivered  # indicates if message was sent or read depending on sender
 uint8_t         own        # indicates if message belongs to other participant in chat
 
-uint8_t(var)    content
+uint8_t(Var)    content
