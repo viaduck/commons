@@ -152,28 +152,12 @@ public:
 
     // ++++++++ ///
     bool serialize(Buffer &out) const {
-        out.append(mBuffer);
-
-        [[[cog
-            for v in vars:
-                # variable array
-                if v[3] in variable_arrays:
-                    cog.outl("// - {name} - //\n"
-                             "if (mBuffer_{name}.size() > sizeof({type})) return false;\n"
-                             "const {type} {name}_size = hton_{type}(mBuffer_{name}.size());\n"
-                             "out.append(static_cast<const void *>(&{name}_size), sizeof({type}));\n"
-                             "out.append(mBuffer_{name});\n".format(name=v[1], type=variable_arrays_type[v[3]]))
-        ]]]
-        [[[end]]]
-        return true;
+        BufferRange r = out.end();
+        return serialize(r);
     }
 
     bool serialize(BufferRange &range) const {
-        bool ret = range.applyPolicy(range, size());
-        if (ret)
-            serialize(range.object());
-
-        return ret;
+        return range.applyPolicy(range, size()) && internalSerialize(range.object(), range.offset());
     }
 
     bool deserialize(const Buffer &in) {
@@ -382,6 +366,27 @@ public:
     }
 
 private:
+    bool internalSerialize(Buffer &out, uint32_t offset=0) const {
+        out.write(mBuffer, offset);
+        offset += STATIC_SIZE;
+
+        [[[cog
+            for v in vars:
+                # variable array
+                if v[3] in variable_arrays:
+                    cog.outl("// - {name} - //\n"
+                             "if (mBuffer_{name}.size() > sizeof({type})) return false;\n"
+                             "const {type} {name}_size = hton_{type}(mBuffer_{name}.size());\n"
+                             "out.write(static_cast<const void *>(&{name}_size), sizeof({type}), offset);\n"
+                             "offset += sizeof({type});\n"
+                             "out.write(mBuffer_{name}, offset);\n"
+                             "offset += out.size();\n".format(name=v[1], type=variable_arrays_type[v[3]]))
+        ]]]
+        [[[end]]]
+
+        return true;
+    }
+
     Buffer &mBuffer;
     bool mAllocated = false;
 
