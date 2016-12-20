@@ -117,15 +117,17 @@ public:
 
     /**
      * Getter: const underlying data (of T)
+     * @param pos Offset (defaults to 0)
      */
-    inline const void *const_data() const {
-        return const_object().const_data(offset());
+    inline const void *const_data(uint32_t pos = 0) const {
+        return const_object().const_data(pos+offset());
     }
     /**
      * Getter: underlying data (of T)
+     * @param pos Offset (defaults to 0)
      */
-    inline void *data() {
-        return object().data(offset());
+    inline void *data(uint32_t pos = 0) {
+        return object().data(pos+offset());
     }
 
     /**
