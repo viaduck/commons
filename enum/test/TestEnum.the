@@ -1,3 +1,8 @@
+/**
+ * This is some doxygen enum documentation.
+ * After the doxygen block must follow a dash "-" to separate doxygen from code.
+ */
+-
 # this is a comment
 VALUE_1             # this is an inline comment
 VALUE_3,/**< this is a doxygen documentation string. It can also contain ,,,,, !! It is optional though**/      # comments possible here, too

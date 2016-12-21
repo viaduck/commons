@@ -25,10 +25,15 @@ cog.outl("#define {name}_H".format(name=name))
 #include <iostream>
 
 [[[cog
-    vals = list(g.do(filename))
+    # first element: doxygen string; remaining elements: enum values (value, comment)
+    yields = list(g.do(filename))
+    doxygen, = yields[0]
+    vals = yields[1:]
+
     val_bits = int(math.log(len(vals)))
     enum_type = c.bits_to_type(val_bits)
 
+    cog.out(doxygen)
     cog.outl("enum class "+name+" : {type} {{".format(type=enum_type))
 
     # iterate over enum values
