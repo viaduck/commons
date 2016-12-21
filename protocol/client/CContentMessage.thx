@@ -1,2 +1,2 @@
-uint8_t         contentType
+uint8_t(var)    contentTypeStr
 uint8_t(Var)    content
