@@ -50,6 +50,7 @@ public:
             if v[4] is not None:
                 for sub in v[4]:
                     cog.out((", " if not first else "")+"{type} _{name}".format(type=c.bits_to_type(sub['bits']), name=sub['name']))
+                    first = False
             elif v[3] is not None:
                 cog.out((", " if not first else "")+"const {type} *_{name}".format(type=v[0], name=v[1]))
             else:
