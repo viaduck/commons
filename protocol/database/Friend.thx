@@ -13,9 +13,9 @@ uint8_t(10)     historyFile
 uint8_t(10)     pendingFile
 uint8_t(10)     settingsFile
 
-uint8_t(32)     sHint
-uint8_t(32)     pHint
+uint8_t         has_MySHint(1), has_FriendSHint(1)  # indicators whether symmetric hints are present
 
-uint8_t         has_tsHint(1), has_tpHint(1)   # indicators whether a temp hint is present
-uint8_t(32)     tsHint
-uint8_t(32)     tpHint
+uint8_t(32)     MySHint
+uint8_t(32)     MyPHint
+uint8_t(32)     FriendSHint
+uint8_t(32)     FriendPHint
