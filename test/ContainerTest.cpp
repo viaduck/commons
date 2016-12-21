@@ -83,3 +83,24 @@ TEST_F(ContainerTest, BitField) {
     EXPECT_EQ(987u, msg.squeezed_one());
     EXPECT_EQ(0u, msg.squeezed_two());
 }
+
+TEST_F(ContainerTest, Serialize) {
+    VarMsg msg;
+    msg.this_is_a_cool_property(123);
+    msg.bufVar().append("abc", 3);
+    msg.bufVar2().append("defgh", 5);
+
+    Buffer out;
+    ASSERT_TRUE(msg.serialize(out));
+
+    EXPECT_ARRAY_EQ(const uint8_t,
+            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x7b\x00\x00\x00\x00"             // static with "123" as "7b"
+            "\x03"      // bufVar - size indicator
+            "abc"       // bufVar
+            "\x05"      // bufVar2 - size indicator
+            "defgh"     // bufVar2
+            "\x00\x00"  // bufVarMedium - size indicator
+            "\x00\x00\x00\x00" // bufVarBig - size indicator
+    , out.const_data(), out.size());
+}

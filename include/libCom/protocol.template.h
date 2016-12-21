@@ -375,12 +375,12 @@ private:
                 # variable array
                 if v[3] in variable_arrays:
                     cog.outl("// - {name} - //\n"
-                             "if (mBuffer_{name}.size() > sizeof({type})) return false;\n"
+                             "if (mBuffer_{name}.size() > std::numeric_limits<{type}>::max()) return false;\n"
                              "const {type} {name}_size = hton_{type}(mBuffer_{name}.size());\n"
                              "out.write(static_cast<const void *>(&{name}_size), sizeof({type}), offset);\n"
                              "offset += sizeof({type});\n"
                              "out.write(mBuffer_{name}, offset);\n"
-                             "offset += out.size();\n".format(name=v[1], type=variable_arrays_type[v[3]]))
+                             "offset += mBuffer_{name}.size();\n".format(name=v[1], type=variable_arrays_type[v[3]]))
         ]]]
         [[[end]]]
 
