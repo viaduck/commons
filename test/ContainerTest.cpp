@@ -94,10 +94,12 @@ TEST_F(ContainerTest, Serialize) {
     ASSERT_TRUE(msg.serialize(out));
 
     EXPECT_ARRAY_EQ(const uint8_t,
-            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-	    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"       // squeezed values
-	    "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-            "\x00\x00\x7b\x00\x00\x00\x00"             // static with "123" as "7b"
+            "\x00\x00\x00\x00"       // squeezed values
+            "\x00\x00\x00\x00"       // version
+            "\x00\x00\x00"           // first, second
+            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"       // buf
+            "\x00\x00"               // third
+            "\x00\x00\x00\x7b"             // this_is_a_cool_property with "123" as "7b"
             "\x03"      // bufVar - size indicator
             "abc"       // bufVar
             "\x05"      // bufVar2 - size indicator
