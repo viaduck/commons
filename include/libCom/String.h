@@ -18,7 +18,7 @@ public:
      */
     String();
 
-    /*
+    /**
      * Creates a String object from a c-style string or byte sequence, copying it's contents.
      *
      * Warning: The string must be 0-terminated!
@@ -26,27 +26,27 @@ public:
      */
     String(const char *cstring);
 
-    /*
+    /**
      * Creates a String object from a c-style string or byte sequence, copying it's contents
      * @param cstring C-style string
      * @param size The c-style string's size in characters (excluding 0-termination)
      */
     String(const char *cstring, uint32_t size);
 
-    /*
+    /**
      * Creates a String object from a byte sequence, copying it's contents
      * @param bytes Byte sequence
      * @param size The c-style string's size in characters (excluding 0-termination)
      */
     String(const uint8_t *bytes, uint32_t size);
 
-    /*
+    /**
      * Creates a String object from an STL string (std::string), copying it's contents
      * @param stlstring The std::string object
      */
     String(const std::string &stlstring);
 
-    /*
+    /**
      * Creates a String object from another String, copying it's contents
      * @param other The other String object
      */
@@ -209,7 +209,7 @@ public:
         return os;
     }
 
-    /*
+    /**
      * Compares two Strings lexically
      * // FIXME: this is just enough to use a set<String>, but does not actually compare lexically
      *
