@@ -24,7 +24,7 @@ TEST(StringTest, creationTest) {
         String s;
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
     }
 
     // create from cstring
@@ -32,13 +32,13 @@ TEST(StringTest, creationTest) {
         String s("");
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
     }
     {
         String s("abc");
         ASSERT_EQ(3, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size())+1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "abc", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abc", s.const_data(), static_cast<int32_t>(s.size()));
     }
 
     // create from byte sequence
@@ -48,7 +48,7 @@ TEST(StringTest, creationTest) {
         String s(bytes, 0);
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
     }
     {
         uint8_t bytes[] = {1,2,3,4,5,6, 255, 127, 0};
@@ -57,7 +57,7 @@ TEST(StringTest, creationTest) {
 
         uint8_t res[] = {1,2,3,4,5,6, 255, 127, 0, 0};
         EXPECT_ARRAY_EQ(const char, reinterpret_cast<const char *>(res), s.c_str(), static_cast<int32_t>(s.size())+1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, reinterpret_cast<const char *>(res), s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, reinterpret_cast<const char *>(res), s.const_data(), static_cast<int32_t>(s.size()));
     }
 
     // create from String
@@ -66,14 +66,14 @@ TEST(StringTest, creationTest) {
         String s(str);
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
     }
     {
         String str("abc");
         String s(str);
         ASSERT_EQ(3, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "abc", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abc", s.const_data(), static_cast<int32_t>(s.size()));
     }
 
     // create from stl string
@@ -82,14 +82,14 @@ TEST(StringTest, creationTest) {
         String s(stl);
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
     }
     {
         std::string stl("abc");
         String s(stl);
         ASSERT_EQ(3, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "abc", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
-        EXPECT_ARRAY_EQ(const char, "abc", s.stl_str().c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abc", s.const_data(), static_cast<int32_t>(s.size()));
     }
 }
 
