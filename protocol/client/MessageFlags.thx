@@ -1,0 +1,2 @@
+# always edit CContentMessage also
+uint8_t isAttachment(1), isHidden(1), isUnimportant(1), isImportant(1), isTimed(1), isAttachLazy(1)

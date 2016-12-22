@@ -1,4 +1,6 @@
+# always edit MessageFlags also
 uint8_t         isAttachment(1), isHidden(1), isUnimportant(1), isImportant(1), isTimed(1), isAttachLazy(1)
+
 uint8_t         numAttachments
 uint8_t(var)    contentTypeStr
 uint8_t(Var)    content
