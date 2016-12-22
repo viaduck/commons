@@ -28,6 +28,8 @@ String::String(const std::string &stlstring) : Buffer(static_cast<uint32_t>(stls
     append(stlstring.c_str(), static_cast<uint32_t>(stlstring.size()));        // FIXME integer is truncated if stlstring.size() > MAX_UINT32
 }
 
+String::String(const Buffer &other) : String(static_cast<const uint8_t*>(other.const_data()), other.size()) { }
+
 String String::operator+(const String &other) const {
     return concatHelper(static_cast<const char*>(other.const_data()), other.size());
 }

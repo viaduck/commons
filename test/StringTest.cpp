@@ -76,6 +76,22 @@ TEST(StringTest, creationTest) {
         EXPECT_ARRAY_EQ(const char, "abc", s.const_data(), static_cast<int32_t>(s.size()));
     }
 
+    // create from Buffer
+    {
+        Buffer b;
+        String s(b);
+        ASSERT_EQ(0, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "", s.const_data(), static_cast<int32_t>(s.size()));
+    }
+    {
+        String b("abcdefghijklmnopq", 17);
+        String s(b);
+        ASSERT_EQ(17, static_cast<int32_t>(s.size()));
+        EXPECT_ARRAY_EQ(const char, "abcdefghijklmnopq", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
+        EXPECT_ARRAY_EQ(const char, "abcdefghijklmnopq", s.const_data(), static_cast<int32_t>(s.size()));
+    }
+
     // create from stl string
     {
         std::string stl;

@@ -53,6 +53,12 @@ public:
     String(const String &other);
 
     /**
+     * Creates a String object from a Buffer, copying it's contents
+     * @param other The other Buffer object
+     */
+     String(const Buffer &other);
+
+    /**
      * Concatenates this and another String
      * @param other Other String to concatenate
      * @return A new String object containing the concatenated strings
