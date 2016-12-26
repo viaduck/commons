@@ -256,6 +256,8 @@ public:
      * @return True on success, false otherwise
      */
     bool deserialize(BufferRangeConst in) {
+        clear();
+
         // TODO Big-Little-Endian
         if(in.size() < sizeof(uint32_t))
             return false;
