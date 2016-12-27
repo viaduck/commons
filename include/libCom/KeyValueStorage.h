@@ -35,6 +35,7 @@ public:
         if (mKeys.count(key) == 0)
             return false;
 
+        value.clear();              // clear to prevent wrongly reported size
         value.write(mInternal.find(key)->second, 0);
         return true;
     }
@@ -50,6 +51,7 @@ public:
         if (mKeys.count(key) == 0)
             setBuffer(key, fallback);
 
+        value.clear();              // clear to prevent wrongly reported size
         return getBuffer(key, value);
     }
 
@@ -296,6 +298,7 @@ public:
      * @param out Buffer to append the serialized KeyValueStorage to
      */
     void serialize(Buffer &out) const {
+        out.clear();              // clear to prevent wrongly reported size
         for(const String &key : mKeys) {
             key.serialize(out);
 
