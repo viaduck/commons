@@ -51,3 +51,7 @@ ssize_t (::NativeWrapper::recv(int socket, void *buffer, size_t length)) {
 ssize_t (::NativeWrapper::send(int socket, const void *buffer, size_t length)) {
     return ::send(socket, static_cast<const char*>(buffer), length, 0);
 }
+
+void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
+    return ::freeaddrinfo(__ai);
+}

@@ -28,6 +28,8 @@ namespace NativeWrapper {
     ssize_t recv(int socket, void *buffer, size_t length);
 
     ssize_t send(int socket, const void *buffer, size_t length);
+
+    void freeaddrinfo(struct addrinfo *__ai);
 }
 
 #endif //LIBCOM_NATIVEWRAPPER_H

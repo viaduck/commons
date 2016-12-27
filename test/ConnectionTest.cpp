@@ -73,6 +73,10 @@ ssize_t (::NativeWrapper::send(int /*socket*/, const void */*buffer*/, size_t /*
     return 0;           // unused for now
 }
 
+void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
+    return callMockFunction(freeaddrinfo, __ai);
+}
+
 TEST_F(ConnectionTest, noHost) {
     mocks[currentTestName()]["getaddrinfo"] =   (void*)+([] (const char *__restrict, const char *__restrict,
                                                              const struct addrinfo *__restrict,
@@ -82,6 +86,10 @@ TEST_F(ConnectionTest, noHost) {
 
     mocks[currentTestName()]["close"] =
             (void*)+([] (int ) {
+                // noop
+            });
+
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *) {
                 // noop
             });
 
@@ -102,6 +110,10 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
 
     mocks[currentTestName()]["close"] =
             (void*)+([] (int ) {
+                // noop
+            });
+
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *) {
                 // noop
             });
 
@@ -133,6 +145,10 @@ TEST_F(ConnectionTest, dnsCollision) {
     mocks[currentTestName()]["close"] =
             (void*)+([] (int ) {
                 // noop
+            });
+
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
+                free(__ai);
             });
 
     Connection conn("localhost", 1337, false);
@@ -174,6 +190,9 @@ TEST_F(ConnectionTest, invalidSocket) {
     mocks[currentTestName()]["close"] =
             (void*)+([] (int ) {
                 // noop
+            });
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
+                free(__ai);
             });
 
     Connection conn("localhost", 1337, false);
@@ -220,6 +239,10 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
     mocks[currentTestName()]["close"] =
             (void*)+([] (int ) {
                 // noop
+            });
+
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
+                free(__ai);
             });
 
 
@@ -300,6 +323,10 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
                     ASSERT_EQ(1, i) << "Only close failed sockets!";
             });
 
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
+                free(__ai);
+            });
+
     Connection conn("localhost", 1337, false);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     // do not execute the assert in close if connect was already successful because a successful socket will be closed
@@ -318,6 +345,7 @@ TEST_F(ConnectionTest, realSSL) {
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else
     mocks[currentTestName()]["close"] = (void*)&::close;
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
 #endif
 
     // tries to establish a connection to viaduck servers
@@ -336,6 +364,7 @@ TEST_F(ConnectionTest, realNoSSL) {
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else
     mocks[currentTestName()]["close"] = (void*)&::close;
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
 #endif
 
     // tries to establish a connection to viaduck servers
@@ -354,6 +383,7 @@ TEST_F(ConnectionTest, sessionResumption) {
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else
     mocks[currentTestName()]["close"] = (void*)&::close;
+    mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
 #endif
 
     // tries to establish a connection to viaduck servers
