@@ -24,4 +24,16 @@
     ASSERT_NE(element_count, cmp_i) << "All array values are identical";\
     }
 
+#define EXPECT_ANY_OF(expected, actual) \
+    {                                                                   \
+        bool found = false;                                             \
+        std::stringstream str;                                          \
+        for (const auto &anyVal: expected) {                            \
+            if (anyVal == actual)                                       \
+                found = true ;                                          \
+            str << "- " << anyVal<< " -";                               \
+        }                                                               \
+        EXPECT_TRUE(found) << actual << " must be any of " << str.str();\
+    }
+
 #endif //PUSHCLIENT_CUSTOM_ASSERT_H

@@ -3,7 +3,167 @@
 //
 
 #include "KeyValueStorageTest.h"
+#include "custom_assert.h"
 #include <libCom/KeyValueStorage.h>
+
+TEST_F(KeyValueStorageTest, Primitive) {
+    uint32_t count;
+    std::vector<int> ints = {123, 456, 1337};
+    std::vector<float> floats = {3.14159e+10f, 1.0f};
+    std::vector<double> doubles = {1.133742e42, 0.0};
+
+    KeyValueStorage kvs;
+    // unique values
+    EXPECT_TRUE(kvs.setValue<int>("int1", ints[0]));
+    EXPECT_TRUE(kvs.setValue<int>("int2", ints[1]));
+    EXPECT_TRUE(kvs.setValue<int>("int3", ints[2]));
+    EXPECT_TRUE(kvs.setValue<float>("float1", floats[0]));
+    EXPECT_TRUE(kvs.setValue<float>("float2", floats[1]));
+    EXPECT_TRUE(kvs.setValue<double>("double1", doubles[0]));
+    EXPECT_TRUE(kvs.setValue<double>("double2", doubles[1]));
+
+    // check if correctly stored
+    // .. if uniquely enforced
+    EXPECT_EQ(ints[0], kvs.getValue<int>("int1"));
+    EXPECT_EQ(ints[1], kvs.getValue<int>("int2"));
+    EXPECT_EQ(ints[2], kvs.getValue<int>("int3"));
+    EXPECT_EQ(floats[0], kvs.getValue<float>("float1"));
+    EXPECT_EQ(floats[1], kvs.getValue<float>("float2"));
+    EXPECT_EQ(doubles[0], kvs.getValue<double>("double1"));
+    EXPECT_EQ(doubles[1], kvs.getValue<double>("double2"));
+
+    // .. if not uniquely enforced
+    EXPECT_EQ(ints[0], kvs.getValue<int>("int1", false));
+    EXPECT_EQ(ints[1], kvs.getValue<int>("int2", false));
+    EXPECT_EQ(ints[2], kvs.getValue<int>("int3", false));
+    EXPECT_EQ(floats[0], kvs.getValue<float>("float1", false));
+    EXPECT_EQ(floats[1], kvs.getValue<float>("float2", false));
+    EXPECT_EQ(doubles[0], kvs.getValue<double>("double1", false));
+    EXPECT_EQ(doubles[1], kvs.getValue<double>("double2", false));
+
+
+    // multiple values
+    EXPECT_TRUE(kvs.setValue<int>("ints", 123));
+    EXPECT_TRUE(kvs.setValue<int>("ints", 456));
+    EXPECT_TRUE(kvs.setValue<int>("ints", 1337));
+    EXPECT_TRUE(kvs.setValue<float>("floats", 3.14159e+10f));
+    EXPECT_TRUE(kvs.setValue<float>("floats", 1.0f));
+    EXPECT_TRUE(kvs.setValue<double>("doubles", 1.133742e42));
+    EXPECT_TRUE(kvs.setValue<double>("doubles", 0.0));
+
+    EXPECT_THROW(kvs.getValue<int>("ints"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+    EXPECT_THROW(kvs.getValue<float>("floats"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+    EXPECT_THROW(kvs.getValue<double>("doubles"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+
+    // returned value must be any of list
+    EXPECT_ANY_OF(ints, kvs.getValue<int>("ints", false));
+    EXPECT_ANY_OF(floats, kvs.getValue<float>("floats", false));
+    EXPECT_ANY_OF(doubles, kvs.getValue<double>("doubles", false));
+
+    // callback check
+    count = 0;
+    EXPECT_TRUE(kvs.getValues<int>("ints", [&] (const int &i) -> bool {
+        bool containsValue = false;
+        for (auto k : ints) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(ints.size(), count);
+
+    count = 0;
+    EXPECT_TRUE(kvs.getValues<float>("floats", [&] (const float &i) -> bool {
+        bool containsValue = false;
+        for (auto k : floats) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(floats.size(), count);
+
+    count = 0;
+    EXPECT_TRUE(kvs.getValues<double>("doubles", [&] (const double &i) -> bool {
+        bool containsValue = false;
+        for (auto k : doubles) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(doubles.size(), count);
+
+}
+
+TEST_F(KeyValueStorageTest, PrimitiveFallback) {
+    std::vector<int> ints = {123, 456, 1337};
+    std::vector<float> floats = {3.14159e+10f, 1.0f};
+    std::vector<double> doubles = {1.133742e42, 0.0};
+
+    KeyValueStorage kvs;
+
+    // store with fallback option
+    EXPECT_EQ(ints[0], kvs.getSetValue<int>("int1", ints[0]));
+    EXPECT_EQ(ints[1], kvs.getSetValue<int>("int2", ints[1]));
+    EXPECT_EQ(ints[2], kvs.getSetValue<int>("int3", ints[2]));
+    EXPECT_EQ(floats[0], kvs.getSetValue<float>("floats1", floats[0]));
+    EXPECT_EQ(floats[1], kvs.getSetValue<float>("floats2", floats[1]));
+    EXPECT_EQ(doubles[0], kvs.getSetValue<double>("doubles1", doubles[0]));
+    EXPECT_EQ(doubles[1], kvs.getSetValue<double>("doubles2", doubles[1]));
+
+    // must exist now, new fallback must not be inserted
+    EXPECT_EQ(ints[0], kvs.getSetValue<int>("int1", ints[0]+2));
+    EXPECT_EQ(ints[1], kvs.getSetValue<int>("int2", ints[1]+2));
+    EXPECT_EQ(ints[2], kvs.getSetValue<int>("int3", ints[2]+2));
+    EXPECT_EQ(floats[0], kvs.getSetValue<float>("floats1", floats[0]+.5f));
+    EXPECT_EQ(floats[1], kvs.getSetValue<float>("floats2", floats[1]+.5f));
+    EXPECT_EQ(doubles[0], kvs.getSetValue<double>("doubles1", doubles[0]+.32));
+    EXPECT_EQ(doubles[1], kvs.getSetValue<double>("doubles2", doubles[1]+.32));
+
+    // multiple values
+    EXPECT_TRUE(kvs.setValue<int>("ints", 123));
+    EXPECT_TRUE(kvs.setValue<int>("ints", 456));
+    EXPECT_TRUE(kvs.setValue<int>("ints", 1337));
+    EXPECT_TRUE(kvs.setValue<float>("floats", 3.14159e+10f));
+    EXPECT_TRUE(kvs.setValue<float>("floats", 1.0f));
+    EXPECT_TRUE(kvs.setValue<double>("doubles", 1.133742e42));
+    EXPECT_TRUE(kvs.setValue<double>("doubles", 0.0));
+
+    // enforced unique
+    EXPECT_THROW(kvs.getSetValue<int>("ints", ints[0]), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+    EXPECT_THROW(kvs.getSetValue<float>("floats", floats[0]), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+    EXPECT_THROW(kvs.getSetValue<double>("doubles", doubles[0]), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+
+    // not enforced unique
+    std::vector<int> newInt({ints[0], ints[1], ints[2], ints[0]+4});
+    std::vector<float> newFloat({floats[0], floats[1], floats[0]+.5f});
+    std::vector<double> newDouble({doubles[0], doubles[1], doubles[0]+.32});
+    EXPECT_ANY_OF(newInt, kvs.getSetValue<int>("ints", ints[0]+4, false));
+    EXPECT_ANY_OF(newFloat, kvs.getSetValue<float>("floats", floats[0]+.5f, false));
+    EXPECT_ANY_OF(newDouble, kvs.getSetValue<double>("doubles", doubles[0]+.32, false));
+}
+
+TEST_F(KeyValueStorageTest, PrimitiveReplace) {
+    KeyValueStorage kvs;
+    std::vector<int> ints = {123, 456, 1337};
+
+    // unique
+    EXPECT_TRUE(kvs.setValue<int>("int1", ints[0]));
+    EXPECT_TRUE(kvs.setValue<int>("int1", ints[1], true));
+    EXPECT_EQ(ints[1], kvs.getValue<int>("int1")) << ints[0] << " must have been replaced to " << ints[1];
+
+    // multiple
+    EXPECT_TRUE(kvs.setValue<int>("int1", ints[2]));            // kvs contains ints[1] and ints[2] now
+    EXPECT_FALSE(kvs.setValue<int>("int1", ints[0], true)) << "Must not overwrite if there are >= 2 values";
+}
+
+TEST_F(KeyValueStorageTest, PrimitiveNonExistent) {
+    KeyValueStorage kvs;
+
+    EXPECT_THROW(kvs.getValue<int>("nonexistentkey"), std::invalid_argument);
+    EXPECT_FALSE(kvs.getValues<int>("nonexistentkey", [] (const int&) { return true; }));
+}
 
 TEST_F(KeyValueStorageTest, GetCallback) {
     KeyValueStorage testContainer;
@@ -144,55 +304,6 @@ TEST_F(KeyValueStorageTest, SetUnique) {
         return true;
     }));
     ASSERT_EQ(2u, count);
-}
-
-TEST_F(KeyValueStorageTest, PrimitiveTypes) {
-    uint32_t count;
-    std::vector<int> ints = {123, 456, 1337};
-    std::vector<float> floats = {3.14159e+10f, 1.0f};
-    std::vector<double> doubles = {1.133742e42, 0.0};
-
-    KeyValueStorage kvs;
-    EXPECT_TRUE(kvs.setValue<int>("ints", 123));
-    EXPECT_TRUE(kvs.setValue<int>("ints", 456));
-    EXPECT_TRUE(kvs.setValue<int>("ints", 1337));
-    EXPECT_TRUE(kvs.setValue<float>("floats", 3.14159e+10f));
-    EXPECT_TRUE(kvs.setValue<float>("floats", 1.0f));
-    EXPECT_TRUE(kvs.setValue<double>("doubles", 1.133742e42));
-    EXPECT_TRUE(kvs.setValue<double>("doubles", 0.0));
-
-    count = 0;
-    EXPECT_TRUE(kvs.getValues<int>("ints", [&] (const int &i) -> bool {
-        bool containsValue = false;
-        for (auto k : ints) containsValue |= (k == i);
-        EXPECT_TRUE(containsValue);           // values must be in values list
-
-        count++;
-        return true;
-    }));
-    EXPECT_EQ(ints.size(), count);
-
-    count = 0;
-    EXPECT_TRUE(kvs.getValues<float>("floats", [&] (const float &i) -> bool {
-        bool containsValue = false;
-        for (auto k : floats) containsValue |= (k == i);
-        EXPECT_TRUE(containsValue);           // values must be in values list
-
-        count++;
-        return true;
-    }));
-    EXPECT_EQ(floats.size(), count);
-
-    count = 0;
-    EXPECT_TRUE(kvs.getValues<double>("doubles", [&] (const double &i) -> bool {
-        bool containsValue = false;
-        for (auto k : doubles) containsValue |= (k == i);
-        EXPECT_TRUE(containsValue);           // values must be in values list
-
-        count++;
-        return true;
-    }));
-    EXPECT_EQ(doubles.size(), count);
 }
 
 TEST_F(KeyValueStorageTest, Serialize) {
