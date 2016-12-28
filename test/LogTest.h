@@ -22,10 +22,14 @@ protected:
         }
 
         bool wantsLog(LogLevel level) override {
-            if (current == &bruce)
-                current = &bruce2;
-            else
-                current = &bruce;
+            switch (level) {
+                case LogLevel::DEBUG:
+                    current = &bruce; break;
+                case LogLevel::ERROR:
+                    current = &bruce2; break;
+                default:
+                    break;
+            }
             *current<<"["<<level<<"] ";
             return true;
         }
@@ -34,17 +38,33 @@ protected:
             return *current;
         }
 
-        std::string toString(int i) {
-            switch(i) {
-                case 0: return bruce.str();
-                case 1: return bruce2.str();
+        std::string toString(LogLevel level) {
+            switch(level) {
+                case LogLevel::DEBUG: return bruce.str();
+                case LogLevel::ERROR: return bruce2.str();
                 default:
                     return current->str();
             }
         }
 
+        void clear() {
+            bruce.str(std::string());
+            bruce.clear();
+
+            bruce2.str(std::string());
+            bruce2.clear();
+
+            current = &bruce2;
+        }
+
     protected:
+        /**
+         * Debug
+         */
         std::stringstream bruce;
+        /**
+         * Error
+         */
         std::stringstream bruce2;
         std::stringstream *current;
     };
@@ -52,10 +72,11 @@ protected:
 
     void SetUp() override {
         mLogger = new TestLogger();
+        Log::get().registerLogger(mLogger);
     }
 
     void TearDown() override {
-        mLogger->close();
+        Log::get().unregisterLogger(mLogger);
         delete mLogger;
     }
 

@@ -13,9 +13,9 @@ void Log::unregisterLogger(ILogger *logger) {
     mLoggers.erase(std::remove(mLoggers.begin(), mLoggers.end(), logger), mLoggers.end());
 }
 
-LogStream<LogLevel::TRACE> Log::trac(Log::mInstance);
-LogStream<LogLevel::DEBUG> Log::dbg(Log::mInstance);
-LogStream<LogLevel::INFO> Log::info(Log::mInstance);
-LogStream<LogLevel::WARNING> Log::warn(Log::mInstance);
-LogStream<LogLevel::ERROR> Log::err(Log::mInstance);
+Log::LogStream<LogLevel::TRACE> Log::trac(Log::mInstance);
+Log::LogStream<LogLevel::DEBUG> Log::dbg(Log::mInstance);
+Log::LogStream<LogLevel::INFO> Log::info(Log::mInstance);
+Log::LogStream<LogLevel::WARNING> Log::warn(Log::mInstance);
+Log::LogStream<LogLevel::ERROR> Log::err(Log::mInstance);
 Log Log::mInstance;
