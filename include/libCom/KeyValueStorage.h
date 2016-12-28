@@ -43,9 +43,9 @@ public:
      * @param value Buffer that will receive the key's value. It is overwritten.
      * @param fallback Fallback for key if it does not exist.
      * @param uniqueResult If this is set to false and multiple Buffers exist for a key, any Buffer can be returned.
-     * @throw std::invalid_argument if uniqueResult is true but there are multiple values for the key.
+     * @return True on success, false if uniqueResult is true but there are multiple values for the key.
      */
-    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback, bool uniqueResult = true);
+    bool getSetBuffer(const String &key, Buffer &value, const Buffer &fallback, bool uniqueResult = true);
 
     /**
      * Gets a value type T from KVS.
