@@ -8,10 +8,16 @@
 
 /**
  * Interface a Logger has to implement.
- * The internal ostream will get LogLevel as the first streamed value. Next values are logged values.
+ * For every log stream (a chain of << calls) wantsLog(LogLevel) is called. If it returns true, logged values will be
+ * passed to ILogger implementation.
  */
 class ILogger {
 public:
+    /**
+     * Virtual destructor
+     */
+    virtual ~ILogger() {};
+
     /**
      * Opens the output stream. This enables logging.
      * @return Whether opening succeeded.
@@ -24,20 +30,21 @@ public:
     virtual void close() = 0;
 
     /**
-     * @return Whether the ILogger is ready for logging
+     * @return Whether the ILogger is ready for logging.
      */
     virtual bool isOpen() = 0;
-
-    /**
-     * @param level LogLevel
-     * @return Underlying writable std::ostream stream.
-     */
-    virtual std::ostream &stream(LogLevel level) = 0;
 
     /**
      * @return Underlying writable std::ostream stream.
      */
     virtual std::ostream &stream() = 0;
+
+    /**
+     * @param level LogLevel
+     * @return Whether ILogger implementation wants to log stream started by this log level.
+     */
+    virtual bool wantsLog(LogLevel level) = 0;
+
 };
 
 template <LogLevel Level>
@@ -104,14 +111,20 @@ protected:
  * @tparam Level Assigned LogLevel
  */
 template <LogLevel Level>
-class LogStream : public std::ostream {
+class LogStream {
     /**
-     * Chained stream operator calls will use the following class, that instructs the LogStream not to log the LogLevel
-     * again.
+     * Chained stream operator calls will use the following class, that logs only if a ILogger declared it wants to log
+     * the current stream.
      */
-    class LogStreamValue : public std::ostream {
+    class LogStreamValue {
     public:
-        LogStreamValue(LogStream &parent) : mParent(parent) { }
+        /**
+         * Constructor that accepts the parent LogStream and a vector of enabled ILoggers for this log stream.
+         * @param parent
+         * @param enabledLoggers
+         */
+        LogStreamValue(LogStream &parent, std::vector<ILogger*> enabledLoggers) : mParent(parent),
+                                                                                  mEnabledLoggers(enabledLoggers) { }
         /**
          * Stream operator which is used for logging. This only logs the actual value by passing them to LogStream.
          * @tparam T Type of value to be logged
@@ -119,54 +132,53 @@ class LogStream : public std::ostream {
          */
         template<typename T>
         LogStreamValue &operator<<(const T &t) {
-            mParent.logValue(t);
+            for (ILogger *logger: mEnabledLoggers) {
+                if (logger->isOpen())
+                    logger->stream() << t;
+            }
             return *this;
         }
 
     protected:
         LogStream &mParent;
+        std::vector<ILogger*> mEnabledLoggers;
     };
 
 public:
     /**
      * Stream operator which is used for logging. This redirects all logged values to the registered ILoggers.
-     * The first redirected value is the assigned LogLevel, followed by the actual values.
+     * The subsequent values will be logged by returned LogStreamValue.
      * @tparam T Type of value to be logged
      * @param t Value to log
+     * @return Chained log stream, that accepts all other values
      */
     template<typename T>
-    LogStreamValue &operator<<(const T &t) {
-        logValue(t, true);
-        return mChild;
-    }
+    LogStreamValue operator<<(const T &t) {
+        std::vector<ILogger *> enabledLoggers;
+        enabledLoggers.reserve(mLog.mLoggers.size());
 
-protected:
-    /**
-     * Internal helper for logging. This redirects all logged values to the registered ILoggers.
-     * @tparam T Type of value to be logged
-     * @param t Vale to log
-     * @param streamLevel Whether to stream the LogLevel or not
-     */
-    template<typename T>
-    void logValue(const T &t, bool streamLevel = false) {
         for (ILogger *logger: mLog.mLoggers) {
-            if (logger->isOpen()) {
-                if (streamLevel)
-                    logger->stream(Level);
-                else
+            // only log if logger wants this level
+            if (logger->wantsLog(Level)) {
+                // add to list of enabled loggers
+                enabledLoggers.push_back(logger);
+
+                // log the first value if it's open
+                if (logger->isOpen())
                     logger->stream() << t;
             }
         }
+        return LogStreamValue(*this, enabledLoggers);
     }
 
+protected:
+
     /**
-     * Internal constructor that instantiates the value-only LogStream
      * @param log Global Log
      */
-    LogStream(Log &log) : mLog(log), mChild(*this) { }
+    LogStream(Log &log) : mLog(log) { }
 
     Log &mLog;
-    LogStreamValue mChild;
 
     friend class Log;
 };
