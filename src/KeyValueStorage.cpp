@@ -80,9 +80,9 @@ bool KeyValueStorage::deserialize(BufferRangeConst in) {
     return true;
 }
 
-bool KeyValueStorage::getBuffer(const String &key, Buffer &value) const {
-    // key does not exist
-    if (mKeys.count(key) == 0)
+bool KeyValueStorage::getBuffer(const String &key, Buffer &value, bool uniqueResult) const {
+    // key does not exist or multiple values but requested unique result
+    if (mKeys.count(key) == 0 || (mInternal.count(key) > 1 && uniqueResult))
         return false;
 
     value.clear();              // clear to prevent wrongly reported size
@@ -90,10 +90,12 @@ bool KeyValueStorage::getBuffer(const String &key, Buffer &value) const {
     return true;
 }
 
-void KeyValueStorage::getSetBuffer(const String &key, Buffer &value, const Buffer &fallback) {
+void KeyValueStorage::getSetBuffer(const String &key, Buffer &value, const Buffer &fallback, bool uniqueResult) {
     // key does not exist
     if (mKeys.count(key) == 0)
         setBuffer(key, fallback);
+    else if (uniqueResult && mInternal.count(key) > 1)
+        throw std::invalid_argument("Multiple values associated with key");
 
     value.clear();              // clear to prevent wrongly reported size
     getBuffer(key, value);

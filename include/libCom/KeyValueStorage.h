@@ -28,38 +28,41 @@ public:
     /**
      * Gets a Buffer from KVS.
      *
-     * If multiple Buffers exist for key, any Buffer can be returned.
      * @param key Buffer's key.
      * @param value Buffer that will receive the key's value. It is overwritten.
-     * @return True on success, false if the key does not exist.
+     * @param uniqueResult If this is set to false and multiple Buffers exist for a key, any Buffer can be returned.
+     * @return True on success, false if the key does not exist or there are multiple values but uniqueResult is true.
      */
-    bool getBuffer(const String &key, Buffer &value) const;
+    bool getBuffer(const String &key, Buffer &value, bool uniqueResult = true) const;
 
     /**
      * Gets a Buffer from KVS.
      *
-     * If multiple Buffers exist for key, any Buffer can be returned.
      * If the key does not exist, fallback will be returned and inserted into the KVS at the given the key.
      * @param key Buffer's key
      * @param value Buffer that will receive the key's value. It is overwritten.
      * @param fallback Fallback for key if it does not exist.
+     * @param uniqueResult If this is set to false and multiple Buffers exist for a key, any Buffer can be returned.
+     * @throw std::invalid_argument if uniqueResult is true but there are multiple values for the key.
      */
-    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback);
+    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback, bool uniqueResult = true);
 
     /**
      * Gets a value type T from KVS.
      *
-     * If multiple values exist for key, any value can be returned.
      * @tparam T Type of value.
-     * @param key Key to lookup.
-     * @throw std::invalid_argument if key does not exist.
+     * @param key Key to lookup
+     * @param uniqueResult If this is set to false and multiple values exist for key, any value can be returned.
+     * @throw std::invalid_argument if key does not exist or there are multiple values and uniqueResult is true.
      * @return Value associated with key.
      */
     template <typename T>
-    T getValue(const String &key) const {
+    T getValue(const String &key, bool uniqueResult = true) const {
         // key does not exist
         if (mKeys.count(key) == 0)
             throw std::invalid_argument("Key does not exist");
+        else if (mInternal.count(key) > 1 && uniqueResult)
+            throw std::invalid_argument("Multiple values associated with key");
 
         return buffertoValue<T>(mInternal.find(key)->second);
     }
@@ -67,20 +70,23 @@ public:
     /**
      * Gets a value type T from KVS.
      *
-     * If multiple values exist for key, any value can be returned.
      * If the key does not exist, fallback will be returned and inserted into the KVS at the given key.
      * @tparam T Type of value.
      * @param key Key to lookup.
      * @param fallback Fallback for key's value.
+     * @param uniqueResult If this is set to false and multiple values exist for a key, any value can be returned.
+     * @throw std::invalid_argument if uniqueResult is true but there are multiple values for the key.
      * @return Value associated with key.
      */
     template <typename T>
-    T getSetValue(const String &key, const T &fallback) {
+    T getSetValue(const String &key, const T &fallback, bool uniqueResult = true) {
         // key does not exist
         if (mKeys.count(key) == 0) {
             setValue(key, fallback);
             return fallback;
         }
+        else if (mInternal.count(key) > 1 && uniqueResult)
+            throw std::invalid_argument("Multiple values associated with key");
 
         return buffertoValue<T>(mInternal.find(key)->second);
     }
@@ -88,16 +94,18 @@ public:
     /**
      * Gets a Serializable from KVS and deserializes it into value.
      *
-     * If multiple Serializables exist for key, any Serializable can be returned.
      * @tparam T Type of value.
      * @param key Key to lookup.
      * @param value Reference to object that will receive the value.
-     * @return True on success, false if the key does not exist.
+     * @param uniqueResult If this is set to false and multiple Serializables exist for a key, any Serializable can be
+     *        returned.
+     * @return True on success, false if the key does not exist or uniqueResult is true and there are multiple
+     *         Serializables for the key.
      */
     template <typename T>
-    bool getSerializable(const String &key, T &value) const {
-        // key does not exist
-        if (mKeys.count(key) == 0)
+    bool getSerializable(const String &key, T &value, bool uniqueResult = true) const {
+        // key does not exist or multiple values associated with key but unique result requested
+        if (mKeys.count(key) == 0 || (mInternal.count(key) > 1 && uniqueResult))
             return false;
 
         return value.deserialize(mInternal.find(key)->second);
@@ -106,21 +114,25 @@ public:
     /**
      * Gets a Serializable from KVS and deserializes it into value.
      *
-     * If multiple Serializables exist for key, any Serializable can be returned.
      * If the key does not exist, fallback will be returned and inserted into the KVS along with the key.
      * @tparam T Type of value.
      * @param key Key to lookup.
-     * @param value Refernce to object that will receive the value.
+     * @param value Reference to object that will receive the value.
      * @param fallback Fallback value.
-     * @return True on success, false if the key does not exist.
+     * @param uniqueResult If this is set to false and multiple Serializables exist for a key, any Serializable can be
+     *        returned.
+     * @return True on success, false if the key does not exist or uniqueResult is true and there are multiple
+     *         Serializables for the key.
      */
     template <typename T>
-    bool getSetSerializable(const String &key, T &value, const T &fallback) {
+    bool getSetSerializable(const String &key, T &value, const T &fallback, bool uniqueResult = true) {
         // key does not exist
         if (mKeys.count(key) == 0)
             setSerializable<T>(key, fallback);
+        else if (uniqueResult && mInternal.count(key) > 1)
+            return false;
 
-        return getSerializable<T>(key, value);
+        return getSerializable<T>(key, value, uniqueResult);
     }
 
     /* KVS set methods */

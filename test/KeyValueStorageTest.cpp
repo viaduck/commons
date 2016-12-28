@@ -73,8 +73,11 @@ TEST_F(KeyValueStorageTest, GetUnique) {
 
     EXPECT_FALSE(testContainer.getSerializable<String>("noval", output));
 
+    // "2vals" returns false, since it is not a unique result
+    EXPECT_FALSE(testContainer.getSerializable<String>("2vals", output));
+
     // "2vals" returns any value since key is not unique
-    EXPECT_TRUE(testContainer.getSerializable<String>("2vals", output));
+    EXPECT_TRUE(testContainer.getSerializable<String>("2vals", output, false));
     EXPECT_TRUE(output == String("abc") || output == String("123"));
 
     EXPECT_TRUE(testContainer.getSerializable<String>("1val", output));
@@ -93,8 +96,11 @@ TEST_F(KeyValueStorageTest, GetUniqueFallback) {
     EXPECT_TRUE(testContainer.getSetSerializable("noval", output, fallback));
     EXPECT_TRUE(testContainer.getSerializable("noval", output));     // key present now
 
+    // "2vals" returns false, since it is not a unique result
+    EXPECT_FALSE(testContainer.getSerializable<String>("2vals", output));
+
     // "2vals" returns any value since key is not unique
-    EXPECT_TRUE(testContainer.getSetSerializable("2vals", output, fallback));
+    EXPECT_TRUE(testContainer.getSetSerializable("2vals", output, fallback, false));
     EXPECT_TRUE(output == String("abc") || output == String("123"));
 
     EXPECT_TRUE(testContainer.getSetSerializable("1val", output, fallback));
