@@ -33,15 +33,7 @@ public:
      * @param value Buffer that will receive the key's value. It is overwritten.
      * @return True on success, false if the key does not exist.
      */
-    bool getBuffer(const String &key, Buffer &value) const {
-        // key does not exist
-        if (mKeys.count(key) == 0)
-            return false;
-
-        value.clear();              // clear to prevent wrongly reported size
-        value.write(mInternal.find(key)->second, 0);
-        return true;
-    }
+    bool getBuffer(const String &key, Buffer &value) const;
 
     /**
      * Gets a Buffer from KVS.
@@ -52,14 +44,7 @@ public:
      * @param value Buffer that will receive the key's value. It is overwritten.
      * @param fallback Fallback for key if it does not exist.
      */
-    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback) {
-        // key does not exist
-        if (mKeys.count(key) == 0)
-            setBuffer(key, fallback);
-
-        value.clear();              // clear to prevent wrongly reported size
-        getBuffer(key, value);
-    }
+    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback);
 
     /**
      * Gets a value type T from KVS.
@@ -326,21 +311,7 @@ public:
      *
      * @param out Buffer the serialized KeyValueStorage will be written to. It is cleared.
      */
-    void serialize(Buffer &out) const {
-        out.clear();              // clear to prevent wrongly reported size
-        for(const String &key : mKeys) {
-            key.serialize(out);
-
-            // serialize number of values
-            uint32_t keyCount = mInternal.count(key);
-            out.append(&keyCount, sizeof(keyCount));
-
-            getBuffers(key, [&out](const Buffer &val) -> bool {
-                val.serialize(out);
-                return true;
-            });
-        }
-    }
+    void serialize(Buffer &out) const;
 
     /**
      * Deserializes a former serialized KeyValueStorage from given Range.
@@ -350,41 +321,7 @@ public:
      * @param in Range pointing to serialized data.
      * @return True on success, false otherwise.
      */
-    bool deserialize(BufferRangeConst in) {
-        // remove all items before deserialize
-        clear();
-
-        // while there is still data to read
-        while(in.size() > 0) {
-            // deserialize key first
-            String key;
-            if(!key.deserialize(in))
-                return false;
-
-            // move in pointer by key size and size of serialized key header
-            in += key.size() + sizeof(uint32_t);
-            // fail if not enough data left for count of children
-            if(in.size() < sizeof(uint32_t))
-                return false;
-
-            // read child count
-            uint32_t valCount = *static_cast<const uint32_t*>(in.const_data());
-            in += sizeof(uint32_t);
-
-            // for each child, deserialize its value
-            for (uint32_t cV = 0; cV < valCount; ++cV) {
-                Buffer value;
-                if(!value.deserialize(in))
-                    return false;
-
-                // store value in KVS and move pointer
-                setInternal(key, value, false);
-                in += value.size() + sizeof(uint32_t);
-            }
-        }
-
-        return true;
-    }
+    bool deserialize(BufferRangeConst in);
 
     /**
      * Removes all items from this storage
@@ -427,36 +364,14 @@ private:
      * @param key Key to lookup.
      * @callback If callback returns false, the lookup will be aborted.
      */
-    void getInternalMultiBuffer(const String &key, std::function<bool(const Buffer &)> callback) const {
-        // range of values matching key
-        auto range = mInternal.equal_range(key);
-
-        // iterate range and call callback with every found value
-        for (auto it = range.first; it != range.second; it++) {
-
-            // call callback -> break if false
-            if (!callback(it->second))
-                break;
-        }
-    }
+    void getInternalMultiBuffer(const String &key, std::function<bool(const Buffer &)> callback) const;
 
     /**
      * Calls callback for each mutable Buffer associated to key.
      * @param key Key to lookup.
      * @callback If callback returns false, the lookup will be aborted.
      */
-    void modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &)> callback) {
-        // range of values matching key
-        auto range = mInternal.equal_range(key);
-
-        // iterate range and call callback with every found value
-        for (auto it = range.first; it != range.second; it++) {
-
-            // call callback -> break if false
-            if (!callback(it->second))
-                break;
-        }
-    }
+    void modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &)> callback);
 
     /**
      * Associates the value with the key.
@@ -473,29 +388,12 @@ private:
      * @param replaceExisting Indicates whether to try to replace an existing value with given value.
      * @return True on success, false if replaceExisting is true and more than one value associated with key.
      */
-    bool setInternal(const String &key, const Buffer &value, bool replaceExisting) {
-        auto count = mInternal.count(key);
-
-        if (replaceExisting) {
-            // more than one element present, don't know which to replace
-            if (count > 1)
-                return false;
-            else if (count == 1)
-                mInternal.erase(key);
-
-            // at this point key does not exist anymore and can be safely added below
-        }
-
-        mKeys.insert(key);
-        mInternal.emplace(key, value);
-        return true;
-    }
+    bool setInternal(const String &key, const Buffer &value, bool replaceExisting);
 
     // internal key-value multimap
     Type mInternal;
     // internal key-set
     std::set<String> mKeys;
 };
-
 
 #endif //LIBCOM_KEYVALUESTORAGE_H
