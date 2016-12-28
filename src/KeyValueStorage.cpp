@@ -32,16 +32,16 @@ void KeyValueStorage::modifyInternalMultiBuffer(const String &key, std::function
 }
 
 void KeyValueStorage::getInternalMultiBuffer(const String &key, std::function<bool(const Buffer &)> callback) const {
-// range of values matching key
-auto range = mInternal.equal_range(key);
+    // range of values matching key
+    auto range = mInternal.equal_range(key);
 
-// iterate range and call callback with every found value
-for (auto it = range.first; it != range.second; it++) {
+    // iterate range and call callback with every found value
+    for (auto it = range.first; it != range.second; it++) {
 
-// call callback -> break if false
-if (!callback(it->second))
-break;
-}
+        // call callback -> break if false
+        if (!callback(it->second))
+            break;
+    }
 }
 
 bool KeyValueStorage::deserialize(BufferRangeConst in) {
