@@ -189,7 +189,7 @@ TEST_F(KeyValueStorageTest, PrimitiveTypes) {
     EXPECT_EQ(doubles.size(), count);
 }
 
-TEST_F(KeyValueStorageTest, testSerialize) {
+TEST_F(KeyValueStorageTest, Serialize) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
@@ -229,7 +229,7 @@ TEST_F(KeyValueStorageTest, testSerialize) {
     ASSERT_EQ(3u, count);
 }
 
-TEST_F(KeyValueStorageTest, testSingle) {
+TEST_F(KeyValueStorageTest, Buffer) {
     KeyValueStorage testContainer;
     Buffer fallback, fallback_mod;
     fallback.append(String("fallback"));
