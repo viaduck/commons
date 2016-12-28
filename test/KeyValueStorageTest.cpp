@@ -253,7 +253,7 @@ TEST_F(KeyValueStorageTest, testSingle) {
     ASSERT_FALSE(testContainer.getBuffer("test32", output));
 
     // ensure that the fallback is returned
-    ASSERT_TRUE(testContainer.getSetBuffer("test32", output, fallback));
+    testContainer.getSetBuffer("test32", output, fallback);
     ASSERT_EQ(fallback, output);
 
     // modify buffer

@@ -2,8 +2,8 @@
 // Created by John Watson on 25.12.2016.
 //
 
-#ifndef LIBCOM_KEYVALUESTORAGENEW_H
-#define LIBCOM_KEYVALUESTORAGENEW_H
+#ifndef LIBCOM_KEYVALUESTORAGE_H
+#define LIBCOM_KEYVALUESTORAGE_H
 
 
 #include <unordered_map>
@@ -11,12 +11,13 @@
 #include "String.h"
 
 /**
- * Class storing Key-Value pairs of libCom Strings with the ability to serialize and deserialize it.
+ * Class storing Key-Value pairs of libCom Strings with the ability to serialize and deserialize them.
  * Any type of value can be stored, including:
  * <ul>
- * <li>Value types such as int, double, float
- * <li>Serializable types such as String, Protocol classes, other KeyValueStorages
- * <li>Buffers, possibly containing any other type of data.
+ * <li>Value types such as int, double, float</li>
+ * <li>Serializable types such as String, Protocol classes, other KeyValueStorages</li>
+ * <li>Buffers, possibly containing any other type of data.</li>
+ * </ul>
  */
 class KeyValueStorage {
     using Type = std::unordered_multimap<const String, Buffer>;
@@ -28,6 +29,8 @@ public:
      * Gets a Buffer from KVS.
      *
      * If multiple Buffers exist for key, any Buffer can be returned.
+     * @param key Buffer's key.
+     * @param value Buffer that will receive the key's value. It is overwritten.
      * @return True on success, false if the key does not exist.
      */
     bool getBuffer(const String &key, Buffer &value) const {
@@ -44,22 +47,28 @@ public:
      * Gets a Buffer from KVS.
      *
      * If multiple Buffers exist for key, any Buffer can be returned.
-     * If the key does not exist, fallback will be returned and inserted into the KVS along with the key.
+     * If the key does not exist, fallback will be returned and inserted into the KVS at the given the key.
+     * @param key Buffer's key
+     * @param value Buffer that will receive the key's value. It is overwritten.
+     * @param fallback Fallback for key if it does not exist.
      */
-    bool getSetBuffer(const String &key, Buffer &value, const Buffer &fallback) {
+    void getSetBuffer(const String &key, Buffer &value, const Buffer &fallback) {
         // key does not exist
         if (mKeys.count(key) == 0)
             setBuffer(key, fallback);
 
         value.clear();              // clear to prevent wrongly reported size
-        return getBuffer(key, value);
+        getBuffer(key, value);
     }
 
     /**
      * Gets a value type T from KVS.
      *
      * If multiple values exist for key, any value can be returned.
-     * If the key does not exist std::invalid_argument will be thrown.
+     * @tparam T Type of value.
+     * @param key Key to lookup.
+     * @throw std::invalid_argument if key does not exist.
+     * @return Value associated with key.
      */
     template <typename T>
     T getValue(const String &key) const {
@@ -74,7 +83,11 @@ public:
      * Gets a value type T from KVS.
      *
      * If multiple values exist for key, any value can be returned.
-     * If the key does not exist, fallback will be returned and inserted into the KVS along with the key.
+     * If the key does not exist, fallback will be returned and inserted into the KVS at the given key.
+     * @tparam T Type of value.
+     * @param key Key to lookup.
+     * @param fallback Fallback for key's value.
+     * @return Value associated with key.
      */
     template <typename T>
     T getSetValue(const String &key, const T &fallback) {
@@ -91,6 +104,9 @@ public:
      * Gets a Serializable from KVS and deserializes it into value.
      *
      * If multiple Serializables exist for key, any Serializable can be returned.
+     * @tparam T Type of value.
+     * @param key Key to lookup.
+     * @param value Reference to object that will receive the value.
      * @return True on success, false if the key does not exist.
      */
     template <typename T>
@@ -107,6 +123,11 @@ public:
      *
      * If multiple Serializables exist for key, any Serializable can be returned.
      * If the key does not exist, fallback will be returned and inserted into the KVS along with the key.
+     * @tparam T Type of value.
+     * @param key Key to lookup.
+     * @param value Refernce to object that will receive the value.
+     * @param fallback Fallback value.
+     * @return True on success, false if the key does not exist.
      */
     template <typename T>
     bool getSetSerializable(const String &key, T &value, const T &fallback) {
@@ -120,25 +141,28 @@ public:
     /* KVS set methods */
 
     /**
-    * Inserts the Buffer along with the key into the KVS.
-    *
-    * If replaceExisting is false and the key already exists, it will become a multi-value key.
-    * If replaceExisting is true any existing Buffer will be replaced.
-    *
-    * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
-    */
+     * Inserts the Buffer associated with the key into the KVS.
+     *
+     * @param key Associated key.
+     * @param value Value to set the key to.
+     * @param replaceExisting If false and key already esists, it will become a multi-value key. If true any existing
+     *        key will be replaced
+     * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
+     */
     bool setBuffer(const String &key, const Buffer &value, bool replaceExisting = false) {
         return setInternal(key, value, replaceExisting);
     }
 
-   /**
-    * Inserts the value along with the key into the KVS.
-    *
-    * If replaceExisting is false and the key already exists, it will become a multi-value key.
-    * If replaceExisting is true any existing value will be replaced.
-    *
-    * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
-    */
+    /**
+     * Inserts the value associated with the key into the KVS.
+     *
+     * @tparam T Type of value.
+     * @param key Associated key.
+     * @param value Value to set the key to.
+     * @param replaceExisting If false and key already esists, it will become a multi-value key. If true any existing
+     *        key will be replaced
+     * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
+     */
     template <typename T>
     bool setValue(const String &key, const T &value, bool replaceExisting = false) {
         Buffer insertMe(sizeof(T));
@@ -148,13 +172,14 @@ public:
     }
 
     /**
-    * Inserts the serialized Serializable along with the key into the KVS.
-    *
-    * If replaceExisting is false and the key already exists, it will become a multi-value key.
-    * If replaceExisting is true any existing Serializable will be replaced.
-    *
-    * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
-    */
+     * Inserts the serialized Serializable associated with the key into the KVS.
+     *
+     * @param key Associated key.
+     * @param value Value to set the key to.
+     * @param replaceExisting If false and key already esists, it will become a multi-value key. If true any existing
+     *        key will be replaced
+     * @return True on success, false if replaceExisting is true but the key is already a multi-value key.
+     */
     template <typename T>
     bool setSerializable(const String &key, const T &value, bool replaceExisting = false) {
         Buffer insertMe(value.size());
@@ -166,11 +191,11 @@ public:
     /* KVS multi get methods */
 
     /**
-     * Gets all Buffers belonging to key from KVS.
+     * Gets all Buffers associated with the key from KVS.
      *
+     * @param key Key to lookup.
      * @param callback Callback called for each Buffer. The order of the Buffers is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     bool getBuffers(const String &key, std::function<bool(const Buffer &)> callback) const {
@@ -183,11 +208,12 @@ public:
     }
 
     /**
-     * Gets all values belonging to key from KVS.
+     * Gets all values associated with the key from KVS.
      *
+     * @tparam T Type of value.
+     * @param key Key to lookup.
      * @param callback Callback called for each value. The order of the values is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
@@ -203,11 +229,12 @@ public:
     }
 
     /**
-     * Gets all Serializables belonging to key from KVS.
+     * Gets all Serializables associated with the key from KVS.
      *
+     * @tparam T Type of value.
+     * @param key Key to lookup.
      * @param callback Callback called for each Serializable. The order of the Serializables is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
@@ -227,9 +254,9 @@ public:
     /**
      * Gets all Buffers belonging to key from KVS with the ability to modify them in callback.
      *
+     * @param key Key to lookup.
      * @param callback Callback called for each mutable Buffer. The order of the Buffers is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     bool modifyBuffers(const String &key, std::function<bool(Buffer &)> callback) {
@@ -242,11 +269,12 @@ public:
     }
 
     /**
-     * Gets all values belonging to key from KVS with the ability to modify them in callback.
+     * Gets all values associated with the key from KVS. The callback has the ability to modify them inplace.
      *
+     * @tparam T Type of value.
+     * @param key Key to lookup.
      * @param callback Callback called for each mutable value. The order of the values is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
@@ -266,11 +294,12 @@ public:
     }
 
     /**
-     * Gets all Serializables belonging to key from KVS with the ability to modify them in callback.
+     * Gets all Serializables associated with the key from KVS. The callback has the ability to modify them inplace.
      *
+     * @tparam T Type of value.
+     * @param key Key to lookup.
      * @param callback Callback called for each mutable Serializable. The order of the Serializables is undefined.
-     * Returning true from callback indicates that the iteration should continue. Returning false breaks from loop.
-     *
+     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
@@ -295,7 +324,7 @@ public:
     /**
      * Serializes the KeyValueStorage into the given Buffer.
      *
-     * @param out Buffer to append the serialized KeyValueStorage to
+     * @param out Buffer the serialized KeyValueStorage will be written to. It is cleared.
      */
     void serialize(Buffer &out) const {
         out.clear();              // clear to prevent wrongly reported size
@@ -314,10 +343,12 @@ public:
     }
 
     /**
-     * Reads a serialized KeyValueStorage from given Range.
+     * Deserializes a former serialized KeyValueStorage from given Range.
      *
-     * @param in Range pointing to serialized data
-     * @return True on success, false otherwise
+     * The KVS is cleared beforehand.
+     *
+     * @param in Range pointing to serialized data.
+     * @return True on success, false otherwise.
      */
     bool deserialize(BufferRangeConst in) {
         // remove all items before deserialize
@@ -361,11 +392,14 @@ public:
     inline void clear() {
         mKeys.clear();
         mInternal.clear();
-    };
+    }
 private:
     /**
      * Converts the value in network byte-order from Buffer to host byte-order of type T.
      *
+     * @tparam Value type.
+     * @param in Source Buffer.
+     * @return Converted value.
      * @throws std::out_of_range if Buffer is too small
      */
     template <typename T>
@@ -378,6 +412,9 @@ private:
 
     /**
      * Converts the value in host byte-order of type T to network byte-order in Buffer.
+     * @tparam Value type.
+     * @param value Source value.
+     * @param out Destination Buffer.
      */
     template <typename T>
     void valueToBuffer(const T &value, Buffer &out) {
@@ -386,7 +423,9 @@ private:
     }
 
     /**
-     *  Calls callback for each readonly Buffer associated to key.
+     * Calls callback for each readonly Buffer associated to key.
+     * @param key Key to lookup.
+     * @callback If callback returns false, the lookup will be aborted.
      */
     void getInternalMultiBuffer(const String &key, std::function<bool(const Buffer &)> callback) const {
         // range of values matching key
@@ -402,7 +441,9 @@ private:
     }
 
     /**
-     *  Calls callback for each mutable Buffer associated to key.
+     * Calls callback for each mutable Buffer associated to key.
+     * @param key Key to lookup.
+     * @callback If callback returns false, the lookup will be aborted.
      */
     void modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &)> callback) {
         // range of values matching key
@@ -418,17 +459,19 @@ private:
     }
 
     /**
-     * Associates the value to the key.
+     * Associates the value with the key.
      *
      * If existing value should be replaced and:
      * <ul>
-     * <li>no value exists for key -> new value will be associated
-     * <li>one value exists for key -> it will be replaced by new value
-     * <li>more than one value exists for key -> error
+     * <li>no value exists for key -> new value will be associated</li>
+     * <li>one value exists for key -> it will be replaced by new value</li>
+     * <li>more than one value exists for key -> error</li>
      * </ul>
      *
-     * @param replaceExisting Indicates whether to try to replace an existing value with given value
-     * @return True on success, false if replaceExisting is true and more than one value associated with key
+     * @param key Associated key.
+     * @param value Value to set the key to.
+     * @param replaceExisting Indicates whether to try to replace an existing value with given value.
+     * @return True on success, false if replaceExisting is true and more than one value associated with key.
      */
     bool setInternal(const String &key, const Buffer &value, bool replaceExisting) {
         auto count = mInternal.count(key);
@@ -455,4 +498,4 @@ private:
 };
 
 
-#endif //LIBCOM_KEYVALUESTORAGENEW_H
+#endif //LIBCOM_KEYVALUESTORAGE_H
