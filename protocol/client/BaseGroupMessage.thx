@@ -1,5 +1,0 @@
-uint64_t        timestamp
-uint8_t(32)     senderSig
-uint8_t(8)      senderPrefix
-
-uint8_t(var)    payload
