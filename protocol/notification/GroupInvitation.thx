@@ -1,0 +1,8 @@
+# token used by contact
+uint8_t(10)     token
+
+# hash of inviting contact
+uint8_t(20)     contactHash
+
+# name of invited group
+uint8_t(Var)    name

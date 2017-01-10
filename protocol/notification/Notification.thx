@@ -1,0 +1,2 @@
+uint8_t        type
+uint8_t(Var)    content
