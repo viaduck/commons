@@ -30,7 +30,7 @@ cog.outl("#define {name}_H".format(name=name))
     doxygen, = yields[0]
     vals = yields[1:]
 
-    val_bits = int(math.log(len(vals)))
+    val_bits = c.count_to_bits(len(vals))
     enum_type = c.bits_to_type(val_bits)
 
     cog.out(doxygen)
