@@ -247,7 +247,6 @@ public:
 
     // copy constructor
     [[[cog
-    vars = list(g.do(filename))
     cog.out(name+"(const "+name+" &other) : mBuffer(*(new Buffer(other.mBuffer))), mAllocated(true)")
     for v in vars:
         if v[3] in variable_arrays:           # variable type
@@ -258,7 +257,6 @@ public:
 
     // constructor with provided buffer
     [[[cog
-    vars = list(g.do(filename))
     if cstatic > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
@@ -291,7 +289,6 @@ public:
     
     // -- construct from ranges
     [[[cog
-    vars = list(g.do(filename))
     if cstatic > 0 and cranges > 0:
         cog.out(name+"(Buffer &buffer")
         for v in vars:
@@ -320,7 +317,6 @@ public:
     [[[end]]]
 
     [[[cog
-    vars = list(g.do(filename))
     if cstatic > 0 and cranges > 0:
         outVars = []
         cog.out(name+"(")
