@@ -1,3 +1,4 @@
+-
 uint8_t(20)     pubkeyHash
 uint8_t(96)     key
 uint8_t(10)     friendFile

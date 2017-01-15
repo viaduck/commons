@@ -1,9 +1,11 @@
 [[[cog
+import os
 import cog
 import protocol_generator as g
 from protocol_generator import variable_arrays, variable_arrays_type
 import common as c
-from os.path import basename, splitext
+import pathlib
+from os.path import basename, splitext, dirname
 
 name = splitext(basename(filename[:-4]))[0]
 filename = base_path+filename
@@ -28,6 +30,17 @@ cog.outl("#define {name}_H".format(name=name))
 #include "libCom/Bitfield.h"
 #include <cstring>
 
+[[[cog
+    vars = list(g.do(filename))
+
+    for k, v in g.enum_types.items():
+        p = pathlib.Path(v['path'])
+        p = pathlib.Path(*p.parts[1:])
+        dir = dirname(str(p))
+        file = splitext(basename(str(p)))[0]
+        cog.outl('#include "{path}.h"'.format(path=os.path.normpath(os.path.join(dir, file))))
+]]]
+[[[end]]]
 
 [[[cog
     cog.outl("class "+name+" : public Serializable {")
@@ -37,7 +50,6 @@ public:
 
     // constructor without provided buffer
     [[[cog
-    vars = list(g.do(filename))
     cstatic = sum(1 if v[3] not in variable_arrays else 0 for v in vars)      # number of static elements (<-> not variable array)
     cranges = sum(1 if (v[3] != None and v[3] not in variable_arrays) else 0 for v in vars)    # number of range fields
 
@@ -137,7 +149,24 @@ public:
                     "    return {sub_bits};\n"
                     "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=c.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton_"+v[0], conversion_sub="hton_"+c.bits_to_type(sub['bits'])))
                     shift_offset += sub['bits']
-            else:
+            elif v[0] in g.enum_types:      # enum
+                cog.outl("inline {type} {name}() const {{\n"
+                         "    return to{type}({conversion}(*static_cast<const {underlying}*>(mBuffer.const_data({offset}))));\n"
+                         "}}\n"
+                         "inline void {name}({type} v) {{\n"
+                         "    *static_cast<{underlying}*>(mBuffer.data({offset})) = {conversion}(toInt(v));\n"
+                         "}}\n"
+                         "inline {underlying} {name}_low() const {{\n"
+                         "    return {conversion}(*static_cast<const {underlying}*>(mBuffer.const_data({offset})));\n"
+                         "}}\n"
+                         "inline void {name}_low({underlying} v) const {{\n"
+                         "    *static_cast<{underlying}*>(mBuffer.data({offset})) = {conversion}(v);\n"
+                         "}}\n"
+                         "static inline uint32_t {name}_size() {{\n"
+                         "    return sizeof({underlying});\n"
+                         "}}\n"
+                         .format(type=v[0], name=v[1], offset=offset, conversion="hton_"+g.enum_type(v[0]), underlying=g.enum_type(v[0])))
+            else:                           # primitive types
                 cog.outl("inline {type} {name}() const {{\n"
                          "    return {conversion}(*static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
                          "}}\n"

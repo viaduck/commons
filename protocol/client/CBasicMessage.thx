@@ -1,3 +1,4 @@
+-
 # BasicMessage as defined in protocol spec
 
 uint8_t(64)     signature   # signature needs to go first to be able to skip it on signature check

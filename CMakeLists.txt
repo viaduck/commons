@@ -8,7 +8,7 @@ enable_testing()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/cmake-modules")
 
 # required packages
-find_package(PythonInterp 3 REQUIRED)       # use Python 3 - Python2 is not compatible!
+find_package(PythonInterp 3.4 REQUIRED)       # need the pathlib module, which is part of 3.4+
 
 # compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")

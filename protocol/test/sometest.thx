@@ -1,3 +1,4 @@
+-
 # This is a line comment
 uint32_t    version         # this is an inline comment
 uint8_t     first

@@ -1,3 +1,4 @@
+-
 uint8_t         symkeystatus
 
 uint8_t(32)     ecPrivKey1

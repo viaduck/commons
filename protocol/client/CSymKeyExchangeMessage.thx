@@ -1,3 +1,4 @@
+-
 uint8_t(32) sKeyHint
 uint8_t(32) pKeyHint
 uint8_t(32) ecpubkey1

@@ -2,7 +2,9 @@
 // Created by steffen on 13.08.15.
 //
 
+#include <logger/LogLevel.h>
 #include "test/VarMsg.h"
+#include "test/EnumMsg.h"
 #include "libCom/conversions.h"
 #include "libCom/Buffer.h"
 #include "test/sometest.h"
@@ -107,4 +109,24 @@ TEST_F(ContainerTest, Serialize) {
             "\x00\x00"  // bufVarMedium - size indicator
             "\x00\x00\x00\x00" // bufVarBig - size indicator
     , out.const_data(), out.size());
+}
+
+TEST_F(ContainerTest, Enum) {
+    EnumMsg msg;
+    msg.myTestEnum(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY);
+    EXPECT_EQ(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY, msg.myTestEnum());
+    EXPECT_EQ(static_cast<uint16_t>(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY), msg.myTestEnum_low());
+
+    msg.myTestEnum(TestEnum::INVALID_ENUM_VALUE);
+    EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
+    EXPECT_EQ(static_cast<uint16_t>(TestEnum::INVALID_ENUM_VALUE), msg.myTestEnum_low());
+
+    const int val = static_cast<uint16_t>(TestEnum::INVALID_ENUM_VALUE)+2;
+    msg.myTestEnum_low(val);
+    EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
+    EXPECT_EQ(val, msg.myTestEnum_low());
+
+    msg.myTestEnum_low(static_cast<uint16_t>(TestEnum::VALUE_X55));
+    EXPECT_EQ(TestEnum::VALUE_X55, msg.myTestEnum());
+    EXPECT_EQ(static_cast<uint16_t>(TestEnum::VALUE_X55), msg.myTestEnum_low());
 }

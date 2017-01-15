@@ -1,3 +1,4 @@
+-
 uint32_t        _prevBlockPtr
 uint32_t        _nextBlockPtr
 uint8_t(16)     _ghash
