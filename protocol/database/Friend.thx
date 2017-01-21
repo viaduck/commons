@@ -1,22 +1,23 @@
+KeyExchangeState enum/key/KeyExchangeState.the
 -
-uint8_t         symkeystatus
+KeyExchangeState symkeystatus
 
-uint8_t(32)     ecPrivKey1
-uint8_t(32)     ecPrivKey2
+uint8_t(32)      ecPrivKey1
+uint8_t(32)      ecPrivKey2
 
-uint8_t(32)     symmetricKey1
-uint8_t(32)     symmetricKey2
+uint8_t(32)      symmetricKey1
+uint8_t(32)      symmetricKey2
 
-uint8_t(20)     pubkeyhash
-uint8_t(64)     pubkey
+uint8_t(20)      pubkeyhash
+uint8_t(64)      pubkey
 
-uint8_t(10)     historyFile
-uint8_t(10)     pendingFile
-uint8_t(10)     settingsFile
+uint8_t(10)      historyFile
+uint8_t(10)      pendingFile
+uint8_t(10)      settingsFile
 
-uint8_t         has_MySHint(1), has_FriendSHint(1)  # indicators whether symmetric hints are present
+uint8_t          has_MySHint(1), has_FriendSHint(1)  # indicators whether symmetric hints are present
 
-uint8_t(32)     MySHint
-uint8_t(32)     MyPHint
-uint8_t(32)     FriendSHint
-uint8_t(32)     FriendPHint
+uint8_t(32)      MySHint
+uint8_t(32)      MyPHint
+uint8_t(32)      FriendSHint
+uint8_t(32)      FriendPHint

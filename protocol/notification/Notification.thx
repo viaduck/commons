@@ -1,3 +1,4 @@
+NotificationType enum/notification/NotificationType.the
 -
-uint8_t        type
-uint8_t(Var)    content
+NotificationType type
+uint8_t(Var)     content

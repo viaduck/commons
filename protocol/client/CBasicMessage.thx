@@ -1,3 +1,4 @@
+PayloadType enum/message/PayloadType.the
 -
 # BasicMessage as defined in protocol spec
 
@@ -7,5 +8,5 @@ uint64_t        timestamp
 uint8_t(10)     nonce
 
 # payload with type
-uint8_t         payloadType
+PayloadType     payloadType
 uint8_t(Var)    payload
