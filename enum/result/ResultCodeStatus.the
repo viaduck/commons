@@ -70,5 +70,7 @@ MSG_PROCESS_ERROR,          /**<  message processing failed */
 BN_SERIALIZE_ERROR,         /**<  error serializing bignum */
 BN_DESERIALIZE_ERROR,       /**<  error deserializing bignum */
 
+NOTIF_DESERIALIZE_ERROR,    /**<  error deserializing notification content */
+
 PENDING_APPEND_ERROR,       /**<  appending to pending list failed */
 MESSAGE_APPEND_ERROR,       /**<  appending to message list failed */

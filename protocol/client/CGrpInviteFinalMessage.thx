@@ -1,6 +1,7 @@
 -
-uint8_t(20) IDadminHash # ID is also admin hash
+uint8_t(10)     token
+uint8_t(20)     IDadminHash # ID is also admin hash
 
 # shared symmetric key and ephemeral identity for group
-uint8_t(32) sharedSymkey
-uint8_t(32) hint
+uint8_t(32)     sharedSymkey
+uint8_t(32)     hint
