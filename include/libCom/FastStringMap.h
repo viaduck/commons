@@ -35,7 +35,7 @@ public:
      * @param result Optional pointer to the lookup result. If not given, only a check for existence will be performed.
      * @return True if the lookup was successful and the element was found, false otherwise
      */
-    inline bool lookup(const String &key, T *result = nullptr) {
+    inline bool lookup(const String &key, T *result = nullptr) const {
         BufferRangeConst stringRange = key.const_data(0, key.size());
 
         // does not exist
@@ -44,7 +44,7 @@ public:
 
         // result is required
         if (result != nullptr)
-            *result = mMap[stringRange];
+            *result = mMap.at(stringRange);
 
         return true;
     }

@@ -1,0 +1,4 @@
+-
+uint8_t(10)     token
+uint8_t(64)     pubIdent    # ephemeral group identity public key
+uint8_t(Var)    memberName  # chosen member name

@@ -1,6 +1,5 @@
 -
-uint8_t(20) ID
-uint8_t(20) adminHash
+uint8_t(20) IDadminHash # ID is also admin hash
 
 # files used to store group data
 uint8_t(10) settingsFilename

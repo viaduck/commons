@@ -1,0 +1,5 @@
+-
+uint8_t(10)     token
+uint8_t(96)     ephIdentity     # ephemeral group identity private key
+uint8_t(Var)    name            # groups name
+uint8_t(Var)    memberName      # chosen member name
