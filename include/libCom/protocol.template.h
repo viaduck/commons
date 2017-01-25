@@ -195,7 +195,15 @@ public:
         return deserialize(in, unused);
     }
 
-    bool deserialize(const Buffer &in, uint32_t &missing) {
+    bool deserialize(const Buffer &in,
+    [[[cog
+    if offset != 0 or len(vars) != 0:
+        cog.out("uint32_t &missing")
+    else:
+        cog.out("uint32_t &")
+    ]]]
+    [[[end]]]
+    ){
         [[[cog
         if offset != 0:
             cog.outl("    if (in.size() < STATIC_SIZE) {\n"
