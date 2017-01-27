@@ -165,7 +165,247 @@ TEST_F(KeyValueStorageTest, PrimitiveNonExistent) {
     EXPECT_FALSE(kvs.getValues<int>("nonexistentkey", [] (const int&) { return true; }));
 }
 
-TEST_F(KeyValueStorageTest, GetCallback) {
+TEST_F(KeyValueStorageTest, PrimitiveModify) {
+    KeyValueStorage kvs;
+    std::vector<int> ints = {123, 456, 1337};
+
+    kvs.setValue<int>("int1", ints[0]);
+    kvs.setValue<int>("int2", ints[1]);
+    kvs.setValue<int>("int2", ints[2]);
+
+    // ## existing 1-value key ##
+    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val) {
+        EXPECT_EQ(ints[0], val);
+        val = 99;
+        return true;
+    }));
+    EXPECT_EQ(99, kvs.getValue<int>("int1")) << ints[0] << " must have been modified to " << 99;
+
+    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val) {
+        EXPECT_EQ(99, val);
+        return true;
+    }));
+    EXPECT_EQ(99, kvs.getValue<int>("int1")) << "Must not overwrite " << 99;
+
+    // ## existing n-value key ##
+    std::vector<int> toFind = {456, 1337};
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+
+        val += 25;
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // check if really replaced
+    toFind = {456+25, 1337+25};
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // now modify first, but stop after it
+    toFind = {456+25, 1337+25};
+    int modified = 0;
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        val += 25;
+        modified = val;
+        return false;       // stop after first
+    }));
+    EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
+
+    // check if only one replaced, the other must be the same
+    toFind = {toFind[0], modified};
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // ## non-existent key ##
+    EXPECT_FALSE(kvs.modifyValues<int>("non-existent", [&] (int &) {
+        ADD_FAILURE() << "Modify-callback called too often";
+        return true;
+    }));
+}
+
+TEST_F(KeyValueStorageTest, PrimitiveGetCallback) {
+    KeyValueStorage testContainer;
+
+    // write 5 values with one key
+    std::vector<int> test1Values = {1, 2, 3, 4, 5};
+    testContainer.setValue<int>("test1", test1Values[0]);
+    testContainer.setValue<int>("test1", test1Values[1]);
+    testContainer.setValue<int>("test1", test1Values[2]);
+    testContainer.setValue<int>("test1", test1Values[3]);
+    testContainer.setValue<int>("test1", test1Values[4]);
+
+    // write 3 values with other key
+    std::vector<int> test2Values = {1337, 1338, 1339};
+    testContainer.setValue<int>("test2", test2Values[0]);
+    testContainer.setValue<int>("test2", test2Values[1]);
+    testContainer.setValue<int>("test2", test2Values[2]);
+
+    // write 1 value with another key
+    testContainer.setValue<int>("test3", 42);
+
+    uint32_t count = 0;
+    EXPECT_TRUE(testContainer.getValues<int>("test1", [&] (const int &val) -> bool {
+        auto it = std::find(test1Values.begin(), test1Values.end(), val);
+        EXPECT_NE(test1Values.end(), it);           // values must be in values list
+        test1Values.erase(it);
+
+        count++;
+        return true;
+    }));
+
+    // ensure that 5 values were found
+    EXPECT_EQ(5u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<int>("test2", [&] (const int &val) -> bool {
+        auto it = std::find(test2Values.begin(), test2Values.end(), val);
+        EXPECT_NE(test2Values.end(), it);           // values must be in values list
+        test2Values.erase(it);
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 3 values were found
+    EXPECT_EQ(3u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<int>("test3", [&] (const int &val) -> bool {
+        EXPECT_EQ(val, 42);
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 1 value was found
+    EXPECT_EQ(1u, count);
+
+    // returning false from callback must stop iteration
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<int>("test1", [&] (const int &) -> bool {
+        EXPECT_EQ(0u, count);
+        count++;
+        return false;
+    }));
+    EXPECT_EQ(1u, count);
+
+    // non-existent key
+    EXPECT_FALSE(testContainer.getValues<int>("nonexistent", [&] (const int &) -> bool {
+        ADD_FAILURE() << "Callback must not be called for non-existent key";
+        return true;
+    }));
+}
+
+TEST_F(KeyValueStorageTest, ComplexGetCallback) {
+    struct ComplexStruct {
+        float a;
+        int b;
+        double c;
+
+        bool operator==(const ComplexStruct &other) const {
+            return a == other.a && b == other.b && c == other.c;
+        }
+        bool operator!=(const ComplexStruct &other) const {
+            return !operator==(other);
+        }
+    };
+    
+    KeyValueStorage testContainer;
+
+    // write 5 values with one key
+    float finf = std::numeric_limits<float>::infinity();
+    double dinf = std::numeric_limits<double>::infinity();
+    std::vector<ComplexStruct> test1Values = {{1.23f, 1, 3.14159}, {0.0f, 2, 0}, {-1337.42f, 3, -12390102319023},
+                                              {finf, 4, dinf}, {-finf, 5, -dinf}};
+    testContainer.setValue<ComplexStruct>("test1", test1Values[0]);
+    testContainer.setValue<ComplexStruct>("test1", test1Values[1]);
+    testContainer.setValue<ComplexStruct>("test1", test1Values[2]);
+    testContainer.setValue<ComplexStruct>("test1", test1Values[3]);
+    testContainer.setValue<ComplexStruct>("test1", test1Values[4]);
+
+    // write 3 values with other key
+    std::vector<ComplexStruct> test2Values = {{42.0f, 1, 42}, {0.0f, 2, 0}, {1.0f, 3, 4}};
+    testContainer.setValue<ComplexStruct>("test2", test2Values[0]);
+    testContainer.setValue<ComplexStruct>("test2", test2Values[1]);
+    testContainer.setValue<ComplexStruct>("test2", test2Values[2]);
+
+    // write 1 value with another key
+    testContainer.setValue<ComplexStruct>("test3", {10e3, 0, 123e-20});
+
+    uint32_t count = 0;
+    EXPECT_TRUE(testContainer.getValues<ComplexStruct>("test1", [&] (const ComplexStruct &val) -> bool {
+        auto it = std::find(test1Values.begin(), test1Values.end(), val);
+        EXPECT_NE(test1Values.end(), it);           // values must be in values list
+        test1Values.erase(it);
+
+        count++;
+        return true;
+    }));
+
+    // ensure that 5 values were found
+    EXPECT_EQ(5u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<ComplexStruct>("test2", [&] (const ComplexStruct &val) -> bool {
+        auto it = std::find(test2Values.begin(), test2Values.end(), val);
+        EXPECT_NE(test2Values.end(), it);           // values must be in values list
+        test2Values.erase(it);
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 3 values were found
+    EXPECT_EQ(3u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<ComplexStruct>("test3", [&] (const ComplexStruct &val) -> bool {
+        EXPECT_EQ(val, ComplexStruct({10e3, 0, 123e-20}));
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 1 value was found
+    EXPECT_EQ(1u, count);
+
+    // returning false from callback must stop iteration
+    count = 0;
+    EXPECT_TRUE(testContainer.getValues<ComplexStruct>("test1", [&] (const ComplexStruct &) -> bool {
+        EXPECT_EQ(0u, count);
+        count++;
+        return false;
+    }));
+    EXPECT_EQ(1u, count);
+
+    // non-existent key
+    EXPECT_FALSE(testContainer.getValues<ComplexStruct>("nonexistent", [&] (const ComplexStruct &) -> bool {
+        ADD_FAILURE() << "Callback must not be called for non-existent key";
+        return true;
+    }));
+}
+
+TEST_F(KeyValueStorageTest, SerializableGetCallback) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
@@ -186,7 +426,7 @@ TEST_F(KeyValueStorageTest, GetCallback) {
     testContainer.setSerializable<String>("test3", "lonely");
 
     uint32_t count = 0;
-    ASSERT_TRUE(testContainer.getSerializables<String>("test1", [&] (const String &str) -> bool {
+    EXPECT_TRUE(testContainer.getSerializables<String>("test1", [&] (const String &str) -> bool {
         auto it = std::find(test1Values.begin(), test1Values.end(), str);
         EXPECT_NE(test1Values.end(), it);           // values must be in values list
         test1Values.erase(it);
@@ -196,10 +436,10 @@ TEST_F(KeyValueStorageTest, GetCallback) {
     }));
 
     // ensure that 5 values were found
-    ASSERT_EQ(5u, count);
+    EXPECT_EQ(5u, count);
 
     count = 0;
-    ASSERT_TRUE(testContainer.getSerializables<String>("test2", [&] (const String &str) -> bool {
+    EXPECT_TRUE(testContainer.getSerializables<String>("test2", [&] (const String &str) -> bool {
         auto it = std::find(test2Values.begin(), test2Values.end(), str);
         EXPECT_NE(test2Values.end(), it);           // values must be in values list
         test2Values.erase(it);
@@ -209,10 +449,10 @@ TEST_F(KeyValueStorageTest, GetCallback) {
     }));
 
     // ensure that 3 values were found
-    ASSERT_EQ(3u, count);
+    EXPECT_EQ(3u, count);
 
     count = 0;
-    ASSERT_TRUE(testContainer.getSerializables<String>("test3", [&] (const String& str) -> bool {
+    EXPECT_TRUE(testContainer.getSerializables<String>("test3", [&] (const String &str) -> bool {
         EXPECT_EQ(str, "lonely");
 
         count ++;
@@ -220,7 +460,96 @@ TEST_F(KeyValueStorageTest, GetCallback) {
     }));
 
     // ensure that 1 value was found
-    ASSERT_EQ(1u, count);
+    EXPECT_EQ(1u, count);
+
+    // returning false from callback must stop iteration
+    count = 0;
+    EXPECT_TRUE(testContainer.getSerializables<String>("test1", [&] (const String &) -> bool {
+        EXPECT_EQ(0u, count);
+        count++;
+        return false;
+    }));
+    EXPECT_EQ(1u, count);
+
+    // non-existent key
+    EXPECT_FALSE(testContainer.getSerializables<String>("nonexistent", [&] (const String &) -> bool {
+        ADD_FAILURE() << "Callback must not be called for non-existent key";
+        return true;
+    }));
+}
+
+TEST_F(KeyValueStorageTest, BufferGetCallback) {
+    KeyValueStorage testContainer;
+
+    // write 5 values with one key
+    std::vector<Buffer> test1Values = {String("1"), String("2"), String("3"), String("4"), String("5")};
+    testContainer.setBuffer("test1", test1Values[0]);
+    testContainer.setBuffer("test1", test1Values[1]);
+    testContainer.setBuffer("test1", test1Values[2]);
+    testContainer.setBuffer("test1", test1Values[3]);
+    testContainer.setBuffer("test1", test1Values[4]);
+
+    // write 3 values with other key
+    std::vector<Buffer> test2Values = {String("abc"), String("def"), String("ghi")};
+    testContainer.setBuffer("test2", test2Values[0]);
+    testContainer.setBuffer("test2", test2Values[1]);
+    testContainer.setBuffer("test2", test2Values[2]);
+
+    // write 1 value with another key
+    testContainer.setBuffer("test3", String("lonely"));
+
+    uint32_t count = 0;
+    EXPECT_TRUE(testContainer.getBuffers("test1", [&] (const Buffer &str) -> bool {
+        auto it = std::find(test1Values.begin(), test1Values.end(), str);
+        EXPECT_NE(test1Values.end(), it);           // values must be in values list
+        test1Values.erase(it);
+        test1Values.erase(std::remove(test1Values.begin(), test1Values.end(), str), test1Values.end());
+
+        count++;
+        return true;
+    }));
+
+    // ensure that 5 values were found
+    EXPECT_EQ(5u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getBuffers("test2", [&] (const Buffer &str) -> bool {
+        auto it = std::find(test2Values.begin(), test2Values.end(), str);
+        EXPECT_NE(test2Values.end(), it);           // values must be in values list
+        test2Values.erase(it);
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 3 values were found
+    EXPECT_EQ(3u, count);
+
+    count = 0;
+    EXPECT_TRUE(testContainer.getBuffers("test3", [&] (const Buffer &str) -> bool {
+        EXPECT_EQ(str, String("lonely"));
+
+        count ++;
+        return true;
+    }));
+
+    // ensure that 1 value was found
+    EXPECT_EQ(1u, count);
+
+    // returning false from callback must stop iteration
+    count = 0;
+    EXPECT_TRUE(testContainer.getBuffers("test1", [&] (const Buffer &) -> bool {
+        EXPECT_EQ(0u, count);
+        count++;
+        return false;
+    }));
+    EXPECT_EQ(1u, count);
+
+    // non-existent key
+    EXPECT_FALSE(testContainer.getBuffers("nonexistent", [&] (const Buffer &) -> bool {
+        ADD_FAILURE() << "Callback must not be called for non-existent key";
+        return true;
+    }));
 }
 
 TEST_F(KeyValueStorageTest, GetUnique) {
