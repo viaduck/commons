@@ -90,9 +90,9 @@ inline uint64_t hton_uint64_t(uint64_t v) {
 template <typename T>
 T bswap(T v) {
     const uint8_t bytes = sizeof(T);
-    T ret = 0;
+    T ret;
     for (uint8_t i=0; i<bytes; ++i)
-        ret |= (v >> (8*(bytes-i-1)) & 0xFF)<<i*8;
+        reinterpret_cast<uint8_t*>(&ret)[bytes-i-1] = ((reinterpret_cast<uint8_t*>(&v)[i]));
 
     return ret;
 }

@@ -18,3 +18,32 @@ TEST_F(ConversionTest, BswapDouble) {
     EXPECT_NE(3.14159, bswap(3.14159));
     EXPECT_EQ(3.14159, bswap(bswap(3.14159)));
 }
+
+TEST_F(ConversionTest, BswapComplex) {
+    struct ComplexStruct {
+        float a;
+        int b;
+        double c;
+
+        bool operator==(const ComplexStruct &other) const {
+            return a == other.a && b == other.b && c == other.c;
+        }
+
+        bool operator!=(const ComplexStruct &other) const {
+            return !operator==(other);
+        }
+    };
+    float finf = std::numeric_limits<float>::infinity();
+    double dinf = std::numeric_limits<double>::infinity();
+
+    ComplexStruct a = {finf, 0, dinf};
+    ComplexStruct b = {-finf, 5, -dinf};
+    ComplexStruct c = {1.234f, 5, 3.14159};
+
+    EXPECT_NE(a, bswap(a));
+    EXPECT_EQ(a, bswap(bswap(a)));
+    EXPECT_NE(b, bswap(b));
+    EXPECT_EQ(b, bswap(bswap(b)));
+    EXPECT_NE(c, bswap(c));
+    EXPECT_EQ(c, bswap(bswap(c)));
+}
