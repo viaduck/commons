@@ -52,6 +52,21 @@ TEST_F(BufferTest, MoveConstructor) {
     ASSERT_EQ(aOldInternal, c.data());
 }
 
+TEST_F(BufferTest, MoveAssignment) {
+    Buffer a(20);
+    a.append("abcdefghijkl", 12);
+    void *aOldInternal = a.data();
+    uint32_t aOldSize = a.size();
+
+    Buffer b;
+    b = std::move(a);
+    ASSERT_EQ(0u, a.size());
+    ASSERT_EQ(nullptr, a.data());
+
+    ASSERT_EQ(aOldSize, b.size());
+    ASSERT_EQ(aOldInternal, b.data());
+}
+
 TEST_F(BufferTest, Swap) {
     Buffer a(20);
     Buffer b(40);

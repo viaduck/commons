@@ -173,3 +173,16 @@ void Buffer::clear(bool shred) {
 bool Buffer::operator==(const Buffer &other) const {
     return size() == other.size() && comparisonHelper(const_data(), other.const_data(), this->size());
 }
+
+Buffer &Buffer::operator=(Buffer &&other) {
+    mData = std::move(other.mData);
+    mReserved = other.mReserved;
+    mUsed = other.mUsed;
+    mOffset = other.mOffset;
+
+    other.mReserved = 0;
+    other.mUsed = 0;
+    other.mOffset = 0;
+
+    return *this;
+}

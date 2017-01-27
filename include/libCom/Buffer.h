@@ -33,7 +33,7 @@ public:
     Buffer(const Buffer &buffer);
 
     /**
-     * Move consutructor. Other Buffer will be left in default state.
+     * Move constructor. Other Buffer will be left in default state.
      * @param buffer Other buffer's rvalue reference
      */
     Buffer(Buffer &&buffer);
@@ -235,6 +235,14 @@ public:
     virtual inline bool operator!=(const Buffer &other) const {
         return !operator==(other);
     }
+
+    /**
+     * Like move constructor. Other Buffer will be left in default state.
+     * @param other Other buffer's rvalue reference
+     * @return *this
+     * @see Buffer::Buffer(Buffer &&)
+     */
+    virtual Buffer &operator=(Buffer &&other);
 
     /**
      * Serializes the Buffer to given Buffer.
