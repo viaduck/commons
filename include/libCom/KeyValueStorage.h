@@ -317,6 +317,17 @@ public:
         });
     }
 
+    /**
+     * Removes all values associated to a key
+     *
+     * @param key Key to delete
+     * @return True if any key was deleted, false otherwise
+     */
+    bool deleteAll(const String &key) {
+        // return true if any key was erased
+        return mKeys.erase(key) > 0 || mInternal.erase(key) > 0;
+    }
+
     /* KVS general management methods */
 
     /**

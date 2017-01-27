@@ -1238,3 +1238,60 @@ TEST_F(KeyValueStorageTest, Serialize) {
     // ensure that 3 values were found
     ASSERT_EQ(3u, count);
 }
+
+TEST_F(KeyValueStorageTest, Delete) {
+    KeyValueStorage testContainer;
+
+    // write 5 values with one key
+    testContainer.setBuffer("test1", String("test1"));
+    testContainer.setBuffer("test1", String("test2"));
+    testContainer.setBuffer("test1", String("test3"));
+    testContainer.setBuffer("test1", String("test4"));
+    testContainer.setBuffer("test1", String("test5"));
+
+    // write 3 values with other key
+    testContainer.setBuffer("test2", String("test1"));
+    testContainer.setBuffer("test2", String("test2"));
+    testContainer.setBuffer("test2", String("test3"));
+
+    int callCount = 0;
+    testContainer.getBuffers("test1", [&] (const Buffer &) {
+        callCount++;
+        return true;
+    });
+    ASSERT_EQ(5, callCount);
+
+    callCount = 0;
+    testContainer.getBuffers("test2", [&] (const Buffer &) {
+        callCount++;
+        return true;
+    });
+    ASSERT_EQ(3, callCount);
+
+    /** delete test2 */
+    testContainer.deleteAll("test2");
+
+    callCount = 0;
+    testContainer.getBuffers("test1", [&] (const Buffer &) {
+        callCount++;
+        return true;
+    });
+    ASSERT_EQ(5, callCount);
+
+    callCount = 0;
+    testContainer.getBuffers("test2", [&] (const Buffer &) {
+        callCount++;
+        return true;
+    });
+    ASSERT_EQ(0, callCount);
+
+    /** delete test1 */
+    testContainer.deleteAll("test1");
+
+    callCount = 0;
+    testContainer.getBuffers("test1", [&] (const Buffer &) {
+        callCount++;
+        return true;
+    });
+    ASSERT_EQ(0, callCount);
+}
