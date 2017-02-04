@@ -854,6 +854,194 @@ TEST_F(KeyValueStorageTest, SerializableGetCallback) {
     }));
 }
 
+/** #################### BUFFER TYPES #################### **/
+
+TEST_F(KeyValueStorageTest, Buffer) {
+    uint32_t count;
+    String tmp;
+    std::vector<String> test1Values = {String("123456"), String(""), String("abcdefghijklmnop")};
+
+    KeyValueStorage kvs;
+    // unique values
+    EXPECT_TRUE(kvs.setBuffer("val1", test1Values[0]));
+    EXPECT_TRUE(kvs.setBuffer("val2", test1Values[1]));
+    EXPECT_TRUE(kvs.setBuffer("val3", test1Values[2]));
+
+    // check if correctly stored
+    // .. if uniquely enforced
+    EXPECT_EQ(test1Values[0], (kvs.getBuffer("val1", tmp), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getBuffer("val2", tmp), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getBuffer("val3", tmp), tmp));
+
+    // .. if not uniquely enforced
+    EXPECT_EQ(test1Values[0], (kvs.getBuffer("val1", tmp, false), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getBuffer("val2", tmp, false), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getBuffer("val3", tmp, false), tmp));
+
+
+    // multiple values
+    EXPECT_TRUE(kvs.setBuffer("vals", test1Values[0]));
+    EXPECT_TRUE(kvs.setBuffer("vals", test1Values[1]));
+    EXPECT_TRUE(kvs.setBuffer("vals", test1Values[2]));
+
+    EXPECT_FALSE(kvs.getBuffer("vals", tmp)) << "Must fail if there are multiple values but enforced to be unique";
+
+    // returned value must be any of list
+    EXPECT_ANY_OF(test1Values, (kvs.getBuffer("vals", tmp, false), tmp));
+
+    // callback check
+    count = 0;
+    EXPECT_TRUE(kvs.getBuffers("vals", [&] (const Buffer &i) -> bool {
+        bool containsValue = false;
+        for (auto k : test1Values) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(test1Values.size(), count);
+}
+
+TEST_F(KeyValueStorageTest, BufferFallback) {
+    String tmp;
+    std::vector<String> test1Values = {String("123456"), String(""), String("abcdefghijklmnop")};
+    std::vector<String> test2Values = {String("__+#"), String("äöß"), String("¡⅛£¤⅜⅝⅞™±°¿Ł€®Ŧ¥↑ıØÞẞÐªŊĦŁ›‹©‚‘’º¦×÷—")};
+
+    KeyValueStorage kvs;
+
+    // store with fallback option
+    EXPECT_EQ(test1Values[0], (kvs.getSetBuffer("val1", tmp, test1Values[0]), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSetBuffer("val2", tmp, test1Values[1]), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSetBuffer("val3", tmp, test1Values[2]), tmp));
+
+    // must exist now, new fallback must not be inserted
+    EXPECT_EQ(test1Values[0], (kvs.getSetBuffer("val1", tmp, test2Values[0]), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSetBuffer("val2", tmp, test2Values[1]), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSetBuffer("val3", tmp, test2Values[2]), tmp));
+
+    // multiple values
+    EXPECT_TRUE(kvs.setBuffer("vals", test2Values[0]));
+    EXPECT_TRUE(kvs.setBuffer("vals", test2Values[1]));
+    EXPECT_TRUE(kvs.setBuffer("vals", test2Values[2]));
+
+    // enforced unique
+    EXPECT_FALSE(kvs.getSetBuffer("vals", tmp, test2Values[0])) << "Must fail if there are multiple values but enforced to be unique";
+
+    // not enforced unique
+    std::vector<String> newVals({test2Values[0], test2Values[1], test2Values[2], test1Values[0]});
+    EXPECT_ANY_OF(newVals, (kvs.getSetBuffer("vals", tmp, test1Values[0], false), tmp));
+}
+
+TEST_F(KeyValueStorageTest, BufferReplace) {
+    KeyValueStorage kvs;
+    String tmp;
+    std::vector<String> vals = {String("123456"), String(""), String("abcdefghijklmnop")};
+
+    // unique
+    EXPECT_TRUE(kvs.setBuffer("val1", vals[0]));
+    EXPECT_TRUE(kvs.setBuffer("val1", vals[1], true));
+    EXPECT_EQ(vals[1], (kvs.getBuffer("val1", tmp), tmp)) << vals[0] << " must have been replaced to " << vals[1];
+
+    // multiple
+    EXPECT_TRUE(kvs.setBuffer("val1", vals[2]));            // kvs contains ints[1] and ints[2] now
+    EXPECT_FALSE(kvs.setBuffer("val1", vals[0], true)) << "Must not overwrite if there are >= 2 values";
+}
+
+TEST_F(KeyValueStorageTest, BufferNonExistent) {
+    String tmp;
+    KeyValueStorage kvs;
+
+    EXPECT_FALSE(kvs.getBuffer("nonexistentkey", tmp));
+    EXPECT_FALSE(kvs.getBuffers("nonexistentkey", [] (const Buffer &) { return true; }));
+}
+
+TEST_F(KeyValueStorageTest, BufferModify) {
+    KeyValueStorage kvs;
+    String tmp;
+    std::vector<String> vals = {String("123456"), String(""), String("abcdefghijklmnop")};
+    std::vector<String> test2Values = {String("__+#"), String("äöß"), String("¡⅛£¤⅜⅝⅞™±°¿Ł€®Ŧ¥↑ıØÞẞÐªŊĦŁ›‹©‚‘’º¦×÷—")};
+
+
+    kvs.setBuffer("val1", vals[0]);
+    kvs.setBuffer("val2", vals[1]);
+    kvs.setBuffer("val2", vals[2]);
+
+    // ## existing 1-value key ##
+    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val) {
+        EXPECT_EQ(vals[0], val);
+        val.clear();
+        val.append(test2Values[0]);
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], (kvs.getBuffer("val1", tmp), tmp)) << vals[0] << " must have been modified to " << 99;
+
+    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val) {
+        EXPECT_EQ(test2Values[0], val);
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], (kvs.getBuffer("val1", tmp), tmp)) << "Must not overwrite " << 99;
+
+    // ## existing n-value key ##
+    std::vector<String> toFind = {vals[1], vals[2]};
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+        EXPECT_ANY_OF(toFind, String(val));
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+
+        val.append("25", 2);
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // check if really replaced
+    toFind = {vals[1], vals[2]};
+    toFind[0] += "25";
+    toFind[1] += "25";
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+        EXPECT_ANY_OF(toFind, String(val));
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // now modify first, but stop after it
+    //toFind = {456+25, 1337+25};
+    toFind = {vals[1], vals[2]};
+    toFind[0] += "25";
+    toFind[1] += "25";
+    Buffer modified;
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+        EXPECT_ANY_OF(toFind, String(val));
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        val.append("25", 2);
+        modified.append(val);
+        return false;       // stop after first
+    }));
+    EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
+
+    // check if only one replaced, the other must be the same
+    toFind = {toFind[0], modified};
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+        EXPECT_ANY_OF(toFind, String(val));
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // ## non-existent key ##
+    EXPECT_FALSE(kvs.modifyBuffers("non-existent", [&] (Buffer &) {
+        ADD_FAILURE() << "Modify-callback called too often";
+        return true;
+    }));
+}
+
 TEST_F(KeyValueStorageTest, BufferGetCallback) {
     KeyValueStorage testContainer;
 
@@ -1049,47 +1237,4 @@ TEST_F(KeyValueStorageTest, Serialize) {
 
     // ensure that 3 values were found
     ASSERT_EQ(3u, count);
-}
-
-TEST_F(KeyValueStorageTest, Buffer) {
-    KeyValueStorage testContainer;
-    Buffer fallback, fallback_mod;
-    fallback.append(String("fallback"));
-    fallback_mod.append(String("fallbackbla"));
-
-    // write 5 values with one key
-    testContainer.setBuffer("test1", String("test1"));
-    testContainer.setBuffer("test1", String("test2"));
-    testContainer.setBuffer("test1", String("test3"));
-    testContainer.setBuffer("test1", String("test4"));
-    testContainer.setBuffer("test1", String("test5"));
-
-    // write 3 values with other key
-    testContainer.setBuffer("test2", String("test1"));
-    testContainer.setBuffer("test2", String("test2"));
-    testContainer.setBuffer("test2", String("test3"));
-
-    Buffer output;
-
-    // ensure the value does not exist
-    ASSERT_FALSE(testContainer.getBuffer("test32", output));
-
-    // ensure that the fallback is returned
-    testContainer.getSetBuffer("test32", output, fallback);
-    ASSERT_EQ(fallback, output);
-
-    // modify buffer
-    ASSERT_TRUE(testContainer.modifyBuffers("test32", [&] (Buffer &result) {
-        result.append("bla", 3);
-        return true;
-    }));
-
-    // ensure that the fallback was actually set as value
-    ASSERT_TRUE(testContainer.getBuffer("test32", output));
-    ASSERT_EQ(fallback_mod, output);
-
-    // TODO: the behavior changed and these tests should be rewritten
-    // ensure that getting a single value when multiple values are present fails
-    //ASSERT_FALSE(testContainer.getBuffer("test1", output));
-    //ASSERT_FALSE(testContainer.getBuffer("test2", output));
 }
