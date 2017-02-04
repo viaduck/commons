@@ -16,7 +16,8 @@
  * <ul>
  * <li>Value types such as int, double, float</li>
  * <li>Serializable types such as String, Protocol classes, other KeyValueStorages</li>
- * <li>Buffers, possibly containing any other type of data.</li>
+ * <li>Buffers, possibly containing any other type of data. ATTENTION: Subclasses of Buffer will be stored as Buffer,
+ *     not as their own type!</li>
  * </ul>
  */
 class KeyValueStorage {
