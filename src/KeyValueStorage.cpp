@@ -98,7 +98,7 @@ bool KeyValueStorage::getSetBuffer(const String &key, Buffer &value, const Buffe
         return false;
 
     value.clear();              // clear to prevent wrongly reported size
-    getBuffer(key, value);
+    getBuffer(key, value, uniqueResult);
     return true;
 }
 
