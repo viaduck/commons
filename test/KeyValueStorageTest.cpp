@@ -594,6 +594,193 @@ TEST_F(KeyValueStorageTest, ComplexGetCallback) {
     }));
 }
 
+/** #################### SERIALIZABLE TYPES #################### **/
+
+TEST_F(KeyValueStorageTest, Serializable) {
+    uint32_t count;
+    String tmp;
+    std::vector<String> test1Values = {String("123456"), String(""), String("abcdefghijklmnop")};
+
+    KeyValueStorage kvs;
+    // unique values
+    EXPECT_TRUE(kvs.setSerializable("val1", test1Values[0]));
+    EXPECT_TRUE(kvs.setSerializable("val2", test1Values[1]));
+    EXPECT_TRUE(kvs.setSerializable("val3", test1Values[2]));
+
+    // check if correctly stored
+    // .. if uniquely enforced
+    EXPECT_EQ(test1Values[0], (kvs.getSerializable("val1", tmp), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSerializable("val2", tmp), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSerializable("val3", tmp), tmp));
+
+    // .. if not uniquely enforced
+    EXPECT_EQ(test1Values[0], (kvs.getSerializable("val1", tmp, false), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSerializable("val2", tmp, false), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSerializable("val3", tmp, false), tmp));
+
+
+    // multiple values
+    EXPECT_TRUE(kvs.setSerializable("vals", test1Values[0]));
+    EXPECT_TRUE(kvs.setSerializable("vals", test1Values[1]));
+    EXPECT_TRUE(kvs.setSerializable("vals", test1Values[2]));
+
+    EXPECT_FALSE(kvs.getSerializable("vals", tmp)) << "Must fail if there are multiple values but enforced to be unique";
+
+    // returned value must be any of list
+    EXPECT_ANY_OF(test1Values, (kvs.getSerializable("vals", tmp, false), tmp));
+
+    // callback check
+    count = 0;
+    EXPECT_TRUE(kvs.getSerializables<String>("vals", [&] (const String &i) -> bool {
+        bool containsValue = false;
+        for (auto k : test1Values) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(test1Values.size(), count);
+}
+
+TEST_F(KeyValueStorageTest, SerializableFallback) {
+    String tmp;
+    std::vector<String> test1Values = {String("123456"), String(""), String("abcdefghijklmnop")};
+    std::vector<String> test2Values = {String("__+#"), String("äöß"), String("¡⅛£¤⅜⅝⅞™±°¿Ł€®Ŧ¥↑ıØÞẞÐªŊĦŁ›‹©‚‘’º¦×÷—")};
+
+    KeyValueStorage kvs;
+
+    // store with fallback option
+    EXPECT_EQ(test1Values[0], (kvs.getSetSerializable("val1", tmp, test1Values[0]), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSetSerializable("val2", tmp, test1Values[1]), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSetSerializable("val3", tmp, test1Values[2]), tmp));
+
+    // must exist now, new fallback must not be inserted
+    EXPECT_EQ(test1Values[0], (kvs.getSetSerializable("val1", tmp, test2Values[0]), tmp));
+    EXPECT_EQ(test1Values[1], (kvs.getSetSerializable("val2", tmp, test2Values[1]), tmp));
+    EXPECT_EQ(test1Values[2], (kvs.getSetSerializable("val3", tmp, test2Values[2]), tmp));
+
+    // multiple values
+    EXPECT_TRUE(kvs.setSerializable("vals", test2Values[0]));
+    EXPECT_TRUE(kvs.setSerializable("vals", test2Values[1]));
+    EXPECT_TRUE(kvs.setSerializable("vals", test2Values[2]));
+
+    // enforced unique
+    EXPECT_FALSE(kvs.getSetSerializable("vals", tmp, test2Values[0])) << "Must fail if there are multiple values but enforced to be unique";
+
+    // not enforced unique
+    std::vector<String> newVals({test2Values[0], test2Values[1], test2Values[2], test1Values[0]});
+    EXPECT_ANY_OF(newVals, (kvs.getSetSerializable("vals", tmp, test1Values[0], false), tmp));
+}
+
+TEST_F(KeyValueStorageTest, SerializableReplace) {
+    KeyValueStorage kvs;
+    String tmp;
+    std::vector<String> vals = {String("123456"), String(""), String("abcdefghijklmnop")};
+
+    // unique
+    EXPECT_TRUE(kvs.setSerializable("val1", vals[0]));
+    EXPECT_TRUE(kvs.setSerializable("val1", vals[1], true));
+    EXPECT_EQ(vals[1], (kvs.getSerializable("val1", tmp), tmp)) << vals[0] << " must have been replaced to " << vals[1];
+
+    // multiple
+    EXPECT_TRUE(kvs.setSerializable("val1", vals[2]));            // kvs contains ints[1] and ints[2] now
+    EXPECT_FALSE(kvs.setSerializable("val1", vals[0], true)) << "Must not overwrite if there are >= 2 values";
+}
+
+TEST_F(KeyValueStorageTest, SerializableNonExistent) {
+    String tmp;
+    KeyValueStorage kvs;
+
+    EXPECT_FALSE(kvs.getSerializable("nonexistentkey", tmp));
+    EXPECT_FALSE(kvs.getSerializables<String>("nonexistentkey", [] (const String &) { return true; }));
+}
+
+TEST_F(KeyValueStorageTest, SerializableModify) {
+    KeyValueStorage kvs;
+    String tmp;
+    std::vector<String> vals = {String("123456"), String(""), String("abcdefghijklmnop")};
+    std::vector<String> test2Values = {String("__+#"), String("äöß"), String("¡⅛£¤⅜⅝⅞™±°¿Ł€®Ŧ¥↑ıØÞẞÐªŊĦŁ›‹©‚‘’º¦×÷—")};
+
+
+    kvs.setSerializable("val1", vals[0]);
+    kvs.setSerializable("val2", vals[1]);
+    kvs.setSerializable("val2", vals[2]);
+
+    // ## existing 1-value key ##
+    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val) {
+        EXPECT_EQ(vals[0], val);
+        val = test2Values[0];
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], (kvs.getSerializable("val1", tmp), tmp)) << vals[0] << " must have been modified to " << 99;
+
+    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val) {
+        EXPECT_EQ(test2Values[0], val);
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], (kvs.getSerializable("val1", tmp), tmp)) << "Must not overwrite " << 99;
+
+    // ## existing n-value key ##
+    std::vector<String> toFind = {vals[1], vals[2]};
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+
+        val += "25";
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // check if really replaced
+    toFind = {vals[1], vals[2]};
+    toFind[0] += "25";
+    toFind[1] += "25";
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // now modify first, but stop after it
+    //toFind = {456+25, 1337+25};
+    toFind = {vals[1], vals[2]};
+    toFind[0] += "25";
+    toFind[1] += "25";
+    String modified;
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        val += "25";
+        modified = val;
+        return false;       // stop after first
+    }));
+    EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
+
+    // check if only one replaced, the other must be the same
+    toFind = {toFind[0], modified};
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // ## non-existent key ##
+    EXPECT_FALSE(kvs.modifySerializables<String>("non-existent", [&] (String &) {
+        ADD_FAILURE() << "Modify-callback called too often";
+        return true;
+    }));
+}
+
 TEST_F(KeyValueStorageTest, SerializableGetCallback) {
     KeyValueStorage testContainer;
 
