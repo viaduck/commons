@@ -22,5 +22,5 @@ target_link_libraries(libCom_Test libCom)
 ## code coverage
 include(CodeCoverage)
 if (LCOV_PATH AND NOT ANDROID)
-    setup_target_for_coverage(libCom_Coverage libCom_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage)
+    setup_target_for_coverage(libCom_Coverage libCom_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*'")
 endif()
