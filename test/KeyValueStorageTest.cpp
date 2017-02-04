@@ -316,20 +316,209 @@ TEST_F(KeyValueStorageTest, PrimitiveGetCallback) {
     }));
 }
 
-TEST_F(KeyValueStorageTest, ComplexGetCallback) {
-    struct ComplexStruct {
-        float a;
-        int b;
-        double c;
+/** #################### COMPLEX DATA TYPES #################### **/
+const float finf = std::numeric_limits<float>::infinity();
+const double dinf = std::numeric_limits<double>::infinity();
+struct ComplexStruct {
+    float a;
+    int b;
+    double c;
 
-        bool operator==(const ComplexStruct &other) const {
-            return a == other.a && b == other.b && c == other.c;
-        }
-        bool operator!=(const ComplexStruct &other) const {
-            return !operator==(other);
-        }
-    };
-    
+    bool operator==(const ComplexStruct &other) const {
+        return a == other.a && b == other.b && c == other.c;
+    }
+    bool operator!=(const ComplexStruct &other) const {
+        return !operator==(other);
+    }
+
+    friend std::ostream &operator<<(std::ostream &stream, const ComplexStruct &data) {
+        std::string out = std::to_string(data.a)+", "+std::to_string(data.b)+", "+std::to_string(data.c);
+        return stream.write(out.c_str(), out.size());
+    }
+};
+
+TEST_F(KeyValueStorageTest, Complex) {
+    uint32_t count;
+    std::vector<ComplexStruct> test1Values = {{1.23f, 1, 3.14159}, {0.0f, 2, 0}, {-1337.42f, 3, -12390102319023}};
+
+    KeyValueStorage kvs;
+    // unique values
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val1", test1Values[0]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val2", test1Values[1]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val3", test1Values[2]));
+
+    // check if correctly stored
+    // .. if uniquely enforced
+    EXPECT_EQ(test1Values[0], kvs.getValue<ComplexStruct>("val1"));
+    EXPECT_EQ(test1Values[1], kvs.getValue<ComplexStruct>("val2"));
+    EXPECT_EQ(test1Values[2], kvs.getValue<ComplexStruct>("val3"));
+
+    // .. if not uniquely enforced
+    EXPECT_EQ(test1Values[0], kvs.getValue<ComplexStruct>("val1", false));
+    EXPECT_EQ(test1Values[1], kvs.getValue<ComplexStruct>("val2", false));
+    EXPECT_EQ(test1Values[2], kvs.getValue<ComplexStruct>("val3", false));
+
+
+    // multiple values
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test1Values[0]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test1Values[1]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test1Values[2]));
+
+    EXPECT_THROW(kvs.getValue<ComplexStruct>("vals"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+
+    // returned value must be any of list
+    EXPECT_ANY_OF(test1Values, kvs.getValue<ComplexStruct>("vals", false));
+
+    // callback check
+    count = 0;
+    EXPECT_TRUE(kvs.getValues<ComplexStruct>("vals", [&] (const ComplexStruct &i) -> bool {
+        bool containsValue = false;
+        for (auto k : test1Values) containsValue |= (k == i);
+        EXPECT_TRUE(containsValue);           // values must be in values list
+
+        count++;
+        return true;
+    }));
+    EXPECT_EQ(test1Values.size(), count);
+}
+
+TEST_F(KeyValueStorageTest, ComplexFallback) {
+    std::vector<ComplexStruct> test1Values = {{1.23f, 1, 3.14159}, {0.0f, 2, 0}, {-1337.42f, 3, -12390102319023},
+                                              {finf, 4, dinf}, {-finf, 5, -dinf}};
+    std::vector<ComplexStruct> test2Values = {{42.0f, 1, 42}, {0.0f, 2, 0}, {1.0f, 3, 4}};
+
+    KeyValueStorage kvs;
+
+    // store with fallback option
+    EXPECT_EQ(test1Values[0], kvs.getSetValue<ComplexStruct>("val1", test1Values[0]));
+    EXPECT_EQ(test1Values[1], kvs.getSetValue<ComplexStruct>("val2", test1Values[1]));
+    EXPECT_EQ(test1Values[2], kvs.getSetValue<ComplexStruct>("val3", test1Values[2]));
+
+    // must exist now, new fallback must not be inserted
+    EXPECT_EQ(test1Values[0], kvs.getSetValue<ComplexStruct>("val1", test2Values[0]));
+    EXPECT_EQ(test1Values[1], kvs.getSetValue<ComplexStruct>("val2", test2Values[1]));
+    EXPECT_EQ(test1Values[2], kvs.getSetValue<ComplexStruct>("val3", test2Values[2]));
+
+    // multiple values
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test2Values[0]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test2Values[1]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("vals", test2Values[2]));
+
+    // enforced unique
+    EXPECT_THROW(kvs.getSetValue<ComplexStruct>("vals", test2Values[0]), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
+
+    // not enforced unique
+    std::vector<ComplexStruct> newVals({test2Values[0], test2Values[1], test2Values[2], test1Values[0]});
+    EXPECT_ANY_OF(newVals, kvs.getSetValue<ComplexStruct>("vals", test1Values[0], false));
+}
+
+TEST_F(KeyValueStorageTest, ComplexReplace) {
+    KeyValueStorage kvs;
+    std::vector<ComplexStruct> vals = {{1.23f, 1, 3.14159}, {0.0f, 2, 0}, {-1337.42f, 3, -12390102319023},
+                                              {finf, 4, dinf}, {-finf, 5, -dinf}};
+    // unique
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val1", vals[0]));
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val1", vals[1], true));
+    EXPECT_EQ(vals[1], kvs.getValue<ComplexStruct>("val1")) << vals[0] << " must have been replaced to " << vals[1];
+
+    // multiple
+    EXPECT_TRUE(kvs.setValue<ComplexStruct>("val1", vals[2]));            // kvs contains ints[1] and ints[2] now
+    EXPECT_FALSE(kvs.setValue<ComplexStruct>("val1", vals[0], true)) << "Must not overwrite if there are >= 2 values";
+}
+
+TEST_F(KeyValueStorageTest, ComplexNonExistent) {
+    KeyValueStorage kvs;
+
+    EXPECT_THROW(kvs.getValue<ComplexStruct>("nonexistentkey"), std::invalid_argument);
+    EXPECT_FALSE(kvs.getValues<ComplexStruct>("nonexistentkey", [] (const ComplexStruct&) { return true; }));
+}
+
+TEST_F(KeyValueStorageTest, ComplexModify) {
+    KeyValueStorage kvs;
+    std::vector<ComplexStruct> vals = {{1.23f, 1, 3.14159}, {0.0f, 2, 0}, {-1337.42f, 3, -12390102319023}};
+    std::vector<ComplexStruct> test2Values = {{42.0f, 1, 42}, {0.0f, 2, 0}, {1.0f, 3, 4}};
+
+
+    kvs.setValue<ComplexStruct>("val1", vals[0]);
+    kvs.setValue<ComplexStruct>("val2", vals[1]);
+    kvs.setValue<ComplexStruct>("val2", vals[2]);
+
+    // ## existing 1-value key ##
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val) {
+        EXPECT_EQ(vals[0], val);
+        val = test2Values[0];
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], kvs.getValue<ComplexStruct>("val1")) << vals[0] << " must have been modified to " << 99;
+
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val) {
+        EXPECT_EQ(test2Values[0], val);
+        return true;
+    }));
+    EXPECT_EQ(test2Values[0], kvs.getValue<ComplexStruct>("val1")) << "Must not overwrite " << 99;
+
+    // ## existing n-value key ##
+    std::vector<ComplexStruct> toFind = {vals[1], vals[2]};
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+
+        val.a += 25;
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // check if really replaced
+    toFind = {vals[1], vals[2]};
+    toFind[0].a += 25;
+    toFind[1].a += 25;
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // now modify first, but stop after it
+    //toFind = {456+25, 1337+25};
+    toFind = {vals[1], vals[2]};
+    toFind[0].a += 25;
+    toFind[1].a += 25;
+    ComplexStruct modified;
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        val.b += 25;
+        modified = val;
+        return false;       // stop after first
+    }));
+    EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
+
+    // check if only one replaced, the other must be the same
+    toFind = {toFind[0], modified};
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+        EXPECT_ANY_OF(toFind, val);
+        if (toFind.size() == 0)
+            ADD_FAILURE() << "Modify-callback called too often";
+        toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
+        return true;
+    }));
+    EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
+
+    // ## non-existent key ##
+    EXPECT_FALSE(kvs.modifyValues<ComplexStruct>("non-existent", [&] (ComplexStruct &) {
+        ADD_FAILURE() << "Modify-callback called too often";
+        return true;
+    }));
+}
+
+TEST_F(KeyValueStorageTest, ComplexGetCallback) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
