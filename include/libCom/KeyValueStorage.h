@@ -100,8 +100,8 @@ public:
      * @param value Reference to object that will receive the value.
      * @param uniqueResult If this is set to false and multiple Serializables exist for a key, any Serializable can be
      *        returned.
-     * @return True on success, false if the key does not exist or uniqueResult is true and there are multiple
-     *         Serializables for the key.
+     * @return True on success, false if the key does not exist or deserialization failed or uniqueResult is true and 
+     *         there are multiple Serializables for the key.
      */
     template <typename T>
     bool getSerializable(const String &key, T &value, bool uniqueResult = true) const {
@@ -122,8 +122,8 @@ public:
      * @param fallback Fallback value.
      * @param uniqueResult If this is set to false and multiple Serializables exist for a key, any Serializable can be
      *        returned.
-     * @return True on success, false if the key does not exist or uniqueResult is true and there are multiple
-     *         Serializables for the key.
+     * @return True on success, false if the key does not exist or deserialization failed or uniqueResult is true and 
+     *         there are multiple Serializables for the key.
      */
     template <typename T>
     bool getSetSerializable(const String &key, T &value, const T &fallback, bool uniqueResult = true) {

@@ -1202,17 +1202,19 @@ TEST_F(KeyValueStorageTest, SetUnique) {
 TEST_F(KeyValueStorageTest, Serialize) {
     KeyValueStorage testContainer;
 
-    // write 5 values with one key
-    testContainer.setSerializable<String>("test1", "test1");
-    testContainer.setSerializable<String>("test1", "test2");
-    testContainer.setSerializable<String>("test1", "test3");
-    testContainer.setSerializable<String>("test1", "test4");
-    testContainer.setSerializable<String>("test1", "test5");
+    std::vector<int> testIntValues = {42, 1337};
+    std::vector<String> testBufferValues = {String("abc1"), String("abc2")};
+    std::vector<String> testSerializableValues = {String("def1"), String("def2")};
 
-    // write 3 values with other key
-    testContainer.setSerializable<String>("test2", "test1");
-    testContainer.setSerializable<String>("test2", "test2");
-    testContainer.setSerializable<String>("test2", "test3");
+    testContainer.setValue<int>("int", testIntValues[0]);
+    testContainer.setValue<int>("int", testIntValues[1]);
+    testContainer.setValue<int>("int2", 0);
+    testContainer.setBuffer("buf1", testBufferValues[0]);
+    testContainer.setBuffer("buf1", testBufferValues[1]);
+    testContainer.setBuffer("buf2", String("abc1"));
+    testContainer.setSerializable("ser1", testSerializableValues[0]);
+    testContainer.setSerializable("ser1", testSerializableValues[1]);
+    testContainer.setSerializable("ser2", String("def1"));
 
     Buffer testBuf;
     testContainer.serialize(testBuf);
@@ -1221,22 +1223,99 @@ TEST_F(KeyValueStorageTest, Serialize) {
     ASSERT_TRUE(dContainer.deserialize(testBuf));
 
     uint32_t count = 0;
-    ASSERT_TRUE(dContainer.getSerializables<String>("test1", [&] (const String&) -> bool {
-        count++;
-        return true;
-    }));
+    ASSERT_TRUE(dContainer.getValues<int>("int", [&] (const int& i) -> bool {
+        auto it = std::find(testIntValues.begin(), testIntValues.end(), i);
+        EXPECT_NE(testIntValues.end(), it);           // values must be in values list
+        testIntValues.erase(it);
 
-    // ensure that 5 values were found
-    ASSERT_EQ(5u, count);
-
-    count = 0;
-    ASSERT_TRUE(dContainer.getSerializables<String>("test2", [&] (const String&) -> bool {
         count ++;
         return true;
     }));
+    ASSERT_EQ(2u, count);
+    ASSERT_EQ(0, dContainer.getValue<int>("int2"));
 
-    // ensure that 3 values were found
-    ASSERT_EQ(3u, count);
+    count = 0;
+    ASSERT_TRUE(dContainer.getBuffers("buf1", [&] (const Buffer& b) -> bool {
+        auto it = std::find(testBufferValues.begin(), testBufferValues.end(), b);
+        EXPECT_NE(testBufferValues.end(), it);           // values must be in values list
+        testBufferValues.erase(it);
+
+        count ++;
+        return true;
+    }));
+    ASSERT_EQ(2u, count);
+    Buffer tmp;
+    dContainer.getBuffer("buf2", tmp);
+    ASSERT_EQ(String("abc1"), tmp);
+
+    count = 0;
+    ASSERT_TRUE(dContainer.getSerializables<String>("ser1", [&] (const String& b) -> bool {
+        auto it = std::find(testSerializableValues.begin(), testSerializableValues.end(), b);
+        EXPECT_NE(testSerializableValues.end(), it);           // values must be in values list
+        testSerializableValues.erase(it);
+
+        count ++;
+        return true;
+    }));
+    ASSERT_EQ(2u, count);
+    String s;
+    dContainer.getSerializable("ser2", s);
+    ASSERT_EQ(String("def1"), s);
+}
+
+class TestSerializable : public Serializable {
+public:
+    bool deserialize(const Buffer &) {
+        // always fail
+        return false;
+    }
+    void serialize(Buffer &) {
+    }
+};
+TEST_F(KeyValueStorageTest, Malformed) {
+    KeyValueStorage testContainer;
+
+    testContainer.setValue<int>("int", 42);
+    testContainer.setBuffer("buf2", String("abc1"));
+    testContainer.setSerializable("ser2", String("def1"));
+
+    EXPECT_THROW(testContainer.getValue<uint64_t>("int"), std::out_of_range) << "Did not detect try of retrieving more bytes than stored";
+    EXPECT_THROW(testContainer.getSerializables<TestSerializable>("ser2", [] (const TestSerializable &) -> bool {
+        return true;
+    }), std::invalid_argument) << "Missing check for Serializable.deserialize() return value";
+    EXPECT_THROW(testContainer.modifySerializables<TestSerializable>("ser2", [] (const TestSerializable &) -> bool {
+        return true;
+    }), std::invalid_argument) << "Missing check for Serializable.deserialize() return value";
+
+    // malformed serialization
+    Buffer malformed;
+    malformed.append("0000", 4);
+    ASSERT_FALSE(testContainer.deserialize(malformed));
+}
+
+TEST_F(KeyValueStorageTest, Clear) {
+    KeyValueStorage testContainer;
+
+    std::vector<int> testIntValues = {42, 1337};
+    std::vector<String> testBufferValues = {String("abc1"), String("abc2")};
+    std::vector<String> testSerializableValues = {String("def1"), String("def2")};
+
+    testContainer.setValue<int>("int", testIntValues[0]);
+    testContainer.setValue<int>("int", testIntValues[1]);
+    testContainer.setValue<int>("int2", 0);
+    testContainer.setBuffer("buf1", testBufferValues[0]);
+    testContainer.setBuffer("buf1", testBufferValues[1]);
+    testContainer.setBuffer("buf2", String("abc1"));
+    testContainer.setSerializable("ser1", testSerializableValues[0]);
+    testContainer.setSerializable("ser1", testSerializableValues[1]);
+    testContainer.setSerializable("ser2", String("def1"));
+
+    testContainer.clear();
+
+    // if there is no content, serialization will produce an empty buffer
+    Buffer out;
+    testContainer.serialize(out);
+    ASSERT_EQ(0u, out.size());
 }
 
 TEST_F(KeyValueStorageTest, Delete) {
