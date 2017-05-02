@@ -57,6 +57,15 @@ public:
         return comparisonHelper(cthis, cother, mSize);
     }
 
+    /**
+     * Compares two Ranges
+     * @param other
+     * @return True if content within the ranges is different
+     */
+    bool operator!=(const Range &other) const {
+        return !(other == *this);
+    }
+
 
     /**
      * Getter: const T

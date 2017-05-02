@@ -1,5 +1,5 @@
 """
-Used from protcol message template header
+Used from protocol message template header
 """
 import os
 import re
