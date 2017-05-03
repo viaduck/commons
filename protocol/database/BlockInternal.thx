@@ -2,4 +2,9 @@
 uint32_t        _prevBlockPtr
 uint32_t        _nextBlockPtr
 uint8_t(16)     _ghash
+
+# tests assume that secnum is before content
+uint32_t        _secnum
+
+# tests assume that content is always last
 uint8_t(256)    _content
