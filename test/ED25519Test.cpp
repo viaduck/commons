@@ -2,7 +2,7 @@
 // Created by John Watson on 27.10.16.
 //
 
-#include <libCom/curve25519/curve25519.h>
+#include "curve25519.h"
 #include "ED25519Test.h"
 #include "file_test.h"
 

@@ -19,7 +19,7 @@
  *
  * The field functions are shared by Ed25519 and X25519 where possible. */
 
-#include <libCom/curve25519/curve25519.h>
+#include "curve25519.h"
 
 #include <string.h>
 

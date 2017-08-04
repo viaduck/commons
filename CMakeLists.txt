@@ -31,31 +31,11 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cm
     config_openssl(external/openssl-cmake)
 endif()
 
-# includes
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/SecureUniquePtr.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/DevNull.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/String.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/network/Connection.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/network/CertificateStorage.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/network/SSLContext.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/KeyValueStorage.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/Log.cpp) #
+file(GLOB_RECURSE LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
-set(LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Buffer.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureUniquePtr.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BlockCache.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Range.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/String.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/DevNull.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/conversions.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/_conversions_crossplatform.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/errorcodes.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/BufferRange.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/ValidPtr.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/KeyValueStorage.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Serializable.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/SecureStorage.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Decoder.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/UTF8Encoder.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/Bitfield.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/FastStringMap.h
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/Connection.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/CertificateStorage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/ConnectionInfo.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/network/SSLContext.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/log/Log.h ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/OSFileWrapper.h)
-        
-set(CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/curve25519/curve25519.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/curve25519.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/x25519-x86_64.cpp)
+file(GLOB_RECURSE CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/*)
 
 # targets
 ## get list of messages that must be generated
@@ -97,6 +77,12 @@ target_link_libraries(libCom ssl crypto curve25519)
 if (WIN32)
     target_link_libraries(libCom ws2_32)
 endif()
+
+# includes
+target_include_directories(libCom PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/
+        )
 
 # doxygen
 include(Doxygen)
