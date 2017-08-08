@@ -31,11 +31,11 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cm
     config_openssl(external/openssl-cmake)
 endif()
 
-file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/libCom/*.cpp)
 
 file(GLOB_RECURSE LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
-file(GLOB_RECURSE CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/*)
+file(GLOB_RECURSE CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/*)
 
 # targets
 ## get list of messages that must be generated
@@ -66,7 +66,7 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 add_custom_target(enum_generation ALL DEPENDS ${GENERATED_ENUM})
 
 # build
-add_library(libCom STATIC ${SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/src/network/NativeWrapper.cpp ${LIBCOM_HEADERS})
+add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
 add_library(curve25519 STATIC ${CURVE25519_SOURCES})
 add_dependencies(libCom protocol_generation)
 add_dependencies(libCom enum_generation)
@@ -81,7 +81,7 @@ endif()
 # includes
 target_include_directories(libCom PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/
         )
 
 # doxygen

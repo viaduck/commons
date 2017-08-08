@@ -14,7 +14,7 @@
 #include "ConnectionTest.h"
 
 // private include
-#include "../src/network/NativeWrapper.h"
+#include "../src/libCom/network/NativeWrapper.h"
 
 /**
  * One-Time initialization for winsock (taken from Native-Wrapper)
