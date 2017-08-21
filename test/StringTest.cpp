@@ -44,7 +44,7 @@ TEST(StringTest, creationTest) {
     // create from byte sequence
     ASSERT_EQ(1, static_cast<int32_t>(sizeof(char)));
     {
-        uint8_t bytes[0];
+        uint8_t *bytes = nullptr;
         String s(bytes, 0);
         ASSERT_EQ(0, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.c_str(), static_cast<int32_t>(s.size()) + 1);       // compare the 0-terminator, too!
@@ -662,7 +662,7 @@ TEST(StringTest, toHex) {
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
-        uint8_t bytes[] = {};
+        uint8_t *bytes = nullptr;
         String s = String::toHex(bytes, 0);
         ASSERT_EQ(0 * 2, static_cast<int32_t>(s.size()));
         EXPECT_ARRAY_EQ(const char, "", s.const_data(),
@@ -693,7 +693,7 @@ TEST(StringTest, toHex) {
                         static_cast<int32_t>(s.size()));       // String does not use any 0-terminator internally
     }
     {
-        uint8_t bytes[] = {};
+        uint8_t *bytes = nullptr;
         String o(bytes, 0);
         String s = o.toHex();
         ASSERT_EQ(0 * 2, static_cast<int32_t>(s.size()));

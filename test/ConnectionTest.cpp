@@ -319,8 +319,9 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     mocks[currentTestName()]["close"] =
             (void*)+([] (int __fd) {
                 EXPECT_EQ(42, __fd) << "Internal socket descriptor should not change!";
-                if (checkClose)
+                if (checkClose) {
                     ASSERT_EQ(1, i) << "Only close failed sockets!";
+                }
             });
 
     mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {

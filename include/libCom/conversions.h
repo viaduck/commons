@@ -9,7 +9,7 @@
 
 extern "C" {
     #include "libCom/_conversions_crossplatform.h"
-};
+}
 
 /**
  * Converts an uint8_t from network to host byte order
