@@ -1,5 +1,5 @@
-#ifndef LIBCOM_SSLSESSION_H
-#define LIBCOM_SSLSESSION_H
+#ifndef VDCOMMONS_SSLSESSION_H
+#define VDCOMMONS_SSLSESSION_H
 
 #include <string>
 
@@ -82,6 +82,4 @@ namespace std {
     };
 }
 
-
-
-#endif //LIBCOM_SSLSESSION_H
+#endif //VDCOMMONS_SSLSESSION_H

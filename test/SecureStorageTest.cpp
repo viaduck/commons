@@ -1,4 +1,4 @@
-#include <commons/String.h>
+#include <secure_memory/String.h>
 #include <commons/SecureStorage.h>
 #include "SecureStorageTest.h"
 

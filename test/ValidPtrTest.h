@@ -1,6 +1,5 @@
-#ifndef LIBCOM_VALIDPTRTEST_H
-#define LIBCOM_VALIDPTRTEST_H
-
+#ifndef VDCOMMONS_VALIDPTRTEST_H
+#define VDCOMMONS_VALIDPTRTEST_H
 
 #include <gtest/gtest.h>
 
@@ -8,5 +7,4 @@ class ValidPtrTest : public ::testing::Test {
 
 };
 
-
-#endif //LIBCOM_VALIDPTRTEST_H
+#endif //VDCOMMONS_VALIDPTRTEST_H

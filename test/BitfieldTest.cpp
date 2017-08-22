@@ -1,7 +1,3 @@
-//
-// Created by steffen on 27.10.16.
-//
-
 #include <commons/Bitfield.h>
 #include "BitfieldTest.h"
 

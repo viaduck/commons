@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-
 project(VDCommons)
 
 # add additional cmake modules
@@ -11,12 +10,6 @@ find_package(PythonInterp 3.4 REQUIRED)       # need the pathlib module, which i
 # compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibility
-
-# user settable settings
-set(OPTION_SECURE_UNIQUEPTR ON CACHE BOOL "Erase memory on unique ptr deletion")
-if (OPTION_SECURE_UNIQUEPTR)
-    add_definitions(-DOPTION_SECURE_UNIQUEPTR)
-endif()
 
 # externals
 add_subdirectory(external)
@@ -69,9 +62,8 @@ add_library(curve25519 STATIC ${CURVE25519_SOURCES})
 add_dependencies(VDCommons protocol_generation)
 add_dependencies(VDCommons enum_generation)
 add_dependencies(VDCommons openssl)
-add_dependencies(VDCommons curve25519)
 add_dependencies(curve25519 openssl)
-target_link_libraries(VDCommons ssl crypto curve25519)
+target_link_libraries(VDCommons ssl crypto curve25519 SecureMemory)
 if (WIN32)
     target_link_libraries(VDCommons ws2_32)
 endif()

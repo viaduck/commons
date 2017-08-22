@@ -1,7 +1,7 @@
 #ifndef UTF8DECODER_H
 #define UTF8DECODER_H
 
-#include <commons/String.h>
+#include <secure_memory/String.h>
 #include <set>
 
 class UTF8Char {

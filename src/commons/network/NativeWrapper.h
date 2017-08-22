@@ -1,5 +1,5 @@
-#ifndef LIBCOM_NATIVEWRAPPER_H
-#define LIBCOM_NATIVEWRAPPER_H
+#ifndef VDCOMMONS_NATIVEWRAPPER_H
+#define VDCOMMONS_NATIVEWRAPPER_H
 
 /* network includes */
 #if defined(__WIN32)
@@ -32,4 +32,4 @@ namespace NativeWrapper {
     void freeaddrinfo(struct addrinfo *__ai);
 }
 
-#endif //LIBCOM_NATIVEWRAPPER_H
+#endif //VDCOMMONS_NATIVEWRAPPER_H

@@ -1,10 +1,5 @@
-//
-// Created by steffen on 27.10.16.
-//
-
-#ifndef LIBCOM_BITFIELD_H
-#define LIBCOM_BITFIELD_H
-
+#ifndef VDCOMMONS_BITFIELD_H
+#define VDCOMMONS_BITFIELD_H
 
 #include <cstdint>
 
@@ -59,4 +54,4 @@ public:
     }
 };
 
-#endif //LIBCOM_BITFIELD_H
+#endif //VDCOMMONS_BITFIELD_H

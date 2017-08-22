@@ -1,16 +1,11 @@
-//
-// Created by steffen on 13.08.15.
-//
-
 #include <logger/LogLevel.h>
 #include "test/VarMsg.h"
 #include "test/EnumMsg.h"
-#include "commons/conversions.h"
-#include "commons/Buffer.h"
+#include <secure_memory/conversions.h>
+#include <secure_memory/Buffer.h>
 #include "test/sometest.h"
 #include "ContainerTest.h"
 #include "custom_assert.h"
-
 
 TEST_F(ContainerTest, SimpleRead) {
     Buffer a(20);

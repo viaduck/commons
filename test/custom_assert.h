@@ -1,9 +1,5 @@
-//
-// Created by steffen on 14.08.15.
-//
-
-#ifndef PUSHCLIENT_CUSTOM_ASSERT_H
-#define PUSHCLIENT_CUSTOM_ASSERT_H
+#ifndef VDCOMMONS_CUSTOM_ASSERT_H
+#define VDCOMMONS_CUSTOM_ASSERT_H
 
 #define EXPECT_ARRAY_EQ(TARTYPE, reference, actual, element_count) \
     {\
@@ -36,4 +32,4 @@
         EXPECT_TRUE(found) << actual << " must be any of " << str.str();\
     }
 
-#endif //PUSHCLIENT_CUSTOM_ASSERT_H
+#endif //VDCOMMONS_CUSTOM_ASSERT_H

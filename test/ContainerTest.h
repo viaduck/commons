@@ -1,12 +1,7 @@
-//
-// Created by steffen on 13.08.15.
-//
+#ifndef VDCOMMONS_CONTAINERTEST_H
+#define VDCOMMONS_CONTAINERTEST_H
 
-#ifndef PUSHCLIENT_CONTAINERTEST_H
-#define PUSHCLIENT_CONTAINERTEST_H
-
-
-#include <stdint.h>
+#include <cstdint>
 #include <gtest/gtest.h>
 
 class ContainerTest : public ::testing::Test{
@@ -14,4 +9,4 @@ class ContainerTest : public ::testing::Test{
 };
 
 
-#endif //PUSHCLIENT_CONTAINERTEST_H
+#endif //VDCOMMONS_CONTAINERTEST_H

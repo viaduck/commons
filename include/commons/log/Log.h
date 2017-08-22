@@ -1,5 +1,5 @@
-#ifndef LIBCOM_LOG_H
-#define LIBCOM_LOG_H
+#ifndef VDCOMMONS_LOG_H
+#define VDCOMMONS_LOG_H
 
 #include <logger/LogLevel.h>
 
@@ -242,4 +242,4 @@ protected:
     friend class LogStream;
 };
 
-#endif //LIBCOM_LOG_H
+#endif //VDCOMMONS_LOG_H

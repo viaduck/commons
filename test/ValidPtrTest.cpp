@@ -2,7 +2,6 @@
 
 #include <commons/ValidPtr.h>
 
-
 class TestImplementation : public ValidPtrObject<TestImplementation> {
 public:
     TestImplementation() : IamValid(true) { }

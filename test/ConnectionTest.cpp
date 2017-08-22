@@ -8,7 +8,7 @@
 #endif
 
 #include <commons/network/Connection.h>
-#include <commons/String.h>
+#include <secure_memory/String.h>
 #include <commons/network/SSLContext.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"

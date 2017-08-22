@@ -1,7 +1,3 @@
-//
-// Created by John Watson on 18.03.16.
-//
-
 #include "KeyValueStorageTest.h"
 #include "custom_assert.h"
 #include <commons/KeyValueStorage.h>

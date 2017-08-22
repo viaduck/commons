@@ -1,7 +1,7 @@
 #ifndef UTF8ENCODER_H
 #define UTF8ENCODER_H
 
-#include "String.h"
+#include <secure_memory/String.h>
 
 class UTF8Encoder {
 public:

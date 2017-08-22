@@ -1,8 +1,7 @@
-#ifndef LIBCOM_CERTIFICATESTORAGE_H
-#define LIBCOM_CERTIFICATESTORAGE_H
+#ifndef VDCOMMONS_CERTIFICATESTORAGE_H
+#define VDCOMMONS_CERTIFICATESTORAGE_H
 
-
-#include <commons/Buffer.h>
+#include <secure_memory/Buffer.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <atomic>
@@ -146,5 +145,4 @@ protected:
     std::mutex mLockKeys;
 };
 
-
-#endif //LIBCOM_CERTIFICATESTORAGE_H
+#endif //VDCOMMONS_CERTIFICATESTORAGE_H

@@ -1,11 +1,7 @@
-//
-// Created by John Watson on 16.01.2016.
-//
+#ifndef VDCOMMONS_SECURESTORAGE_H
+#define VDCOMMONS_SECURESTORAGE_H
 
-#ifndef CORE_SECURESTORAGE_H
-#define CORE_SECURESTORAGE_H
-
-#include <commons/Buffer.h>
+#include <secure_memory/Buffer.h>
 #include <openssl/rand.h>
 
 /**
@@ -130,4 +126,4 @@ private:
         return success;
     }
 };
-#endif //CORE_SECURESTORAGE_H
+#endif //VDCOMMONS_SECURESTORAGE_H

@@ -1,7 +1,3 @@
-//
-// Created by steffen on 25.11.16.
-//
-
 #include <openssl/pem.h>
 #include "commons/network/CertificateStorage.h"
 

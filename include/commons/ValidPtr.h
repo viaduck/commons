@@ -1,5 +1,5 @@
-#ifndef LIBCOM_VALIDPTR_H
-#define LIBCOM_VALIDPTR_H
+#ifndef VDCOMMONS_VALIDPTR_H
+#define VDCOMMONS_VALIDPTR_H
 
 #include <mutex>
 #include <vector>
@@ -88,4 +88,4 @@ protected:
     std::mutex                _mmtxs;
 };
 
-#endif //LIBCOM_VALIDPTR_H
+#endif //VDCOMMONS_VALIDPTR_H

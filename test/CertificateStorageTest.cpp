@@ -1,4 +1,4 @@
-#include <commons/String.h>
+#include <secure_memory/String.h>
 #include <openssl/pem.h>
 #include "CertificateStorageTest.h"
 

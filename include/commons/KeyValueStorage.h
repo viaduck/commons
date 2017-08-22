@@ -1,14 +1,9 @@
-//
-// Created by John Watson on 25.12.2016.
-//
-
-#ifndef LIBCOM_KEYVALUESTORAGE_H
-#define LIBCOM_KEYVALUESTORAGE_H
-
+#ifndef VDCOMMONS_KEYVALUESTORAGE_H
+#define VDCOMMONS_KEYVALUESTORAGE_H
 
 #include <unordered_map>
 #include <set>
-#include "String.h"
+#include <secure_memory/String.h>
 
 /**
  * Class storing Key-Value pairs of libCom Strings with the ability to serialize and deserialize them.
@@ -420,4 +415,4 @@ private:
     std::set<String> mKeys;
 };
 
-#endif //LIBCOM_KEYVALUESTORAGE_H
+#endif //VDCOMMONS_KEYVALUESTORAGE_H

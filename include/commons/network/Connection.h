@@ -1,12 +1,12 @@
-#ifndef LIBCOM_CONNECTION_H
-#define LIBCOM_CONNECTION_H
+#ifndef VDCOMMONS_CONNECTION_H
+#define VDCOMMONS_CONNECTION_H
 
 #include <cstdint>
 #include <string>
 
 #include <openssl/ssl.h>
 
-#include <commons/Buffer.h>
+#include <secure_memory/Buffer.h>
 #include <commons/network/CertificateStorage.h>
 
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
@@ -216,5 +216,4 @@ protected:
     SSL *mSSL;
 };
 
-
-#endif //LIBCOM_CONNECTION_H
+#endif //VDCOMMONS_CONNECTION_H

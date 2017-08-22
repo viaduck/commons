@@ -1,5 +1,5 @@
-#ifndef LIBCOM_SSLCONTEXT_H
-#define LIBCOM_SSLCONTEXT_H
+#ifndef VDCOMMONS_SSLCONTEXT_H
+#define VDCOMMONS_SSLCONTEXT_H
 
 #include <openssl/ssl.h>
 
@@ -82,4 +82,4 @@ protected:
 };
 
 
-#endif //LIBCOM_SSLCONTEXT_H
+#endif //VDCOMMONS_SSLCONTEXT_H
