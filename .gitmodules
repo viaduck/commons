@@ -1,7 +1,6 @@
 [submodule "external/openssl-cmake"]
 	path = external/openssl-cmake
 	url = ../../viaduck/openssl-cmake.git
-[submodule "external/googletest"]
-	path = external/googletest
-	url = https://github.com/google/googletest.git
-
+[submodule "external/cmake-modules"]
+	path = external/cmake-modules
+	url = ../../viaduck/cmake-modules.git

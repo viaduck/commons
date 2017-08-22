@@ -3,8 +3,8 @@
 
 #include <openssl/ssl.h>
 
-#include <libCom/BlockCache.h>
-#include <libCom/network/ConnectionInfo.h>
+#include <commons/network/ConnectionInfo.h>
+#include <unordered_map>
 
 /**
  * Wrapper class for OpenSSL's SSL_CTX. Each thread has one static singleton SSLContext assigned to save the
@@ -75,7 +75,7 @@ protected:
     static thread_local SSLContext mInstance;
 
     SSL_CTX *mCtx;
-    BlockCache<ConnectionInfo, SSL_SESSION*> mSessions;
+    std::unordered_map<ConnectionInfo, SSL_SESSION*> mSessions;
     uint16_t mSessionsResumed = 0;
 
     friend class Connection;

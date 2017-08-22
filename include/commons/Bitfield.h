@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-#include <libCom/helper.h>
+#include <commons/helper.h>
 
 /**
  * This class provides static mehtods for Bitfield access to integral variables

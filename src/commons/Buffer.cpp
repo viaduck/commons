@@ -1,6 +1,6 @@
 #include <string.h>
-#include <libCom/Buffer.h>
-#include <libCom/BufferRange.h>
+#include <commons/Buffer.h>
+#include <commons/BufferRange.h>
 
 DevNull Buffer::DEV_NULL;
 

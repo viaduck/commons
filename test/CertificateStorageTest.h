@@ -3,7 +3,7 @@
 
 
 #include <gtest/gtest.h>
-#include <libCom/network/CertificateStorage.h>
+#include <commons/network/CertificateStorage.h>
 
 class CertificateStorageTest : public ::testing::Test {
 protected:

@@ -3,13 +3,13 @@
 
 #include <string>
 
-#include <libCom/Range.h>
+#include <commons/Range.h>
 
 class Buffer;
 typedef Range<Buffer> BufferRange;
 typedef Range<const Buffer> BufferRangeConst;
 
-#include <libCom/Buffer.h>
+#include <commons/Buffer.h>
 
 // taken from https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
 namespace std {

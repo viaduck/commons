@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(libCom)
-
-enable_testing()
+project(VDCommons)
 
 # add additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/cmake-modules")
@@ -31,9 +29,9 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cm
     config_openssl(external/openssl-cmake)
 endif()
 
-file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/libCom/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
 
-file(GLOB_RECURSE LIBCOM_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE VDCOMMONS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
 file(GLOB_RECURSE CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/*)
 
@@ -50,7 +48,7 @@ add_custom_command(
     OUTPUT ${GENERATED_PROTOCOL}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/protocol/ ${CMAKE_BINARY_DIR} protocol
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/protocol.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generator.py ${THX_FILES}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/protocol.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_generator.py ${THX_FILES}
 )
 
 file(GLOB_RECURSE THE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/enum/*.the)
@@ -58,7 +56,7 @@ add_custom_command(
     OUTPUT ${GENERATED_ENUM}
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/enum/ ${CMAKE_BINARY_DIR} enum
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/libCom/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum_generator.py ${THE_FILES}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum_generator.py ${THE_FILES}
 )
 
 ## and the target
@@ -66,20 +64,20 @@ add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 add_custom_target(enum_generation ALL DEPENDS ${GENERATED_ENUM})
 
 # build
-add_library(libCom STATIC ${SOURCE_FILES} ${LIBCOM_HEADERS})
+add_library(VDCommons STATIC ${SOURCE_FILES} ${VDCOMMONS_HEADERS})
 add_library(curve25519 STATIC ${CURVE25519_SOURCES})
-add_dependencies(libCom protocol_generation)
-add_dependencies(libCom enum_generation)
-add_dependencies(libCom openssl)
-add_dependencies(libCom curve25519)
+add_dependencies(VDCommons protocol_generation)
+add_dependencies(VDCommons enum_generation)
+add_dependencies(VDCommons openssl)
+add_dependencies(VDCommons curve25519)
 add_dependencies(curve25519 openssl)
-target_link_libraries(libCom ssl crypto curve25519)
+target_link_libraries(VDCommons ssl crypto curve25519)
 if (WIN32)
-    target_link_libraries(libCom ws2_32)
+    target_link_libraries(VDCommons ws2_32)
 endif()
 
 # includes
-target_include_directories(libCom PUBLIC
+target_include_directories(VDCommons PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/
         )
@@ -87,7 +85,7 @@ target_include_directories(libCom PUBLIC
 # doxygen
 include(Doxygen)
 if (DOXYGEN_FOUND)
-    setup_doxygen(libCom_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+    setup_doxygen(VDCommons_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 endif()
 
 # tests

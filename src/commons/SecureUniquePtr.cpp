@@ -2,7 +2,7 @@
 // Created by steffen on 20.07.15.
 //
 
-#include "libCom/SecureUniquePtr.h"
+#include "commons/SecureUniquePtr.h"
 
 volatile void *SecureUniquePtrPRNG::shred(volatile void *dst, size_t len) {
     if (dst == nullptr)

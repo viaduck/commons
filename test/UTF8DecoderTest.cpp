@@ -1,6 +1,6 @@
 #include "UTF8DecoderTest.h"
 
-#include <libCom/UTF8Decoder.h>
+#include <commons/UTF8Decoder.h>
 
 // generic Replacer interface implementation used by tests
 class ReplacerImpl {

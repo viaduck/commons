@@ -1,6 +1,3 @@
-if (NOT TARGET gtest)
-    add_subdirectory(googletest)
-endif()
 if (NOT TARGET ssl)
     add_subdirectory(openssl-cmake)
 endif()

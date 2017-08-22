@@ -5,9 +5,9 @@
 #include <string>
 #include <cstring>
 #include <cmath>
-#include "libCom/helper.h"
-#include "libCom/String.h"
-#include "libCom/BufferRange.h"
+#include "commons/helper.h"
+#include "commons/String.h"
+#include "commons/BufferRange.h"
 
 
 String::String() : Buffer() { }

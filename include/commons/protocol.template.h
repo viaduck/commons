@@ -23,11 +23,11 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
-#include "libCom/Serializable.h"
-#include "libCom/Buffer.h"
-#include "libCom/Range.h"
-#include "libCom/conversions.h"
-#include "libCom/Bitfield.h"
+#include "commons/Serializable.h"
+#include "commons/Buffer.h"
+#include "commons/Range.h"
+#include "commons/conversions.h"
+#include "commons/Bitfield.h"
 #include <cstring>
 
 [[[cog

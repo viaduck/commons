@@ -2,7 +2,7 @@
 #define LIBCOM_CERTIFICATESTORAGE_H
 
 
-#include <libCom/Buffer.h>
+#include <commons/Buffer.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <atomic>

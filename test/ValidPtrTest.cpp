@@ -1,6 +1,6 @@
 #include "ValidPtrTest.h"
 
-#include <libCom/ValidPtr.h>
+#include <commons/ValidPtr.h>
 
 
 class TestImplementation : public ValidPtrObject<TestImplementation> {

@@ -5,8 +5,8 @@
 #include <logger/LogLevel.h>
 #include "test/VarMsg.h"
 #include "test/EnumMsg.h"
-#include "libCom/conversions.h"
-#include "libCom/Buffer.h"
+#include "commons/conversions.h"
+#include "commons/Buffer.h"
 #include "test/sometest.h"
 #include "ContainerTest.h"
 #include "custom_assert.h"

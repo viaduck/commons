@@ -6,8 +6,8 @@
 
 #include <openssl/ssl.h>
 
-#include <libCom/Buffer.h>
-#include <libCom/network/CertificateStorage.h>
+#include <commons/Buffer.h>
+#include <commons/network/CertificateStorage.h>
 
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
 #if ! defined(__WIN32)

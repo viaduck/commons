@@ -1,5 +1,5 @@
-#include <libCom/String.h>
-#include <libCom/SecureStorage.h>
+#include <commons/String.h>
+#include <commons/SecureStorage.h>
 #include "SecureStorageTest.h"
 
 class DummyCrypter {

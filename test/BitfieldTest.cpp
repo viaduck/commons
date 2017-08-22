@@ -2,7 +2,7 @@
 // Created by steffen on 27.10.16.
 //
 
-#include <libCom/Bitfield.h>
+#include <commons/Bitfield.h>
 #include "BitfieldTest.h"
 
 TEST_F(BitfieldTest, Simple8bit) {

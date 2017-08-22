@@ -4,8 +4,8 @@
 #include <string>
 
 #include <openssl/ssl.h>
-#include <libCom/helper.h>
-#include <libCom/network/Connection.h>
+#include <commons/helper.h>
+#include <commons/network/Connection.h>
 
 /**
  * Storage class to store connection details: host and port

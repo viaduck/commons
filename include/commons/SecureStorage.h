@@ -5,7 +5,7 @@
 #ifndef CORE_SECURESTORAGE_H
 #define CORE_SECURESTORAGE_H
 
-#include <libCom/Buffer.h>
+#include <commons/Buffer.h>
 #include <openssl/rand.h>
 
 /**

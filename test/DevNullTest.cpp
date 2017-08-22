@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include "custom_assert.h"
 
-#include <libCom/Buffer.h>
-#include <libCom/DevNull.h>
-#include <libCom/BufferRange.h>
+#include <commons/Buffer.h>
+#include <commons/DevNull.h>
+#include <commons/BufferRange.h>
 
 /*
  * DevNull's actions are no-ops, but indicate success

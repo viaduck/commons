@@ -1,4 +1,4 @@
-#include "libCom/network/SSLContext.h"
+#include "commons/network/SSLContext.h"
 
 thread_local SSLContext SSLContext::mInstance;
 
@@ -7,9 +7,11 @@ void SSLContext::saveSession(const Connection &connection, SSL_SESSION *session)
     if (storedSession != nullptr) {
         SSL_SESSION_free(storedSession);
     }
-    mSessions.write(ConnectionInfo(connection), session);
+    mSessions.emplace(ConnectionInfo(connection), session);
 }
 
 SSL_SESSION *SSLContext::getSession(const Connection &connection) {
-    return mSessions.read(ConnectionInfo(connection));
+    auto elem = mSessions.find(ConnectionInfo(connection));
+
+    return elem == mSessions.end() ? nullptr : (*elem).second;
 }

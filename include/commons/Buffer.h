@@ -1,10 +1,10 @@
 #ifndef LIBCOM_BUFFER_H
 #define LIBCOM_BUFFER_H
 
-#include <libCom/Serializable.h>
-#include <libCom/SecureUniquePtr.h>
+#include <commons/Serializable.h>
+#include <commons/SecureUniquePtr.h>
 #include <cinttypes>
-#include <libCom/Range.h>
+#include <commons/Range.h>
 
 class Buffer;
 

@@ -1,6 +1,6 @@
-#include <libCom/DevNull.h>
-#include <libCom/Range.h>
-#include <libCom/BufferRange.h>
+#include <commons/DevNull.h>
+#include <commons/Range.h>
+#include <commons/BufferRange.h>
 
 
 BufferRangeConst DevNull::append(const void *data, uint32_t len) {

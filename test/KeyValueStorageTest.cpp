@@ -4,7 +4,7 @@
 
 #include "KeyValueStorageTest.h"
 #include "custom_assert.h"
-#include <libCom/KeyValueStorage.h>
+#include <commons/KeyValueStorage.h>
 
 TEST_F(KeyValueStorageTest, Primitive) {
     uint32_t count;

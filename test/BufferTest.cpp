@@ -1,6 +1,6 @@
-#include <libCom/Buffer.h>
-#include <libCom/Range.h>
-#include <libCom/BufferRange.h>
+#include <commons/Buffer.h>
+#include <commons/Range.h>
+#include <commons/BufferRange.h>
 #include "BufferTest.h"
 #include "custom_assert.h"
 
