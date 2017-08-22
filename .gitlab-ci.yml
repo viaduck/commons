@@ -25,7 +25,7 @@ test:linux:x86_64:
     stage: test
     script:
         - cd build
-        - test/libCom_Test             # runs gtest target
+        - test/VDCommons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64
 
@@ -33,7 +33,7 @@ coverage:linux:x86_64:
     stage: coverage
     script:
         - cd build
-        - ninja libCom_Coverage        # generate code coverage
+        - ninja VDCommons_Coverage        # generate code coverage
     artifacts:
         paths:
         - build/test/coverage/         # coverage data
@@ -44,7 +44,7 @@ documentation:linux:x86_64:
     stage: documentation
     script:
         - cd build
-        - ninja libCom_doc             # generate doxygen code documentation
+        - ninja VDCommons_doc             # generate doxygen code documentation
     artifacts:
         paths:
         - build/doc/html/                # doxygen documentation
