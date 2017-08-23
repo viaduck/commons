@@ -6,4 +6,4 @@
 	url = ../../viaduck/cmake-modules.git
 [submodule "external/securememory"]
 	path = external/securememory
-	url = git@gl.viaduck.org:viaduck/securememory.git
+	url = ../../viaduck/securememory.git

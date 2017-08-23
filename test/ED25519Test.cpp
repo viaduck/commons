@@ -1,4 +1,4 @@
-#include "commons/curve25519/curve25519.h"
+#include <curve25519/curve25519.h>
 #include "ED25519Test.h"
 #include "file_test.h"
 

@@ -13,8 +13,7 @@ add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibil
 
 # externals
 add_subdirectory(external)
-include(external/includes.cmake)
-config_compiler_and_linker()
+include_directories(${CMAKE_BINARY_DIR}/include)
 
 # configure openssl dirs
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cmake")
@@ -22,10 +21,9 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cm
     config_openssl(external/openssl-cmake)
 endif()
 
+# collect files
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
-
 file(GLOB_RECURSE VDCOMMONS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
-
 file(GLOB_RECURSE CURVE25519_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/*)
 
 # targets
@@ -72,6 +70,10 @@ endif()
 target_include_directories(VDCommons PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/
+        )
+
+target_include_directories(curve25519 PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
         )
 
 # doxygen
