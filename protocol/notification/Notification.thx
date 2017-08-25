@@ -1,4 +1,0 @@
-NotificationType enum/notification/NotificationType.the
--
-NotificationType type
-uint8_t(Var)     content

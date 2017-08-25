@@ -1,5 +1,0 @@
--
-uint8_t(64)     inviterSig
-uint8_t(20)     inviterHash
-uint8_t(64)     identPub
-uint8_t(10)     settingsFilename
