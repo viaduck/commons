@@ -32,6 +32,8 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/p
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_PROTOCOL)
 execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_list.py ${CMAKE_CURRENT_SOURCE_DIR}/enum/
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_ENUM)
+execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/protocol_list.py ${CMAKE_CURRENT_SOURCE_DIR}/sqx/
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} OUTPUT_VARIABLE GENERATED_SQX)
 
 ## command that provides to be generated messages
 file(GLOB_RECURSE THX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/protocol/*.thx)
@@ -50,9 +52,18 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum_generator.py ${THE_FILES}
 )
 
+file(GLOB_RECURSE SQX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/sqx/*.sqx)
+add_custom_command(
+    OUTPUT ${GENERATED_SQX}
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/definition_generation.py ${CMAKE_CURRENT_SOURCE_DIR}/sqx/ ${CMAKE_BINARY_DIR} sqx
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/enum.template.h ${CMAKE_CURRENT_SOURCE_DIR}/tools/enum_generator.py ${SQX_FILES}
+)
+
 ## and the target
 add_custom_target(protocol_generation ALL DEPENDS ${GENERATED_PROTOCOL})
 add_custom_target(enum_generation ALL DEPENDS ${GENERATED_ENUM})
+add_custom_target(sqlite_generation ALL DEPENDS ${GENERATED_SQX})
 
 # build
 add_library(VDCommons STATIC ${SOURCE_FILES} ${VDCOMMONS_HEADERS})

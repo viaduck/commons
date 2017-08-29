@@ -6,7 +6,7 @@ from subprocess import call
 from sys import argv, executable
 import os
 
-ALLOWED_EXTENSIONS = ('.thx', '.the')
+ALLOWED_EXTENSIONS = ('.thx', '.the', '.sqx')
 
 gen_type = argv[3]          # generation type. One of 'enum', 'protocol'
 include_dir = argv[2]+"/include/"

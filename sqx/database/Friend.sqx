@@ -1,0 +1,13 @@
+-
+std::string name
+String hash
+Buffer pubkey
+uint8_t keystat
+Buffer ecKey1
+Buffer ecKey2
+Buffer symKey1
+Buffer symKey2
+Buffer symHint
+Buffer pubHint
+Buffer exSymHint
+Buffer exPubHint

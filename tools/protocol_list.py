@@ -10,7 +10,7 @@ include_dir = os.getcwd()+"/include/"
 for root, dirs, files in os.walk(argv[1]):
     for file in files:
         fname, ext = os.path.splitext(file)
-        if ext in ('.thx', '.the'):
+        if ext in ('.thx', '.the', '.sqx'):
             fname = os.path.join(root, fname)
             fname = os.path.relpath(fname, argv[1])
 
