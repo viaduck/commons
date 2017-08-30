@@ -1,9 +1,6 @@
 [submodule "external/openssl-cmake"]
 	path = external/openssl-cmake
 	url = ../../viaduck/openssl-cmake.git
-[submodule "external/cmake-modules"]
-	path = external/cmake-modules
-	url = ../../viaduck/cmake-modules.git
 [submodule "external/securememory"]
 	path = external/securememory
 	url = ../../viaduck/securememory.git

@@ -3,10 +3,9 @@ get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 list(REMOVE_ITEM SOURCE_FILES ${PARENT_DIR}/src/commons/network/NativeWrapper.cpp)
 
 # find system gtest
-find_package(GTest)
+include(FindOrBuildGTest)
 
 if (GTEST_FOUND)
-
     file(GLOB_RECURSE TEST_FILES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
     file(GLOB_RECURSE TEST_FILES_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
