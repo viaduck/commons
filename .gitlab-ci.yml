@@ -14,7 +14,7 @@ build:linux:x86_64:
     script:
         - mkdir build
         - cd build
-        - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux
+        - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
         expire_in: 2h                   # do not pollute disk
@@ -58,7 +58,7 @@ build:windows:x86:
         - update-alternatives --set i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-gcc-posix
         - mkdir build-windows-x86
         - cd build-windows-x86
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
 
 build:windows:x86_64:
@@ -68,5 +68,5 @@ build:windows:x86_64:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
