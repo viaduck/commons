@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(VDCommons)
 
 # add additional cmake modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/cmake-modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory/cmake-modules")
 
 # required packages
 find_package(PythonInterp 3.4 REQUIRED)       # need the pathlib module, which is part of 3.4+
