@@ -57,7 +57,7 @@ public:
             cog.outl('*db() << "SELECT * FROM {name} WHERE pid = ?;" << mId >> \n[&] ('.format(name=name))
             param_list = []
             for v in vars:
-                type = 'const blob_t&' if v.is_complex() else v.var_type()
+                type = 'const sqlite::blob_t&' if v.is_complex() else v.var_type()
                 param_list.append('{type} {name}'.format(type=type, name=v.name()))
             cog.outl('    '+', '.join(param_list))
             cog.outl(') {')
@@ -80,7 +80,7 @@ public:
                 cog.outl('*db() << "UPDATE {name} SET {set_what} WHERE pid = ?;"'.format(name=name, set_what=', '.join(param_list)))
                 for v in vars:
                     if v.is_complex():
-                        cog.outl('      << sqlite::blob_t({name}.const_data(), {name}.size())'.format(name=v.name()))
+                        cog.outl('      << sqlite::blob_t(m{member_name}.const_data(), m{member_name}.size())'.format(name=v.name(), member_name=v.member_name()))
                     else:
                         cog.outl('      << m{member_name}'.format(name=v.name(), member_name=v.member_name()))
                 cog.outl('      << mId;')
@@ -94,7 +94,7 @@ public:
                 cog.outl('*db() << "INSERT INTO {name} ({set_what}) VALUES ({question_marks});"'.format(name=name, set_what=', '.join(param_list), question_marks=', '.join(['?']*len(param_list))))
                 for v in vars:
                     if v.is_complex():
-                        cog.outl('      << sqlite::blob_t({name}.const_data(), {name}.size())'.format(name=v.name()))
+                        cog.outl('      << sqlite::blob_t(m{member_name}.const_data(), m{member_name}.size())'.format(name=v.name(), member_name=v.member_name()))
                     else:
                         cog.outl('      << m{member_name}'.format(name=v.name(), member_name=v.member_name()))
                 cog.outl(';')
