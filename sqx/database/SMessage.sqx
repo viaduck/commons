@@ -1,0 +1,6 @@
+-
+int64_t friendIndex  # foreign key
+int64_t timestamp    # unix time milliseconds
+uint8_t isOwn        # bool whether the message was sent or received
+uint8_t isDelivered  # bool whether the message was delivered (if own) or seen (if received)
+Buffer  content      # binary message content

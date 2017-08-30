@@ -52,15 +52,20 @@ public:
     }
 
     // --
-    virtual void load() {
+    virtual bool load() {
+        bool found = false;
         [[[cog
-            cog.outl('*db() << "SELECT * FROM {name} WHERE pid = ?;" << mId >> \n[&] ('.format(name=name))
+            param_list = []
+            for v in vars:
+                param_list.append(v.name())
+            cog.outl('*db() << "SELECT {select_what} FROM {name} WHERE pid = ?;" << mId >> \n[&] ('.format(name=name, select_what=', '.join(param_list)))
             param_list = []
             for v in vars:
                 type = 'const sqlite::blob_t&' if v.is_complex() else v.var_type()
                 param_list.append('{type} {name}'.format(type=type, name=v.name()))
             cog.outl('    '+', '.join(param_list))
             cog.outl(') {')
+            cog.outl('    found = true;')
             # lambda
             for v in vars:
                 if v.is_complex():
@@ -70,6 +75,7 @@ public:
             cog.outl('};')
         ]]]
         [[[end]]]
+        return found;
     }
     virtual void store() {
         if (mId >= 0) {

@@ -1,0 +1,5 @@
+-
+std::string name    # internal name for distinguishing
+String hash         # public key hash for the identity
+Buffer key          # private ECIdentity
+uint32_t lastId     # id of last received message
