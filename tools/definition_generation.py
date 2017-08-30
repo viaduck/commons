@@ -12,9 +12,8 @@ gen_type = argv[3]          # generation type. One of 'enum', 'protocol'
 include_dir = argv[2]+"/include/"
 definition_dir = os.getcwd() + "/" + gen_type + "/"
 
-# create path if it doesn't exist already
-if not os.path.exists(include_dir):
-    os.makedirs(include_dir)
+# create path for includes
+os.makedirs(include_dir, exist_ok=True)
 
 for root, dirs, files in os.walk(argv[1]):
     include_dir = argv[2]+"/include/"
