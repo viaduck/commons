@@ -60,6 +60,7 @@ build:windows:x86:
         - cd build-windows-x86
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
+    allow_failure: true
 
 build:windows:x86_64:
     stage: build
@@ -70,3 +71,5 @@ build:windows:x86_64:
         - cd build-windows-x86_64
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
+    allow_failure: true
+
