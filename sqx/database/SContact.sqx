@@ -1,5 +1,5 @@
 -
-std::string name    # friends name
+std::string name    # contacts name
 String hash         # binary public key hash
 Buffer pubkey       # public ECIdentity
 uint8_t keystat     # KeyExchangeState
@@ -7,7 +7,7 @@ Buffer ecKey1       # (temporary) ECKey used for key exchange, stored while awai
 Buffer ecKey2       # (temporary) Second ECKey used for negotiating the second symmetric key
 Buffer symKey1      # first symmetric key
 Buffer symKey2      # second symmetric key
-Buffer symHint      # AIT for hinting a symmetric key message to the friend
-Buffer pubHint      # AIT for hinting a public key message to the friend
-Buffer exSymHint    # expected AIT for a symmetric key message from the friend
-Buffer exPubHint    # expected AIT for a public key message from the friend
+Buffer symHint      # AIT for hinting a symmetric key message to the contact
+Buffer pubHint      # AIT for hinting a public key message to the contact
+Buffer exSymHint    # expected AIT for a symmetric key message from the contact
+Buffer exPubHint    # expected AIT for a public key message from the contact
