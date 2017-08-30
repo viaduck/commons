@@ -1,13 +1,13 @@
 image: viaduck/ci
 
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 stages:
     - build
     - test
     - coverage
     - documentation
-
-before_script:
-    - git submodule update --init --recursive
 
 build:linux:x86_64:
     stage: build
