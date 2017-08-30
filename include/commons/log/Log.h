@@ -171,11 +171,11 @@ public:
      */
     void disableLogLevel(LogLevel level = LogLevel::INVALID_ENUM_VALUE) {
         switch (level) {
-            case LogLevel::TRACE: trac.setEnabled(false); break;
-            case LogLevel::DEBUG: dbg.setEnabled(false); break;
-            case LogLevel::INFO: info.setEnabled(false); break;
-            case LogLevel::WARNING: warn.setEnabled(false); break;
-            case LogLevel::ERROR: err.setEnabled(false); break;
+            case LogLevel::LEVEL_TRACE: trac.setEnabled(false); break;
+            case LogLevel::LEVEL_DEBUG: dbg.setEnabled(false); break;
+            case LogLevel::LEVEL_INFO: info.setEnabled(false); break;
+            case LogLevel::LEVEL_WARNING: warn.setEnabled(false); break;
+            case LogLevel::LEVEL_ERROR: err.setEnabled(false); break;
             case LogLevel::INVALID_ENUM_VALUE: mEnabled = false; break;
         }
     }
@@ -187,11 +187,11 @@ public:
      */
     void enableLogLevel(LogLevel level = LogLevel::INVALID_ENUM_VALUE) {
         switch (level) {
-            case LogLevel::TRACE: trac.setEnabled(true); break;
-            case LogLevel::DEBUG: dbg.setEnabled(true); break;
-            case LogLevel::INFO: info.setEnabled(true); break;
-            case LogLevel::WARNING: warn.setEnabled(true); break;
-            case LogLevel::ERROR: err.setEnabled(true); break;
+            case LogLevel::LEVEL_TRACE: trac.setEnabled(true); break;
+            case LogLevel::LEVEL_DEBUG: dbg.setEnabled(true); break;
+            case LogLevel::LEVEL_INFO: info.setEnabled(true); break;
+            case LogLevel::LEVEL_WARNING: warn.setEnabled(true); break;
+            case LogLevel::LEVEL_ERROR: err.setEnabled(true); break;
             case LogLevel::INVALID_ENUM_VALUE: mEnabled = true; break;
         }
     }
@@ -206,23 +206,23 @@ public:
     /**
      * Trace log level
      */
-    static LogStream<LogLevel::TRACE> trac;
+    static LogStream<LogLevel::LEVEL_TRACE> trac;
     /**
      * Debug log level
      */
-    static LogStream<LogLevel::DEBUG> dbg;
+    static LogStream<LogLevel::LEVEL_DEBUG> dbg;
     /**
      * Info log level
      */
-    static LogStream<LogLevel::INFO> info;
+    static LogStream<LogLevel::LEVEL_INFO> info;
     /**
      * Warning log level
      */
-    static LogStream<LogLevel::WARNING> warn;
+    static LogStream<LogLevel::LEVEL_WARNING> warn;
     /**
      * Error log level
      */
-    static LogStream<LogLevel::ERROR> err;
+    static LogStream<LogLevel::LEVEL_ERROR> err;
 
     /**
      * @return Singleton Log instance

@@ -23,9 +23,9 @@ protected:
 
         bool wantsLog(LogLevel level) override {
             switch (level) {
-                case LogLevel::DEBUG:
+                case LogLevel::LEVEL_DEBUG:
                     current = &bruce; break;
-                case LogLevel::ERROR:
+                case LogLevel::LEVEL_ERROR:
                     current = &bruce2; break;
                 default:
                     break;
@@ -40,8 +40,8 @@ protected:
 
         std::string toString(LogLevel level) {
             switch(level) {
-                case LogLevel::DEBUG: return bruce.str();
-                case LogLevel::ERROR: return bruce2.str();
+                case LogLevel::LEVEL_DEBUG: return bruce.str();
+                case LogLevel::LEVEL_ERROR: return bruce2.str();
                 default:
                     return current->str();
             }
