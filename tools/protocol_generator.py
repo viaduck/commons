@@ -9,12 +9,13 @@ import math
 from enum_generator import do as enum_do
 
 # tuple of variable types that have array support
+from tools.common import enum_include_matcher
+
 arr_supported = ('uint8_t',)
 variable_arrays = ("var", "Var", "VAR")
 variable_arrays_type = {"var": "uint8_t", "Var": "uint16_t", "VAR": "uint32_t"}
 line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_]*)(?:\((?P<arr_size>(?:\d*)|(?:var)|(?:Var)|(?:VAR))\))?\s*(?P<name>[(), a-z_0-9A-Z]*)\s*#?.*")
 squeeze_matcher = re.compile("(?P<name>\w*)\((?P<bits>\d*)\),?\s*?")
-enum_include_matcher = re.compile(r"(?P<id>[a-zA-Z0-9_]+) (?P<path>.+)")
 enum_types = {}     # list of enum types that are included in file head
 
 

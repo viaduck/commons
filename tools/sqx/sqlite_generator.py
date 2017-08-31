@@ -8,6 +8,8 @@ import common
 import math
 from enum_generator import do as enum_do
 
+from tools.common import parse_enum_include
+
 
 class SQXType:
     def __init__(self, io, cpp_type, sql_type, ref_type=None, sql_ref_type=None, additional_setter=None):
@@ -43,20 +45,21 @@ class SQXIO:
         self._load = load
         self._setter = self._load if setter is None else setter
 
-    def store(self, name, member_name):
-        return self._store.format(name=name, member_name=member_name)
+    def store(self, name, member_name, cpp_type):
+        return self._store.format(name=name, member_name=member_name, cpp_type=cpp_type)
 
-    def load(self, name, member_name):
-        return self._load.format(name=name, member_name=member_name)
+    def load(self, name, member_name, cpp_type):
+        return self._load.format(name=name, member_name=member_name, cpp_type=cpp_type)
 
-    def setter(self, name, member_name):
-        return self._setter.format(name=name, member_name=member_name)
+    def setter(self, name, member_name, cpp_type):
+        return self._setter.format(name=name, member_name=member_name, cpp_type=cpp_type)
 
 
 IO_PRIMITIVE = SQXIO('{member_name}', '{member_name} = {name};')
 IO_BLOB = SQXIO('sqlite::blob_t({member_name}.const_data(), {member_name}.size())',
                 '{member_name}.clear(); {member_name}.write({name}.first, {name}.second, 0);',
                 '{member_name}.clear(); {member_name}.write({name}, 0);')
+IO_ENUM = SQXIO('toInt({member_name})', '{member_name} = to{cpp_type}({name});', '{member_name} = {name};')
 REF_BLOB = 'const sqlite::blob_t &'
 SETTER_REF = "inline {cpp_type} & {name}() {{\n" \
              "    return {member_name};\n" \
@@ -67,7 +70,7 @@ SETTER_RANGE = "inline void {name}(const BufferRangeConst &rng) {{\n" \
 
 types = [
     SQXType(SQXIO('static_cast<uint8_t>({member_name})', '{member_name} = static_cast<bool>({name});'), 'bool',
-            'INTEGER'),
+            'INTEGER', sql_ref_type='uint8_t'),
     SQXType(IO_PRIMITIVE, 'uint8_t', 'INTEGER'),
     SQXType(IO_PRIMITIVE, 'uint16_t', 'INTEGER'),
     SQXType(IO_PRIMITIVE, 'uint32_t', 'INTEGER'),
@@ -83,9 +86,14 @@ types = [
     SQXType(IO_PRIMITIVE, 'std::string', 'TEXT', 'const std::string &', additional_setter=SETTER_REF),
 ]
 
-hashed_types = {
-    t.cpp_type(): t for t in types
-}
+hashed_types = {}
+
+
+def hash_types():
+    global hashed_types
+    hashed_types = {
+        t.cpp_type(): t for t in types
+    }
 
 line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s*#?.*")
 
@@ -106,13 +114,13 @@ class SQXEntry:
         return self._type
 
     def store(self):
-        return self._type.io().store(self._name, self._member_name)
+        return self._type.io().store(self._name, self._member_name, self._type.cpp_type())
 
     def load(self):
-        return self._type.io().load(self._name, self._member_name)
+        return self._type.io().load(self._name, self._member_name, self._type.cpp_type())
 
     def setter(self):
-        return self._type.io().setter(self._name, self._member_name)
+        return self._type.io().setter(self._name, self._member_name, self._type.cpp_type())
 
 
 def do(filename):
@@ -131,16 +139,25 @@ def do(filename):
 
         if not header:
             raise Exception("No header present")
+
+        enums = []
         for line in f:
             if header:
                 if line[0] == "-":      # header separator
                     header = False
                 else:
-                    # TODO parse includes
-                    pass
+                    enums.append(parse_enum_include(line))
                 continue
             if line[0] in ('#', '\n'):      # skip empty lines and line comments starting with '#'
                 continue
+
+            # add all enums as new SQXTypes
+            for enum in enums:
+                id, name = enum
+                types.append(SQXType(IO_ENUM, id, 'INTEGER', sql_ref_type='std::underlying_type<'+id+'>::type'))
+
+            # hash all available SQXTypes
+            hash_types()
 
             l = line_matcher.match(line)
             type = l.group('type').strip()

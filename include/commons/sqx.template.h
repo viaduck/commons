@@ -23,8 +23,10 @@ cog.outl("#define {name}_H".format(name=name))
 [[[end]]]
 
 
-#include <secure_memory/String.h>
 #include <string>
+#include <type_traits>
+
+#include <secure_memory/String.h>
 
 [[[cog
     vars = list(g.do(filename))
