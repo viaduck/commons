@@ -1,5 +1,5 @@
 SymmetricKeyExchange,
 SymmetricKeyMessage,
-GroupInvitation,
+GroupInvite,
 GroupAcceptInvitation,
 GroupInvitationFinal
