@@ -99,6 +99,14 @@ public:
             mId = db()->last_insert_rowid();
         }
     }
+    virtual void remove() {
+        if (mId >= 0) {
+            [[[cog
+                cog.outl('*db() << "DELETE FROM {name} WHERE pid = ?;" << mId;'.format(name=name))
+            ]]]
+            [[[end]]]
+        }
+    }
 
     [[[cog
     for v in vars:
