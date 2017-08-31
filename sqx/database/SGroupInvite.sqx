@@ -1,0 +1,5 @@
+-
+std::string name            # name of the group (own) or NULL (!own)
+int64_t     inviteId        # refer to this when accepting an invite
+int64_t     friendIndex     # friend that was invited (own) or that invited us (!own)
+bool        isOwn           # did we invite someone (true) / did someone invite us (false)

@@ -1,6 +1,6 @@
 -
 int64_t contactIndex # foreign key
 int64_t timestamp    # unix time milliseconds
-uint8_t isOwn        # bool whether the message was sent or received
-uint8_t isDelivered  # bool whether the message was delivered (if own) or seen (if received)
+bool    isOwn        # indicates whether the message was sent or received
+bool    isDelivered  # indicates whether the message was delivered (if own) or seen (if received)
 Buffer  content      # binary message content

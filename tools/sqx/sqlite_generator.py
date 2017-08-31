@@ -61,6 +61,9 @@ REF_BLOB = 'const sqlite::blob_t &'
 SETTER_REF = "inline {cpp_type} & {name}() {{\n" \
              "    return {member_name};\n" \
              "}}\n"
+SETTER_RANGE = "inline void {name}(const BufferRangeConst &rng) {{\n" \
+               "    {member_name}.clear(); {member_name}.write(rng, 0);\n" \
+               "}}\n"
 
 types = [
     SQXType(SQXIO('static_cast<uint8_t>({member_name})', '{member_name} = static_cast<bool>({name});'), 'bool',
@@ -75,7 +78,7 @@ types = [
     SQXType(IO_PRIMITIVE, 'int64_t', 'INTEGER'),
 
     SQXType(IO_BLOB, 'String', 'BLOB', 'const String &', REF_BLOB, SETTER_REF),
-    SQXType(IO_BLOB, 'Buffer', 'BLOB', 'const Buffer &', REF_BLOB, SETTER_REF),
+    SQXType(IO_BLOB, 'Buffer', 'BLOB', 'const Buffer &', REF_BLOB, SETTER_REF+SETTER_RANGE),
 
     SQXType(IO_PRIMITIVE, 'std::string', 'TEXT', 'const std::string &', additional_setter=SETTER_REF),
 ]

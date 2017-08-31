@@ -3,6 +3,6 @@
 # int64_t messageIndex # foreign key
 
 int64_t timestamp    # unix time milliseconds
-uint8_t isDelivered  # bool whether the message was delivered to server
+bool    isDelivered  # indicates whether the message was delivered to server
 String  hash         # recipients hashit qgit
 Buffer  content      # binary content
