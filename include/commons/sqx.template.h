@@ -113,6 +113,13 @@ public:
         process();
     }
     virtual void store() {
+        [[[cog
+            for v in vars:
+                store_hook = v.store_hook().format(**v.format_kwargs())
+                if len(store_hook) > 0:
+                    cog.outl(store_hook)
+        ]]]
+        [[[end]]]
         if (mId >= 0) {
             [[[cog
                 param_list = []

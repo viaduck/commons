@@ -1,6 +1,6 @@
 -
-int64_t contactIndex # foreign key
+foreign database/SContact       messageContact      ON DELETE CASCADE
+foreign database/SGroupMember   messageGrpMember    ON DELETE CASCADE
+
 int64_t timestamp    # unix time milliseconds
-bool    isOwn        # indicates whether the message was sent or received
-bool    isDelivered  # indicates whether the message was delivered (if own) or seen (if received)
 Buffer  content      # binary message content

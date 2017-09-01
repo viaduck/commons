@@ -13,12 +13,13 @@ from tools.common import parse_enum_include
 
 
 class SQXIO:
-    def __init__(self, store, load, sql_setter=None, pre_hook=None, post_hook=None):
+    def __init__(self, store, load, sql_setter=None, pre_hook=None, post_hook=None, store_hook=None):
         self._store = store
         self._load = load
         self._sql_setter = self._load if sql_setter is None else sql_setter
         self._pre_hook = pre_hook
         self._post_hook = post_hook
+        self._store_hook = store_hook
 
     def store(self, name, member_name, cpp_type):
         return self._store.format(name=name, member_name=member_name, cpp_type=cpp_type)
@@ -35,6 +36,9 @@ class SQXIO:
     def post_hook(self):
         return "" if self._post_hook is None else self._post_hook
 
+    def store_hook(self):
+        return "" if self._store_hook is None else self._store_hook
+
 IO_PRIMITIVE = SQXIO('{member_name}', '{member_name} = {name};')
 IO_BLOB = SQXIO('sqlite::blob_t({member_name}.const_data(), {member_name}.size())',
                 '{member_name}.clear(); {member_name}.write({name}.first, {name}.second, 0);',
@@ -46,7 +50,8 @@ IO_FOREIGN = \
           post_hook='if (_{member_name}_id >= 0) {{\n'
                     '    {member_name}.reset(new {cpp_type}(this, _{member_name}_id));\n'
                     '    {member_name}->load();\n'
-                    '}}')
+                    '}}',
+          store_hook='if ({member_name}) {member_name}->store();')
 REF_BLOB = 'const sqlite::blob_t &'
 
 GETTER_PRIMITIVE = "inline {ref_type} {name}() const {{\n" \
@@ -173,6 +178,9 @@ class SQXEntry:
 
     def post_hook(self):
         return self._type.io().post_hook()
+
+    def store_hook(self):
+        return self._type.io().store_hook()
 
     def format_kwargs(self, what_else=None):
         ret = {'name': self.name(), 'member_name': self.member_name(), 'setter': self.setter()}

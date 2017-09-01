@@ -1,5 +1,7 @@
 -
-String    name            # name of the group (own) or NULL (!own)
-uint64_t  inviteId        # refer to this when accepting an invite
-int64_t   friendIndex     # friend that was invited (own) or that invited us (!own)
-bool      isOwn           # did we invite someone (true) / did someone invite us (false)
+foreign database/SContact inviteContact ON DELETE CASCADE
+foreign database/SGroup   invitedGroup  ON DELETE CASCADE
+
+String      name             # name of the group (if own)
+int64_t     timestamp        # unix epoch in millis
+Buffer      inviteToken      # refer to this when accepting an invite

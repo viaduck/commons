@@ -1,8 +1,7 @@
 -
-# TODO: decide if pending for message or attachment -> extra flag?
-# int64_t messageIndex # foreign key
+foreign database/SMessage    pendingMessage     ON DELETE CASCADE
+foreign database/SAttachment pendingAttachment  ON DELETE CASCADE
 
-int64_t timestamp    # unix time milliseconds
-bool    isDelivered  # indicates whether the message was delivered to server
-String  hash         # recipients hashit qgit
-Buffer  content      # binary content
+bool    delivered   # indicates whether the message was delivered to server
+String  hash        # recipients hash
+Buffer  content     # binary content

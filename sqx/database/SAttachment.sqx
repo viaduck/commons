@@ -1,5 +1,5 @@
 -
-int64_t messageIndex # foreign key
-int64_t timestamp    # unix time milliseconds
-bool    isDelivered  # indicates whether the message was delivered (if own) or seen (if received)
-Buffer  content      # binary message content
+foreign database/SMessage attachmentMessage ON DELETE CASCADE
+
+int64_t timestamp
+Buffer  content

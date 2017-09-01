@@ -1,0 +1,3 @@
+-
+foreign database/SIdentity memberIdentity ON DELETE CASCADE
+foreign database/SGroup    memberGroup    ON DELETE CASCADE
