@@ -171,11 +171,12 @@ line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s
 
 
 class SQXEntry:
-    def __init__(self, name, sqx_type, constraints=None):
+    def __init__(self, name, sqx_type, constraints=None, create_schema=None):
         self._name = name
         self._member_name = 'm' + name[0].upper() + name[1:]
         self._type = hashed_types[sqx_type]
         self._constraints = constraints
+        self._create_schema = '' if create_schema is None else create_schema
 
     def name(self):
         return self._name
@@ -220,6 +221,9 @@ class SQXEntry:
             ret += (" " + self._constraints if len(self._constraints) > 0 else "")
         return ret
 
+    def create_schema(self):
+        return self._create_schema
+
 
 def do(filename):
     """
@@ -260,10 +264,12 @@ def do(filename):
             # is this a foreign key definition?
             f = fkey_matcher.match(line)
             constraints = None
+            schema = None
             if f is not None:
                 type = f.group('type').strip()
                 id = f.group('name').strip()
                 constraints = ("REFERENCES {cpp_type} " + f.group('constraints').strip()).strip()
+                schema = '{cpp_type}::createTable(db);\n'
 
                 includes_sqx.append(type)
 
@@ -285,4 +291,4 @@ def do(filename):
             if type not in hashed_types:
                 raise Exception("Unsupported type >", type, "<")
 
-            yield SQXEntry(id, type, constraints), includes_enum, includes_sqx
+            yield SQXEntry(id, type, constraints, schema), includes_enum, includes_sqx

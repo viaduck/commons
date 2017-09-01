@@ -67,9 +67,12 @@ public:
     static void createTable(sqlite::cryptosqlite_database &db) {
         [[[cog
             param_list = []
+            schema_creation_set = set()
             for v in vars:
+                schema_creation_set.add(v.create_schema().format(**v.format_kwargs()))
                 param_list.append(v.create_stmt().format(**v.format_kwargs()))
-            cog.outl('db << "CREATE TABLE {name} (pid INTEGER PRIMARY KEY, {param_list});";'.format(name=name, param_list=', '.join(param_list)))
+            cog.outl(''.join(schema_creation_set))
+            cog.outl('db << "CREATE TABLE IF NOT EXISTS {name} (pid INTEGER PRIMARY KEY, {param_list});";'.format(name=name, param_list=', '.join(param_list)))
         ]]]
         [[[end]]]
     }
