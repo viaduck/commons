@@ -114,5 +114,5 @@ def do(filename):
             if arr is not None and type not in arr_supported:
                 raise Exception(type+" is not supported as array type!")
 
-            byte_size = size_bits(type) / 8
+            byte_size = int(size_bits(type) / 8)
             yield (type, id, byte_size, arr, subs if len(subs) > 0 else None)
