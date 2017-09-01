@@ -154,6 +154,20 @@ public:
         }
     }
 
+    static std::vector<int64_t> selectAll(sqlite::cryptosqlite_database &dbConnection, const std::string &where = "") {
+        std::vector<int64_t> elements;
+
+        [[[cog
+            cog.outl('dbConnection << "SELECT pid FROM {name}" + (where.empty() ? ";" : " " + where + ";") >>'.format(name=name))
+        ]]]
+        [[[end]]]
+        [&] (int64_t pid) {
+            elements.push_back(pid);
+        };
+
+        return elements;
+    }
+
     int64_t id() const {
         return mId;
     }
@@ -181,6 +195,7 @@ protected:
     // --
     [[[cog
         for v in vars:
+            cog.outl(v.member_hook().format(**v.format_kwargs()))
             cog.outl("{member_type} {member_name};".format(**v.format_kwargs()))
     ]]]
     [[[end]]]

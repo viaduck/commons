@@ -6,7 +6,7 @@
 class SQXBase {
 public:
     struct load_exception : public std::runtime_error {
-        load_exception(const std::string &what) : std::runtime_error(what) {}
+        explicit load_exception(const std::string &what) : std::runtime_error(what) {}
     };
 
     virtual sqlite::cryptosqlite_database *db() = 0;
