@@ -124,7 +124,7 @@ types = [
     SQXType(IO_PRIMITIVE, 'int32_t', 'INTEGER'),
     SQXType(IO_PRIMITIVE, 'int64_t', 'INTEGER'),
 
-    SQXType(IO_BLOB, 'String', 'BLOB', 'const String &', REF_BLOB, additional_setter=SETTER_REF),
+    SQXType(IO_BLOB, 'String', 'BLOB', 'const String &', REF_BLOB, additional_setter=SETTER_REF+SETTER_PRIMITIVE),
     SQXType(IO_BLOB, 'Buffer', 'BLOB', 'const Buffer &', REF_BLOB, additional_setter=SETTER_REF+SETTER_RANGE),
 
     SQXType(IO_PRIMITIVE, 'std::string', 'TEXT', 'const std::string &', additional_setter=SETTER_PRIMITIVE+SETTER_REF),
