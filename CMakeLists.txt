@@ -8,7 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory
 find_package(PythonInterp 3.4 REQUIRED)       # need the pathlib module, which is part of 3.4+
 
 # compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
 add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibility
 
 # externals

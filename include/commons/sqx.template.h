@@ -28,6 +28,7 @@ cog.outl("#define {name}_H".format(name=name))
 
 #include <secure_memory/String.h>
 #include <commons/SQXBase.h>
+#include <commons/ConstexprString.h>
 
 [[[cog
     res = list(g.do(filename))
@@ -54,6 +55,75 @@ cog.outl("#define {name}_H".format(name=name))
 ]]]
 [[[end]]]
 public:
+    // types required for partial store/load
+    [[[cog
+        param_list = []
+        for v in vars:
+            param_list.append('struct Column_{name} {{ static constexpr auto ID() {{ return MakeConstexprString("{name}"); }} }};'.format(**v.format_kwargs()))
+        cog.outl('\n'.join(param_list))
+    ]]]
+    [[[end]]]
+
+    // template for storing a particular member
+    template<typename T>
+    sqlite::database_binder &&member_store(sqlite::database_binder &&dbb);
+
+    // variadic template for iterating all template arguments to store them
+    template <typename T, typename... Args>
+    inline sqlite::database_binder &&internal_store(sqlite::database_binder &&dbb) {
+        return std::move(internal_store<Args...>(std::move(member_store<T>(std::move(dbb)))));
+    }
+    // variadic template recursion anchor
+    template <typename... Args>
+    inline sqlite::database_binder &&internal_store(sqlite::database_binder &&dbb, typename std::enable_if<sizeof...(Args) == 0>::type* = 0) {
+        return std::move(dbb);
+    }
+
+    // variadic template for building SQL UPDATE statement
+    template<typename Column, typename... Columns>
+    constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+        return Column::ID() + MakeConstexprString("=?, ") + build_update_stmt<Columns...>();
+    }
+    // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
+    template<typename Column, typename... Columns>
+    constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+        return Column::ID() + MakeConstexprString("=?");
+    }
+    // variadic template recursion anchor
+    constexpr auto build_update_stmt() {
+        return MakeConstexprString("");
+    }
+
+    // variadic template for building SQL INSERT statement
+    template<typename Column, typename... Columns>
+    constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+        return Column::ID() + MakeConstexprString(", ") + build_insert_stmt<Columns...>();
+    }
+    // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
+    template<typename Column, typename... Columns>
+    constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+        return Column::ID();
+    }
+    // variadic template recursion anchor
+    constexpr auto build_insert_stmt() {
+        return MakeConstexprString("");
+    }
+
+    // variadic template for building placeholder sequence, required by INSERT statement
+    template<typename Column, typename... Columns>
+    constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+        return MakeConstexprString("?, ") + build_stmt_placeholders<Columns...>();
+    }
+    // variadic template specialization if there is only one parameter left. This is required, since the last placeholder must not have a trailing comma.
+    template<typename Column, typename... Columns>
+    constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+        return MakeConstexprString("?");
+    }
+    // variadic template recursion anchor
+    constexpr auto build_stmt_placeholders() {
+        return MakeConstexprString("");
+    }
+
     // constructors
     [[[cog
     cog.outl("{name}() {{}}".format(name=name))
@@ -135,7 +205,7 @@ public:
             ]]]
             [[[end]]]
         } else {
-                [[[cog
+            [[[cog
                 param_list = []
                 for v in vars:
                     param_list.append(v.name())
@@ -148,6 +218,29 @@ public:
             mId = db()->last_insert_rowid();
         }
     }
+    template <typename... Columns>
+    void storeSpecific() {
+        if (mId >= 0) {
+            [[[cog
+            cog.outl('auto update_stmt = MakeConstexprString("UPDATE {name} SET ") + build_update_stmt<Columns...>() + MakeConstexprString("WHERE pid = ?;");'.format(name=name))
+            ]]]
+            [[[end]]]
+            sqlite::database_binder dbb = *db() << "" << update_stmt.c_str();
+            internal_store<Columns...>(std::move(dbb)) << mId;
+        } else {
+            {
+                [[[cog
+                cog.outl('auto insert_stmt = MakeConstexprString("INSERT INTO {name} (") + build_insert_stmt<Columns...>() + MakeConstexprString(") VALUES (") + (build_stmt_placeholders<Columns...>()) + MakeConstexprString(");");'.format(name=name))
+                ]]]
+                [[[end]]]
+
+                sqlite::database_binder dbb = *db() << insert_stmt.c_str();
+                internal_store<Columns...>(std::move(dbb));
+            }
+            mId = db()->last_insert_rowid();
+        }
+    }
+
     virtual void remove() {
         if (mId >= 0) {
             [[[cog
@@ -203,6 +296,21 @@ protected:
     ]]]
     [[[end]]]
 };
+
+// template specializations for every member
+[[[cog
+    for v in vars:
+        cog.outl('template<>')
+        cog.outl('inline sqlite::database_binder &&{table_name}::member_store<{table_name}::Column_{name}>(sqlite::database_binder &&dbb) {{\n'
+                 .format(table_name=name, **v.format_kwargs(), store=v.store))
+        # TODO is it ok to call other's store which creates a new statement itself while another is already active?
+        store_hook = v.store_hook().format(**v.format_kwargs())
+        if len(store_hook) > 0:
+            cog.outl(store_hook)
+        cog.outl('    return std::move(dbb << {store});\n'
+                 '}}\n'.format(table_name=name, **v.format_kwargs(), store=v.store()))
+]]]
+[[[end]]]
 
 [[[cog
 cog.outl("#endif //{name}_H".format(name=name))
