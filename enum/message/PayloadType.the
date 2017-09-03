@@ -2,4 +2,5 @@ SymmetricKeyExchange,
 SymmetricKeyMessage,
 GrpInviteMessage,
 GrpAcceptMessage,
+GrpMemberMessage,
 GrpConfirmMessage

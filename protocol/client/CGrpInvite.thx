@@ -1,3 +1,3 @@
 -
 uint8_t(4)      inviteToken
-uint8_t(var)    groupName
+uint8_t(Var)    groupName

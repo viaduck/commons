@@ -1,0 +1,4 @@
+-
+uint8_t(4)      inviteToken
+uint8_t(64)     pubKey
+uint8_t(Var)    name
