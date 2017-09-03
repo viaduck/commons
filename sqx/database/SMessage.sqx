@@ -1,6 +1,8 @@
 -
 foreign database/SContact       messageContact      ON DELETE CASCADE
-foreign database/SGroupMember   messageGrpMember    ON DELETE CASCADE
+foreign database/SGroupMember   messageGrpMember    ON DELETE SET NULL
+foreign database/SGroup         messageGroup        ON DELETE CASCADE
 
 int64_t timestamp    # unix time milliseconds
+bool    own          # whether we sent the message or we received it
 Buffer  content      # binary message content

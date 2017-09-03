@@ -2,4 +2,5 @@
 foreign database/SIdentity groupIdentity ON DELETE CASCADE
 foreign database/SKeyInfo  symmetricKey  ON DELETE SET NULL
 
+String groupName    # groups name
 String groupHash    # groups hash and admin hash
