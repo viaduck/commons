@@ -31,7 +31,7 @@ TEST_F(SecureStorageTest, testStoreGet) {
     String testBuf2("lksdlkjdsjklsdjlksdjklsasassasasas123aqq");
 
     // try to store this
-    ASSERT_TRUE(secure.store(testBuf1));
+    ASSERT_NO_THROW(secure.store(testBuf1));
 
     // check that data is equal to previously stored data
     ASSERT_TRUE(secure.get<Buffer>([&] (const Buffer& data) {
@@ -39,7 +39,7 @@ TEST_F(SecureStorageTest, testStoreGet) {
     }));
 
     // try to store something else
-    ASSERT_TRUE(secure.store(testBuf2));
+    ASSERT_NO_THROW(secure.store(testBuf2));
 
     // check that data is equal to newly stored data
     ASSERT_TRUE(secure.get<Buffer>([&] (const Buffer& data) {
@@ -55,7 +55,7 @@ TEST_F(SecureStorageTest, testModify) {
     String testBufMod = testBuf1 + testBuf2;
 
     // try to store this
-    ASSERT_TRUE(secure.store(testBuf1));
+    ASSERT_NO_THROW(secure.store(testBuf1));
 
     // check that data is equal to previously stored data
     ASSERT_TRUE(secure.get<Buffer>([&] (const Buffer& data) {

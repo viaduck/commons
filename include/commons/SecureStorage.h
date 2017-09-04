@@ -23,14 +23,15 @@ public:
      * @return True on success
      */
     template <typename T>
-    bool store(const T &b) {
+    void store(const T &b) {
         mInternal.clear();
 
         Buffer temp;
         b.serialize(temp);
 
         // generate new key for each storage operation
-        return reset_key() && encrypt(temp);
+        reset_key();
+        encrypt(temp);
     }
 
     /**
@@ -45,7 +46,8 @@ public:
         Buffer tempBuf;
         T temp;
 
-        if(decrypt(tempBuf) && temp.deserialize(tempBuf)) {
+        decrypt(tempBuf);
+        if (temp.deserialize(tempBuf)) {
             // call cb with decrypted buffer
             cb(temp);
             return true;
@@ -66,12 +68,14 @@ public:
         Buffer tempBuf;
         T temp;
 
-        if(decrypt(tempBuf) && temp.deserialize(tempBuf)) {
+        decrypt(tempBuf);
+        if (temp.deserialize(tempBuf)) {
             // call cb with decrypted buffer
             cb(temp);
 
             //
-            return store(temp);
+            store(temp);
+            return true;
         }
         return false;
     }
@@ -89,9 +93,9 @@ private:
      *
      * @return True on success
      */
-    bool encrypt(const Buffer &b) {
+    void encrypt(const Buffer &b) {
         K encryption(mKey);
-        return encryption.encrypt(b, BufferRange(mInternal, 0, b.size()), mExtra);
+        encryption.encrypt(b, BufferRange(mInternal, 0, b.size()), mExtra);
     }
 
     /**
@@ -101,9 +105,9 @@ private:
      *
      * @return True on success
      */
-    bool decrypt(Buffer &b) const {
+    void decrypt(Buffer &b) const {
         K decryption(mKey);
-        return decryption.decrypt(mInternal, BufferRange(b, 0, mInternal.size()), mExtra);
+        decryption.decrypt(mInternal, BufferRange(b, 0, mInternal.size()), mExtra);
     }
 
     /**
@@ -111,7 +115,7 @@ private:
      *
      * @return True on success
      */
-    bool reset_key() {
+    void reset_key() {
         // use buffer in advance if needed
         if (mKey.size() == 0)
             mKey.use(K::KEY_SIZE);
@@ -123,7 +127,8 @@ private:
         if(!success)
             mKey.clear();
 
-        return success;
+        // FIXME: throw here
+        //return success;
     }
 };
 #endif //VDCOMMONS_SECURESTORAGE_H
