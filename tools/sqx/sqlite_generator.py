@@ -64,8 +64,8 @@ GETTER_FOREIGN = "inline {ref_type} {name}() {{\n" \
                  "        throw SQXBase::load_exception(\"{member_name} in {cpp_type} invalid foreign key\");\n\n" \
                  "    return {member_name};\n" \
                  "}}\n" \
-                 "inline void load_{name}() {{\n" \
-                 "    if ({member_name}_id >= 0) {{\n" \
+                 "inline void load_{name}(bool force = true) {{\n" \
+                 "    if ({member_name}_id >= 0 && (force || !{member_name})) {{\n" \
                  "        {member_name}.reset(new {cpp_type}(this, {member_name}_id));\n" \
                  "        {member_name}->load();\n" \
                  "    }}\n" \

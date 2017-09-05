@@ -218,7 +218,7 @@ public:
             cog.outl('auto update_stmt = MakeConstexprString("UPDATE {name} SET ") + build_update_stmt<Columns...>() + MakeConstexprString("WHERE pid = ?;");'.format(name=name))
             ]]]
             [[[end]]]
-            sqlite::database_binder dbb = *db() << "" << update_stmt.c_str();
+            sqlite::database_binder dbb = *db() << update_stmt.c_str();
             internal_store<Columns...>(std::move(dbb)) << mId;
         } else {
             {
