@@ -81,46 +81,46 @@ public:
 
     // variadic template for building SQL UPDATE statement
     template<typename Column, typename... Columns>
-    constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+    static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
         return Column::ID() + MakeConstexprString("=?, ") + build_update_stmt<Columns...>();
     }
     // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
     template<typename Column, typename... Columns>
-    constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+    static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
         return Column::ID() + MakeConstexprString("=?");
     }
     // variadic template recursion anchor
-    constexpr auto build_update_stmt() {
+    static constexpr auto build_update_stmt() {
         return MakeConstexprString("");
     }
 
     // variadic template for building SQL INSERT statement
     template<typename Column, typename... Columns>
-    constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+    static constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
         return Column::ID() + MakeConstexprString(", ") + build_insert_stmt<Columns...>();
     }
     // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
     template<typename Column, typename... Columns>
-    constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+    static constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
         return Column::ID();
     }
     // variadic template recursion anchor
-    constexpr auto build_insert_stmt() {
+    static constexpr auto build_insert_stmt() {
         return MakeConstexprString("");
     }
 
     // variadic template for building placeholder sequence, required by INSERT statement
     template<typename Column, typename... Columns>
-    constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+    static constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
         return MakeConstexprString("?, ") + build_stmt_placeholders<Columns...>();
     }
     // variadic template specialization if there is only one parameter left. This is required, since the last placeholder must not have a trailing comma.
     template<typename Column, typename... Columns>
-    constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+    static constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
         return MakeConstexprString("?");
     }
     // variadic template recursion anchor
-    constexpr auto build_stmt_placeholders() {
+    static constexpr auto build_stmt_placeholders() {
         return MakeConstexprString("");
     }
 
@@ -186,13 +186,6 @@ public:
         process();
     }
     virtual void store() {
-        [[[cog
-            for v in vars:
-                store_hook = v.store_hook().format(**v.format_kwargs())
-                if len(store_hook) > 0:
-                    cog.outl(store_hook)
-        ]]]
-        [[[end]]]
         if (mId >= 0) {
             [[[cog
                 param_list = []
@@ -302,13 +295,9 @@ protected:
     for v in vars:
         cog.outl('template<>')
         cog.outl('inline sqlite::database_binder &&{table_name}::member_store<{table_name}::Column_{name}>(sqlite::database_binder &&dbb) {{\n'
-                 .format(table_name=name, **v.format_kwargs(), store=v.store))
-        # TODO is it ok to call other's store which creates a new statement itself while another is already active?
-        store_hook = v.store_hook().format(**v.format_kwargs())
-        if len(store_hook) > 0:
-            cog.outl(store_hook)
+                 .format(table_name=name, store=v.store, **v.format_kwargs()))
         cog.outl('    return std::move(dbb << {store});\n'
-                 '}}\n'.format(table_name=name, **v.format_kwargs(), store=v.store()))
+                 '}}\n'.format(table_name=name, store=v.store(), **v.format_kwargs()))
 ]]]
 [[[end]]]
 

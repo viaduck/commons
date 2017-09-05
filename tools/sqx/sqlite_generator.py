@@ -13,13 +13,12 @@ from tools.common import parse_enum_include
 
 
 class SQXIO:
-    def __init__(self, store, load, sql_setter=None, pre_hook=None, post_hook=None, store_hook=None, member_hook=None):
+    def __init__(self, store, load, sql_setter=None, pre_hook=None, post_hook=None, member_hook=None):
         self._store = store
         self._load = load
         self._sql_setter = self._load if sql_setter is None else sql_setter
         self._pre_hook = pre_hook
         self._post_hook = post_hook
-        self._store_hook = store_hook
         self._member_hook = member_hook
 
     def store(self, name, member_name, cpp_type):
@@ -37,9 +36,6 @@ class SQXIO:
     def post_hook(self):
         return "" if self._post_hook is None else self._post_hook
 
-    def store_hook(self):
-        return "" if self._store_hook is None else self._store_hook
-
     def member_hook(self):
         return "" if self._member_hook is None else self._member_hook
 
@@ -51,10 +47,6 @@ IO_ENUM = SQXIO('toInt({member_name})', '{member_name} = to{cpp_type}({name});',
 IO_FOREIGN = \
     SQXIO('({member_name}_id >= 0 ? std::make_unique<int64_t>({member_name}_id) : std::unique_ptr<int64_t>())',
           '{member_name}_id = {name} ? *{name} : -1;',
-          store_hook='if ({member_name}) {{\n'
-                     '    {member_name}->store();\n'
-                     '    {member_name}_id = {member_name}->id();\n'
-                     '}}',
           member_hook='int64_t {member_name}_id = -1;')
 REF_BLOB = 'const sqlite::blob_t &'
 
@@ -97,6 +89,10 @@ SETTER_FOREIGN = "inline void create_{name}() {{\n" \
                  "inline void {name}_id(int64_t value) {{\n" \
                  "    {member_name}.reset();" \
                  "    {member_name}_id = value;\n" \
+                 "}}\n" \
+                 "inline void store_{name}() {{\n" \
+                 "    {member_name}->store();\n"   \
+                 "    {member_name}_id = {member_name}->id();\n"   \
                  "}}"
 
 
