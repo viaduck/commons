@@ -5,7 +5,7 @@ PayloadType enum/message/PayloadType.the
 uint8_t(64)     signature   # signature needs to go first to be able to skip it on signature check
 uint8_t(20)     senderHash  # hash of the sender to check signature against
 
-uint64_t        timestamp
+int64_t        timestamp
 uint8_t(10)     nonce
 
 # payload with type

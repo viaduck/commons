@@ -8,9 +8,13 @@ enum_include_matcher = re.compile(r"(?P<id>[a-zA-Z0-9_]+) (?P<path>.+)")
 
 # maps variable type to its byte size
 i = OrderedDict([
+    ("int64_t", 8),
     ("uint64_t", 8),
+    ("int32_t", 4),
     ("uint32_t", 4),
+    ("int16_t", 2),
     ("uint16_t", 2),
+    ("int8_t", 1),
     ("uint8_t", 1),
 ])
 
@@ -43,7 +47,7 @@ def bits_to_type(bits):
     """
     current_type = list(i.keys())[0]
     for key, value in i.items():
-        if 0 <= value*8-bits < i[current_type]*8-bits:
+        if 0 <= value*8-bits <= i[current_type]*8-bits:
             current_type = key
     return current_type
 
