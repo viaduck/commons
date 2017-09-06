@@ -3,4 +3,6 @@ SymmetricKeyMessage,
 GrpInviteMessage,
 GrpAcceptMessage,
 GrpMemberMessage,
-GrpConfirmMessage
+GrpConfirmMessage,
+GMemberMessage,
+GRerollMessage

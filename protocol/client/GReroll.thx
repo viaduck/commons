@@ -1,0 +1,4 @@
+-
+uint8_t(32)     symKey1
+uint8_t(32)     symKey2
+uint8_t(32)     symHint
