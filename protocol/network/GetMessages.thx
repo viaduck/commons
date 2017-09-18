@@ -1,4 +1,0 @@
--
-uint8_t(20) phash
-uint32_t maxMessages
-uint32_t lastMessage
