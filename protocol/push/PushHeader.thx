@@ -1,0 +1,4 @@
+ProtocolVersion enum/server/ProtocolVersion.the
+-
+ProtocolVersion version
+uint8_t         numPbox
