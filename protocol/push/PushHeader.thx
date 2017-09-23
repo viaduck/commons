@@ -1,4 +1,5 @@
 ProtocolVersion enum/server/ProtocolVersion.the
+ProtocolPushOpcode enum/server/ProtocolPushOpcode.the
 -
-ProtocolVersion version
-uint8_t         numPbox
+ProtocolVersion     version
+ProtocolPushOpcode  opcode
