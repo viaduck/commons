@@ -53,7 +53,7 @@ public:
                 return SystemdLogLevel::WARNING;
             case LogLevel::LEVEL_ERROR:
                 return SystemdLogLevel::ERR;
-            case LogLevel::INVALID_ENUM_VALUE:
+            default:
                 return SystemdLogLevel::INVALID;
         }
     }
