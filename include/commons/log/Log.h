@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <ostream>
+#include <mutex>
 
 /**
  * Interface a Logger has to implement.
@@ -80,6 +81,7 @@ class Log {
                             logger->stream() << std::endl;
                     }
                 }
+                mParent.mLogLock.unlock();
             }
 
             /**
@@ -115,6 +117,8 @@ class Log {
          */
         template<typename T>
         LogStreamValue operator<<(const T &t) {
+            mLogLock.lock();
+
             std::vector<ILogger *> enabledLoggers;
             if (mLog.isEnabled() && mEnabled) {
                 enabledLoggers.reserve(mLog.mLoggers.size());
@@ -158,6 +162,7 @@ class Log {
 
         Log &mLog;
         bool mEnabled = true;
+        std::mutex mLogLock;
 
         friend class Log;
     };
