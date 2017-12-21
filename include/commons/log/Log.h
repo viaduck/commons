@@ -71,6 +71,18 @@ class Log {
             LogStreamValue(LogStream &parent, std::vector<ILogger*> enabledLoggers) : mParent(parent),
                                                                                       mEnabledLoggers(enabledLoggers) { }
             /**
+             * Appends a std::endl to the log entry on destruction.
+             */
+            ~LogStreamValue() {
+                if (mParent.mLog.isEnabled() && mParent.isEnabled()) {
+                    for (ILogger *logger: mEnabledLoggers) {
+                        if (logger->isOpen())
+                            logger->stream() << std::endl;
+                    }
+                }
+            }
+
+            /**
              * Stream operator which is used for logging. This only logs the actual value by passing them to LogStream.
              *
              * Logging is only performed if the log level is enabled.

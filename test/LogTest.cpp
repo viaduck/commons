@@ -2,8 +2,8 @@
 #include "LogTest.h"
 
 TEST_F(LogTest, Simple) {
-    Log::dbg<<"Test 123 "<<456<<" "<<true<<"\n";
-    Log::err<<"This is an error "<<std::hex<<1337<<" "<<0.0559897f<<"\n";
+    Log::dbg<<"Test 123 "<<456<<" "<<true;
+    Log::err<<"This is an error "<<std::hex<<1337<<" "<<0.0559897f;
 
     EXPECT_EQ("[LogLevel::LEVEL_DEBUG] Test 123 456 1\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
     EXPECT_EQ("[LogLevel::LEVEL_ERROR] This is an error 539 0.0559897\n", mLogger->toString(LogLevel::LEVEL_ERROR));
