@@ -323,6 +323,16 @@ public:
         return mKeys.erase(key) > 0 || mInternal.erase(key) > 0;
     }
 
+    /**
+     * Counts the number of values associated to a key
+     *
+     * @param key Key to count
+     * @return Number of values
+     */
+    size_t count(const String &key) {
+        return mInternal.count(key);
+    }
+
     /* KVS general management methods */
 
     /**

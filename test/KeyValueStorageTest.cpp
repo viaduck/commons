@@ -47,6 +47,12 @@ TEST_F(KeyValueStorageTest, Primitive) {
     EXPECT_TRUE(kvs.setValue<double>("doubles", 1.133742e42));
     EXPECT_TRUE(kvs.setValue<double>("doubles", 0.0));
 
+    // check counts
+    EXPECT_EQ(3u, kvs.count("ints"));
+    EXPECT_EQ(2u, kvs.count("floats"));
+    EXPECT_EQ(2u, kvs.count("doubles"));
+    EXPECT_EQ(0u, kvs.count("nonexistent"));
+
     EXPECT_THROW(kvs.getValue<int>("ints"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
     EXPECT_THROW(kvs.getValue<float>("floats"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
     EXPECT_THROW(kvs.getValue<double>("doubles"), std::invalid_argument) << "Must fail if there are multiple values but enforced to be unique";
