@@ -18,16 +18,19 @@ bool KeyValueStorage::setInternal(const String &key, const Buffer &value, bool r
     return true;
 }
 
-void KeyValueStorage::modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &)> callback) {
+void KeyValueStorage::modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &, bool &)> callback) {
     // range of values matching key
     auto range = mInternal.equal_range(key);
 
     // iterate range and call callback with every found value
-    for (auto it = range.first; it != range.second; it++) {
+    bool exit = false;
+    for (auto it = range.first; it != range.second && !exit; ) {
 
         // call callback -> break if false
-        if (!callback(it->second))
-            break;
+        if (!callback(it->second, exit))
+            it = mInternal.erase(it);
+        else
+            it++;
     }
 }
 

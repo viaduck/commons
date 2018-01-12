@@ -176,14 +176,14 @@ TEST_F(KeyValueStorageTest, PrimitiveModify) {
     kvs.setValue<int>("int2", ints[2]);
 
     // ## existing 1-value key ##
-    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val, bool &) {
         EXPECT_EQ(ints[0], val);
         val = 99;
         return true;
     }));
     EXPECT_EQ(99, kvs.getValue<int>("int1")) << ints[0] << " must have been modified to " << 99;
 
-    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int1", [&] (int &val, bool &) {
         EXPECT_EQ(99, val);
         return true;
     }));
@@ -191,7 +191,7 @@ TEST_F(KeyValueStorageTest, PrimitiveModify) {
 
     // ## existing n-value key ##
     std::vector<int> toFind = {456, 1337};
-    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -204,7 +204,7 @@ TEST_F(KeyValueStorageTest, PrimitiveModify) {
 
     // check if really replaced
     toFind = {456+25, 1337+25};
-    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -216,20 +216,23 @@ TEST_F(KeyValueStorageTest, PrimitiveModify) {
     // now modify first, but stop after it
     toFind = {456+25, 1337+25};
     int modified = 0;
-    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val, bool &exit) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
         toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
         val += 25;
         modified = val;
-        return false;       // stop after first
+
+        // stop after first
+        exit = true;
+        return true;
     }));
     EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
 
     // check if only one replaced, the other must be the same
     toFind = {toFind[0], modified};
-    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val) {
+    EXPECT_TRUE(kvs.modifyValues<int>("int2", [&] (int &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -239,7 +242,7 @@ TEST_F(KeyValueStorageTest, PrimitiveModify) {
     EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
 
     // ## non-existent key ##
-    EXPECT_FALSE(kvs.modifyValues<int>("non-existent", [&] (int &) {
+    EXPECT_FALSE(kvs.modifyValues<int>("non-existent", [&] (int &, bool &) {
         ADD_FAILURE() << "Modify-callback called too often";
         return true;
     }));
@@ -249,12 +252,19 @@ TEST_F(KeyValueStorageTest, PrimitiveGetCallback) {
     KeyValueStorage testContainer;
 
     // write 5 values with one key
-    std::vector<int> test1Values = {1, 2, 3, 4, 5};
+    std::vector<int> test1Values = {1, 2, 3, 4, 11, 5};
     testContainer.setValue<int>("test1", test1Values[0]);
     testContainer.setValue<int>("test1", test1Values[1]);
     testContainer.setValue<int>("test1", test1Values[2]);
     testContainer.setValue<int>("test1", test1Values[3]);
     testContainer.setValue<int>("test1", test1Values[4]);
+    testContainer.setValue<int>("test1", test1Values[5]);
+
+    // remove test1Values[4] from multi key
+    testContainer.modifyValues<int>("test1", [&] (int &v, bool &exit) -> bool {
+        exit = (v == test1Values[4]); // delete this one, then exit
+        return !exit;
+    });
 
     // write 3 values with other key
     std::vector<int> test2Values = {1337, 1338, 1339};
@@ -446,14 +456,14 @@ TEST_F(KeyValueStorageTest, ComplexModify) {
     kvs.setValue<ComplexStruct>("val2", vals[2]);
 
     // ## existing 1-value key ##
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val, bool &) {
         EXPECT_EQ(vals[0], val);
         val = test2Values[0];
         return true;
     }));
     EXPECT_EQ(test2Values[0], kvs.getValue<ComplexStruct>("val1")) << vals[0] << " must have been modified to " << 99;
 
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val1", [&] (ComplexStruct &val, bool &) {
         EXPECT_EQ(test2Values[0], val);
         return true;
     }));
@@ -461,7 +471,7 @@ TEST_F(KeyValueStorageTest, ComplexModify) {
 
     // ## existing n-value key ##
     std::vector<ComplexStruct> toFind = {vals[1], vals[2]};
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -476,7 +486,7 @@ TEST_F(KeyValueStorageTest, ComplexModify) {
     toFind = {vals[1], vals[2]};
     toFind[0].a += 25;
     toFind[1].a += 25;
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -491,20 +501,23 @@ TEST_F(KeyValueStorageTest, ComplexModify) {
     toFind[0].a += 25;
     toFind[1].a += 25;
     ComplexStruct modified;
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val, bool &exit) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
         toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
         val.b += 25;
         modified = val;
-        return false;       // stop after first
+
+        // stop after first
+        exit = true;
+        return true;
     }));
     EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
 
     // check if only one replaced, the other must be the same
     toFind = {toFind[0], modified};
-    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val) {
+    EXPECT_TRUE(kvs.modifyValues<ComplexStruct>("val2", [&] (ComplexStruct &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -514,7 +527,7 @@ TEST_F(KeyValueStorageTest, ComplexModify) {
     EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
 
     // ## non-existent key ##
-    EXPECT_FALSE(kvs.modifyValues<ComplexStruct>("non-existent", [&] (ComplexStruct &) {
+    EXPECT_FALSE(kvs.modifyValues<ComplexStruct>("non-existent", [&] (ComplexStruct &, bool &) {
         ADD_FAILURE() << "Modify-callback called too often";
         return true;
     }));
@@ -709,14 +722,14 @@ TEST_F(KeyValueStorageTest, SerializableModify) {
     kvs.setSerializable("val2", vals[2]);
 
     // ## existing 1-value key ##
-    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val, bool &) {
         EXPECT_EQ(vals[0], val);
         val = test2Values[0];
         return true;
     }));
     EXPECT_EQ(test2Values[0], (kvs.getSerializable("val1", tmp), tmp)) << vals[0] << " must have been modified to " << 99;
 
-    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val1", [&] (String &val, bool &) {
         EXPECT_EQ(test2Values[0], val);
         return true;
     }));
@@ -724,7 +737,7 @@ TEST_F(KeyValueStorageTest, SerializableModify) {
 
     // ## existing n-value key ##
     std::vector<String> toFind = {vals[1], vals[2]};
-    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -739,7 +752,7 @@ TEST_F(KeyValueStorageTest, SerializableModify) {
     toFind = {vals[1], vals[2]};
     toFind[0] += "25";
     toFind[1] += "25";
-    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -754,20 +767,23 @@ TEST_F(KeyValueStorageTest, SerializableModify) {
     toFind[0] += "25";
     toFind[1] += "25";
     String modified;
-    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val, bool &exit) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
         toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
         val += "25";
         modified = val;
-        return false;       // stop after first
+
+        // stop after first
+        exit = true;
+        return true;
     }));
     EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
 
     // check if only one replaced, the other must be the same
     toFind = {toFind[0], modified};
-    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val) {
+    EXPECT_TRUE(kvs.modifySerializables<String>("val2", [&] (String &val, bool &) {
         EXPECT_ANY_OF(toFind, val);
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -777,7 +793,7 @@ TEST_F(KeyValueStorageTest, SerializableModify) {
     EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
 
     // ## non-existent key ##
-    EXPECT_FALSE(kvs.modifySerializables<String>("non-existent", [&] (String &) {
+    EXPECT_FALSE(kvs.modifySerializables<String>("non-existent", [&] (String &, bool &) {
         ADD_FAILURE() << "Modify-callback called too often";
         return true;
     }));
@@ -969,7 +985,7 @@ TEST_F(KeyValueStorageTest, BufferModify) {
     kvs.setBuffer("val2", vals[2]);
 
     // ## existing 1-value key ##
-    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val, bool &) {
         EXPECT_EQ(vals[0], val);
         val.clear();
         val.append(test2Values[0]);
@@ -977,7 +993,7 @@ TEST_F(KeyValueStorageTest, BufferModify) {
     }));
     EXPECT_EQ(test2Values[0], (kvs.getBuffer("val1", tmp), tmp)) << vals[0] << " must have been modified to " << 99;
 
-    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val1", [&] (Buffer &val, bool &) {
         EXPECT_EQ(test2Values[0], val);
         return true;
     }));
@@ -985,7 +1001,7 @@ TEST_F(KeyValueStorageTest, BufferModify) {
 
     // ## existing n-value key ##
     std::vector<String> toFind = {vals[1], vals[2]};
-    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val, bool &) {
         EXPECT_ANY_OF(toFind, String(val));
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -1000,7 +1016,7 @@ TEST_F(KeyValueStorageTest, BufferModify) {
     toFind = {vals[1], vals[2]};
     toFind[0] += "25";
     toFind[1] += "25";
-    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val, bool &) {
         EXPECT_ANY_OF(toFind, String(val));
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -1015,20 +1031,23 @@ TEST_F(KeyValueStorageTest, BufferModify) {
     toFind[0] += "25";
     toFind[1] += "25";
     Buffer modified;
-    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val, bool &exit) {
         EXPECT_ANY_OF(toFind, String(val));
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
         toFind.erase(std::remove(toFind.begin(), toFind.end(), val), toFind.end());
         val.append("25", 2);
         modified.append(val);
-        return false;       // stop after first
+
+        // stop after first
+        exit = true;
+        return true;
     }));
     EXPECT_EQ(1u, toFind.size()) << "Did not call modify-callback exactly 1 time";
 
     // check if only one replaced, the other must be the same
     toFind = {toFind[0], modified};
-    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val) {
+    EXPECT_TRUE(kvs.modifyBuffers("val2", [&] (Buffer &val, bool &) {
         EXPECT_ANY_OF(toFind, String(val));
         if (toFind.size() == 0)
             ADD_FAILURE() << "Modify-callback called too often";
@@ -1038,7 +1057,7 @@ TEST_F(KeyValueStorageTest, BufferModify) {
     EXPECT_EQ(0u, toFind.size()) << "Did not call modify-callback enough times";
 
     // ## non-existent key ##
-    EXPECT_FALSE(kvs.modifyBuffers("non-existent", [&] (Buffer &) {
+    EXPECT_FALSE(kvs.modifyBuffers("non-existent", [&] (Buffer &, bool &) {
         ADD_FAILURE() << "Modify-callback called too often";
         return true;
     }));
@@ -1285,7 +1304,7 @@ TEST_F(KeyValueStorageTest, Malformed) {
     EXPECT_THROW(testContainer.getSerializables<TestSerializable>("ser2", [] (const TestSerializable &) -> bool {
         return true;
     }), std::invalid_argument) << "Missing check for Serializable.deserialize() return value";
-    EXPECT_THROW(testContainer.modifySerializables<TestSerializable>("ser2", [] (const TestSerializable &) -> bool {
+    EXPECT_THROW(testContainer.modifySerializables<TestSerializable>("ser2", [] (const TestSerializable &, bool &) -> bool {
         return true;
     }), std::invalid_argument) << "Missing check for Serializable.deserialize() return value";
 

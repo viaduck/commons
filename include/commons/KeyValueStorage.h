@@ -249,10 +249,11 @@ public:
      *
      * @param key Key to lookup.
      * @param callback Callback called for each mutable Buffer. The order of the Buffers is undefined.
-     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
+     *        Returning false from callback indicates that the value should be deleted.
+     *        Setting exit parameter to true breaks loop.
      * @return True on success, false if key does not exist.
      */
-    bool modifyBuffers(const String &key, std::function<bool(Buffer &)> callback) {
+    bool modifyBuffers(const String &key, std::function<bool(Buffer &, bool &)> callback) {
         // key does not exist
         if (mKeys.count(key) == 0)
             return false;
@@ -267,22 +268,23 @@ public:
      * @tparam T Type of value.
      * @param key Key to lookup.
      * @param callback Callback called for each mutable value. The order of the values is undefined.
-     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
+     *        Returning false from callback indicates that the value should be deleted.
+     *        Setting exit parameter to true breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
-    bool modifyValues(const String &key, std::function<bool(T &)> callback) {
+    bool modifyValues(const String &key, std::function<bool(T &, bool &)> callback) {
         // key does not exist
         if (mKeys.count(key) == 0)
             return false;
 
-        return modifyBuffers(key, [&] (Buffer &value) {
+        return modifyBuffers(key, [&] (Buffer &value, bool &exit) {
             T temporary = buffertoValue<T>(value);
 
-            bool shouldContinue = callback(temporary);
+            bool result = callback(temporary, exit);
             valueToBuffer(temporary, value);
 
-            return shouldContinue;
+            return result;
         });
     }
 
@@ -292,23 +294,24 @@ public:
      * @tparam T Type of value.
      * @param key Key to lookup.
      * @param callback Callback called for each mutable Serializable. The order of the Serializables is undefined.
-     *        Returning true from callback indicates that the iteration should continue. Returning false breaks loop.
+     *        Returning false from callback indicates that the value should be deleted.
+     *        Setting exit parameter to true breaks loop.
      * @return True on success, false if key does not exist.
      */
     template <typename T>
-    bool modifySerializables(const String &key, std::function<bool(T &)> callback) {
+    bool modifySerializables(const String &key, std::function<bool(T &, bool &)> callback) {
         T temporary;
 
-        return modifyBuffers(key, [&] (Buffer &value) {
+        return modifyBuffers(key, [&] (Buffer &value, bool &exit) {
             if (!temporary.deserialize(value))
                 throw std::invalid_argument("Malformed Serializable");
 
-            bool shouldContinue = callback(temporary);
+            bool result = callback(temporary, exit);
 
             value.clear();
             temporary.serialize(value);
 
-            return shouldContinue;
+            return result;
         });
     }
 
@@ -398,9 +401,10 @@ private:
     /**
      * Calls callback for each mutable Buffer associated to key.
      * @param key Key to lookup.
-     * @callback If callback returns false, the lookup will be aborted.
+     * @callback A callback returning whether to keep the current value (true to keep, false to delete). The callback
+     * also gets a reference to the exit variable, set it to true to abort the enumeration of values.
      */
-    void modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &)> callback);
+    void modifyInternalMultiBuffer(const String &key, std::function<bool(Buffer &, bool &)> callback);
 
     /**
      * Associates the value with the key.
