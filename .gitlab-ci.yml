@@ -51,18 +51,6 @@ documentation:linux:x86_64:
     dependencies:
     - build:linux:x86_64
 
-build:windows:x86:
-    image: viaduck/ci:mingw
-    stage: build
-    script:
-        - update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix        # fix c++11 threading support on debian
-        - update-alternatives --set i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-gcc-posix
-        - mkdir build-windows-x86
-        - cd build-windows-x86
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-i686.cmake -DPREBUILT_BRANCH=i686-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
-        - ninja
-    allow_failure: true
-
 build:windows:x86_64:
     image: viaduck/ci:mingw
     stage: build
@@ -73,5 +61,4 @@ build:windows:x86_64:
         - cd build-windows-x86_64
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
-    allow_failure: true
 
