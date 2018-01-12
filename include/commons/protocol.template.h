@@ -150,7 +150,7 @@ public:
                     "}}\n"
                     "static inline uint32_t {sub_name}_size() {{\n"
                     "    return {sub_bits};\n"
-                    "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=c.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton_"+v[0], conversion_sub="hton_"+c.bits_to_type(sub['bits'])))
+                    "}}\n".format(sub_bits=sub['bits'], type=v[0], sub_type=c.bits_to_type(sub['bits']), name=v[1], sub_name=sub['name'], offset=offset, shift_offset=shift_offset, conversion="hton", conversion_sub="hton"))
                     shift_offset += sub['bits']
             elif v[0] in g.enum_types:      # enum
                 cog.outl("inline {type} {name}() const {{\n"
@@ -168,7 +168,7 @@ public:
                          "static inline uint32_t {name}_size() {{\n"
                          "    return sizeof({underlying});\n"
                          "}}\n"
-                         .format(type=v[0], name=v[1], offset=offset, conversion="hton_"+g.enum_type(v[0]), underlying=g.enum_type(v[0])))
+                         .format(type=v[0], name=v[1], offset=offset, conversion="hton", underlying=g.enum_type(v[0])))
             else:                           # primitive types
                 cog.outl("inline {type} {name}() const {{\n"
                          "    return {conversion}(*static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
@@ -178,7 +178,7 @@ public:
                          "}}\n"
                          "static inline uint32_t {name}_size() {{\n"
                          "    return sizeof({type});\n"
-                         "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton_"+v[0]))
+                         "}}\n".format(type=v[0], name=v[1], offset=offset, conversion="hton"))
             offset += v[2]
     ]]]
     [[[end]]]
@@ -235,7 +235,7 @@ public:
                              "    missing = sizeof({type})-(in.size()-offset);\n"
                              "    return false;\n"
                              "}}\n"
-                             "const {type} mBuffer_{name}_size = ntoh_{type}(*static_cast<const {type}*>(in.const_data(offset)));\n"
+                             "const {type} mBuffer_{name}_size = ntoh(*static_cast<const {type}*>(in.const_data(offset)));\n"
                              "if (in.size()-offset < mBuffer_{name}_size+sizeof({type})) {{       // not big enough to hold var buffer\n"
                              "    missing = mBuffer_{name}_size-(in.size()-offset-sizeof({type}));\n"
                              "    return false;\n"
@@ -413,7 +413,7 @@ private:
                 if v[3] in variable_arrays:
                     cog.outl("// - {name} - //\n"
                              "if (mBuffer_{name}.size() > std::numeric_limits<{type}>::max()) return false;\n"
-                             "const {type} {name}_size = hton_{type}(mBuffer_{name}.size());\n"
+                             "const {type} {name}_size = hton(static_cast<{type}>(mBuffer_{name}.size()));\n"
                              "out.write(static_cast<const void *>(&{name}_size), sizeof({type}), offset);\n"
                              "offset += sizeof({type});\n"
                              "out.write(mBuffer_{name}, offset);\n"
