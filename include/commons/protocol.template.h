@@ -143,10 +143,12 @@ public:
                 shift_offset = 0
                 for sub in v[4]:
                     cog.outl("inline {sub_type} {sub_name}() const {{\n"
-                    "    return Bitfield::get<{sub_type}>({shift_offset}, {sub_bits}, *static_cast<const {type}*>(mBuffer.const_data({offset})));\n"
+                    "    return Bitfield::get<{sub_type}>({shift_offset}, {sub_bits}, ntoh(*static_cast<const {type}*>(mBuffer.const_data({offset}))));\n"
                     "}}\n"
                     "inline void {sub_name}({sub_type} v) {{\n"
-                    "    Bitfield::set({shift_offset}, {sub_bits}, v, *static_cast<{type}*>(mBuffer.data({offset})));\n"
+                    "    {type} _temp = ntoh(*static_cast<{type}*>(mBuffer.data({offset})));\n"
+                    "    Bitfield::set({shift_offset}, {sub_bits}, v, _temp);\n"
+                    "    *static_cast<{type}*>(mBuffer.data({offset})) = hton(_temp);\n"
                     "}}\n"
                     "static inline uint32_t {sub_name}_size() {{\n"
                     "    return {sub_bits};\n"
