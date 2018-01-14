@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <openssl/rsa.h>
 #include <openssl/err.h>
@@ -16,6 +17,33 @@ Connection::Connection(std::string host, uint16_t port, bool ssl, std::string ce
 
 Connection::~Connection() {
     close();
+}
+
+void socket_io_timeout(SOCKET s, uint16_t t) {
+    if (t == 0)
+        return;
+
+#if WIN32
+    DWORD tv = t;
+#else
+    struct timeval tv;
+    tv.tv_sec = t;
+    tv.tv_usec = 0;
+#endif
+
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(tv));
+    setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(tv));
+}
+
+void socket_io_nonblock(SOCKET s, bool value) {
+#if WIN32
+    ulong mode = value ? 1 : 0;  // 1 to enable non-blocking socket
+    ioctlsocket(s, FIONBIO, &mode);
+#else
+    int flags = fcntl(s, F_GETFL, NULL);
+    value ? (flags |= O_NONBLOCK) : (flags &= ~O_NONBLOCK);
+    fcntl(s, F_SETFL, flags);
+#endif
 }
 
 Connection::ConnectResult Connection::connect() {
@@ -45,13 +73,10 @@ Connection::ConnectResult Connection::connect() {
         if (mSocket == INVALID_SOCKET)
             return ConnectResult::ERROR_INTERNAL;
 
-        // set socket options
-        if (mTimeout != 0) {
-            struct timeval tv;
-            tv.tv_sec = mTimeout;
-            tv.tv_usec = 0;
-            setsockopt(mSocket, SOL_SOCKET, SO_RCVTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(struct timeval));
-        }
+        // set read / write timeout
+        socket_io_timeout(mSocket, mTimeout);
+        // make socket non blocking
+        socket_io_nonblock(mSocket, true);
 
         // call global connect function
         res = NativeWrapper::connect(mSocket, it->ai_addr, it->ai_addrlen);
