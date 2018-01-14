@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <openssl/rsa.h>
 #include <openssl/err.h>
@@ -23,12 +22,10 @@ void socket_io_timeout(SOCKET s, uint16_t t) {
     if (t == 0)
         return;
 
-#if WIN32
+#ifdef WIN32
     DWORD tv = t;
 #else
-    struct timeval tv;
-    tv.tv_sec = t;
-    tv.tv_usec = 0;
+    timeval tv = { .tv_sec = t, .tv_usec = 0 };
 #endif
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(tv));
@@ -36,7 +33,7 @@ void socket_io_timeout(SOCKET s, uint16_t t) {
 }
 
 void socket_io_nonblock(SOCKET s, bool value) {
-#if WIN32
+#ifdef WIN32
     ulong mode = value ? 1 : 0;  // 1 to enable non-blocking socket
     ioctlsocket(s, FIONBIO, &mode);
 #else
@@ -46,8 +43,20 @@ void socket_io_nonblock(SOCKET s, bool value) {
 #endif
 }
 
-Connection::ConnectResult Connection::connect() {
-    struct addrinfo addressQuery;
+bool handle_special_DNS(const addrinfo *addr) {
+    const static uint32_t DNS_NAME_COLLISION = ntoh(static_cast<uint32_t>(0x7f003535));       // 127.0.53.53
+
+    // IPv4
+    if (addr->ai_family == AF_INET) {
+        // see https://www.icann.org/news/announcement-2-2014-08-01-en
+        if (reinterpret_cast<sockaddr_in *>(addr->ai_addr)->sin_addr.s_addr == DNS_NAME_COLLISION)
+            return false;
+    }
+    return true;
+}
+
+bool resolve(const char *host, const char *port, const std::function<bool(const addrinfo&)> &cb) {
+    addrinfo addressQuery;
     memset(&addressQuery, 0, sizeof(addressQuery));
 
     // address query parameters
@@ -56,35 +65,77 @@ Connection::ConnectResult Connection::connect() {
     addressQuery.ai_protocol = IPPROTO_TCP;
 
     // resolve hostname
-    struct addrinfo *addressInfoTmp = nullptr;
-    int res = NativeWrapper::getaddrinfo(mHost.c_str(), std::to_string(mPort).c_str(), &addressQuery, &addressInfoTmp);
+    addrinfo *addressInfoTmp = nullptr;
+    if (NativeWrapper::getaddrinfo(host, port, &addressQuery, &addressInfoTmp) == 0) {
+        std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &freeaddrinfo);
 
-    std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &freeaddrinfo);
+        // iterate over all available addresses
+        for (const addrinfo *it = addressInfo.get(); it && handle_special_DNS(it); it = it->ai_next) {
+            // wait for callback to indicate success
+            if (cb(*it))
+                return true;
+        }
+    }
 
-    if (res != 0)
-        return ConnectResult::ERROR_RESOLVE;
+    return false;
+}
 
-    // iterate over all available addresses
-    for (struct addrinfo *it = addressInfo.get(); it; it = it->ai_next) {
-        if (!handleSpecialDNS(it))
-            return ConnectResult::ERROR_RESOLVE;
+SOCKET try_connect(const addrinfo &addr, uint16_t timeout) {
+    // create socket
+    SOCKET sock = NativeWrapper::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
 
-        mSocket = NativeWrapper::socket(it->ai_family, it->ai_socktype, it->ai_protocol);
-        if (mSocket == INVALID_SOCKET)
-            return ConnectResult::ERROR_INTERNAL;
-
+    if (sock != INVALID_SOCKET) {
         // set read / write timeout
-        socket_io_timeout(mSocket, mTimeout);
+        socket_io_timeout(sock, timeout);
         // make socket non blocking
-        socket_io_nonblock(mSocket, true);
+        socket_io_nonblock(sock, true);
 
-        // call global connect function
-        res = NativeWrapper::connect(mSocket, it->ai_addr, it->ai_addrlen);
-        if (res == -1) {
-            NativeWrapper::close(mSocket);
-            mSocket = INVALID_SOCKET;
-        } else {
-            switch (it->ai_family) {
+        // call global connect function, return immediately because of no block
+        int res = NativeWrapper::connect(sock, addr.ai_addr, addr.ai_addrlen);
+
+#ifdef WIN32
+        if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
+#else
+        if (res == EINPROGRESS) {
+#endif
+            // create a set of sockets for select, add only our socket
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(sock, &set);
+
+            // timeout
+            timeval tv = { .tv_sec = timeout, .tv_usec = 0 };
+
+            // waits for socket to complete connect (become writeable)
+            if (select(sock + 1, nullptr, &set, nullptr, &tv) > 0) {
+                // connect completed - successfully or not
+
+                int error;
+                socklen_t len = sizeof(error);
+                if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error == 0) {
+                    // connect success
+
+                    // make socket blocking again
+                    socket_io_nonblock(sock, false);
+                    return sock;
+                }
+            }
+        }
+
+        // timeout or error
+        NativeWrapper::close(sock);
+    }
+
+    return INVALID_SOCKET;
+}
+
+Connection::ConnectResult Connection::connect() {
+    ConnectResult res;
+    bool canResolve = resolve(mHost.c_str(), std::to_string(mPort).c_str(), [&] (const addrinfo &addr) -> bool {
+        mSocket = try_connect(addr, mTimeout);
+
+        if (mSocket != INVALID_SOCKET) {
+            switch (addr.ai_family) {
                 case AF_INET:
                     mProtocol = Protocol::IPv4; break;
                 case AF_INET6:
@@ -94,18 +145,23 @@ Connection::ConnectResult Connection::connect() {
             }
 
             // try to establish SSL session
-            ConnectResult res;
-            if (mUsesSSL &&  (res = initSsl()) != ConnectResult::SUCCESS)
-                return res;
+            if (mUsesSSL && (res = initSsl()) == ConnectResult::SUCCESS)
+                mStatus = Status::CONNECTED;
 
-            mStatus = Status::CONNECTED;
-            return ConnectResult::SUCCESS;
+            // success
+            return true;
         }
-    }
 
-    // no resolved address has been successful
+        // no success -> continue lookup
+        return false;
+    });
+
+
     // TODO more verbose error reporting
-    return ConnectResult::ERROR_CONNECT;
+    if (!canResolve)
+        return ConnectResult::ERROR_RESOLVE;
+    else
+        return res;
 }
 
 bool Connection::close() {
@@ -263,17 +319,5 @@ bool Connection::initVerification() {
         }
         return 0;
     });
-    return true;
-}
-
-bool Connection::handleSpecialDNS(const struct addrinfo *address) {
-    const static uint32_t DNS_NAME_COLLISION = ntoh(static_cast<uint32_t>(0x7f003535));       // 127.0.53.53
-
-    // IPv4
-    if (address->ai_family == AF_INET) {
-        // see https://www.icann.org/news/announcement-2-2014-08-01-en
-        if (reinterpret_cast<sockaddr_in *>(address->ai_addr)->sin_addr.s_addr == DNS_NAME_COLLISION)
-            return false;
-    }
     return true;
 }
