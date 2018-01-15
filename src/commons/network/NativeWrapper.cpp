@@ -61,7 +61,7 @@ int ::NativeWrapper::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_ex
     return ::select(ndfs, _read, _write, _except, timeout);
 }
 
-int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen) {
+int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
     return ::getsockopt(sockfd, level, optname, optval, optlen);
 }
 

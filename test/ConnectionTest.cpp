@@ -77,7 +77,7 @@ void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
     return callMockFunction(freeaddrinfo, __ai);
 }
 
-int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen) {
+int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
     return callMockFunction(getsockopt, sockfd, level, optname, optval, optlen);
 }
 
@@ -256,7 +256,7 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
         });
 
     mocks[currentTestName()]["getsockopt"] =
-        (void*)+([] (int , int , int , void *optval, socklen_t *) {
+        (void*)+([] (int , int , int , char *optval, socklen_t *) {
             int *ptr = (int*)optval;
             *ptr = 0;
             return 0;
@@ -362,7 +362,7 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
         });
 
     mocks[currentTestName()]["getsockopt"] =
-        (void*)+([] (int , int , int , void *optval, socklen_t *) {
+        (void*)+([] (int , int , int , char *optval, socklen_t *) {
             int *ptr = (int*)optval;
             *ptr = 0;
             return 0;

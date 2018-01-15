@@ -34,7 +34,7 @@ namespace NativeWrapper {
 
     int select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout);
 
-    int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
+    int getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen);
 }
 
 #endif //VDCOMMONS_NATIVEWRAPPER_H
