@@ -17,8 +17,8 @@
 #endif
 
 namespace NativeWrapper {
-    int getaddrinfo (const char *__restrict __name, const char *__restrict __service,
-                     const struct addrinfo *__restrict __req, struct addrinfo **__restrict __pai);
+    int getaddrinfo (const char * __name, const char * __service,
+                     const struct addrinfo * __req, struct addrinfo ** __pai);
 
     int socket(int __domain, int __type, int __protocol);
 
@@ -31,6 +31,10 @@ namespace NativeWrapper {
     ssize_t send(int socket, const void *buffer, size_t length);
 
     void freeaddrinfo(struct addrinfo *__ai);
+
+    int select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout);
+
+    int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
 }
 
 #endif //VDCOMMONS_NATIVEWRAPPER_H

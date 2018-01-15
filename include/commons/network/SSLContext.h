@@ -11,6 +11,7 @@
  * sessions on a per-thread basis.
  */
 class SSLContext {
+    using SSL_SESSION_ref = std::unique_ptr<SSL_SESSION, decltype(&SSL_SESSION_free)>;
 public:
     /**
      * @return SSLContext singleton associated with this thread
@@ -75,7 +76,7 @@ protected:
     static thread_local SSLContext mInstance;
 
     SSL_CTX *mCtx;
-    std::unordered_map<ConnectionInfo, SSL_SESSION*> mSessions;
+    std::unordered_map<ConnectionInfo, SSL_SESSION_ref> mSessions;
     uint16_t mSessionsResumed = 0;
 
     friend class Connection;

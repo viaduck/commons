@@ -19,6 +19,7 @@ public:
 #ifdef __WIN32
         WSACleanup();
 #endif
+
     }
 };
 OneTimeInit go;
@@ -55,3 +56,12 @@ ssize_t (::NativeWrapper::send(int socket, const void *buffer, size_t length)) {
 void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
     return ::freeaddrinfo(__ai);
 }
+
+int ::NativeWrapper::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
+    return ::select(ndfs, _read, _write, _except, timeout);
+}
+
+int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen) {
+    return ::getsockopt(sockfd, level, optname, optval, optlen);
+}
+

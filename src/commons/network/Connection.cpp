@@ -28,8 +28,8 @@ void socket_io_timeout(SOCKET s, uint16_t t) {
     timeval tv = { .tv_sec = t, .tv_usec = 0 };
 #endif
 
-    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(tv));
-    setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, static_cast<const char*>(static_cast<void*>(&tv)), sizeof(tv));
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
+    setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
 }
 
 void socket_io_nonblock(SOCKET s, bool value) {
@@ -111,12 +111,12 @@ bool try_connect(const addrinfo &addr, uint16_t timeout, SOCKET &sock) {
             }
 
             // waits for socket to complete connect (become writeable)
-            if (select(sock + 1, nullptr, &set, nullptr, ptv) > 0) {
+            if (NativeWrapper::select(sock + 1, nullptr, &set, nullptr, ptv) > 0) {
                 // connect completed - successfully or not
 
                 int error;
                 socklen_t len = sizeof(error);
-                if (getsockopt(sock, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) == 0 && error == 0) {
+                if (NativeWrapper::getsockopt(sock, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) == 0 && error == 0) {
                     // connect success
 
                     // make socket blocking again
@@ -315,7 +315,7 @@ bool Connection::initVerification() {
 
         X509 *cert = X509_STORE_CTX_get_current_cert(ctx);
         if (cert) {
-            EVP_PKEY *pubKey = X509_get_pubkey(cert);
+            EVP_PKEY *pubKey = X509_get0_pubkey(cert);
 
             // get context user data
             SSL *ssl = static_cast<SSL*>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
