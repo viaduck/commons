@@ -118,7 +118,7 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
             });
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_CONNECT, conn.connect());
+    ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
     ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
@@ -148,7 +148,8 @@ TEST_F(ConnectionTest, dnsCollision) {
             });
 
     mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
-                free(__ai);
+                delete __ai->ai_addr;
+                delete __ai;
             });
 
     Connection conn("localhost", 1337, false);
@@ -192,11 +193,12 @@ TEST_F(ConnectionTest, invalidSocket) {
                 // noop
             });
     mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
-                free(__ai);
+                delete __ai->ai_addr;
+                delete __ai;
             });
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_INTERNAL, conn.connect());
+    ASSERT_EQ(Connection::ConnectResult::ERROR_CONNECT, conn.connect());
     ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
 }
 
@@ -242,7 +244,8 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
             });
 
     mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
-                free(__ai);
+                delete __ai->ai_addr;
+                delete __ai;
             });
 
 
@@ -325,7 +328,10 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
             });
 
     mocks[currentTestName()]["freeaddrinfo"] = (void*)+([] (struct addrinfo *__ai) {
-                free(__ai);
+                delete __ai->ai_next->ai_addr;
+                delete __ai->ai_next;
+                delete __ai->ai_addr;
+                delete __ai;
             });
 
     Connection conn("localhost", 1337, false);

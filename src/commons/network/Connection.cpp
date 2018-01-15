@@ -12,7 +12,7 @@
 
 Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore,
                        uint16_t timeout) :
-        mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore) { }
+        mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore), mSocket(INVALID_SOCKET) { }
 
 Connection::~Connection() {
     close();
@@ -34,7 +34,7 @@ void socket_io_timeout(SOCKET s, uint16_t t) {
 
 void socket_io_nonblock(SOCKET s, bool value) {
 #ifdef WIN32
-    ulong mode = value ? 1 : 0;  // 1 to enable non-blocking socket
+    u_long mode = value ? 1 : 0;  // 1 to enable non-blocking socket
     ioctlsocket(s, FIONBIO, &mode);
 #else
     int flags = fcntl(s, F_GETFL, NULL);
@@ -67,7 +67,7 @@ bool resolve(const char *host, const char *port, const std::function<bool(const 
     // resolve hostname
     addrinfo *addressInfoTmp = nullptr;
     if (NativeWrapper::getaddrinfo(host, port, &addressQuery, &addressInfoTmp) == 0) {
-        std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &freeaddrinfo);
+        std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> addressInfo(addressInfoTmp, &NativeWrapper::freeaddrinfo);
 
         // iterate over all available addresses
         for (const addrinfo *it = addressInfo.get(); it && handle_special_DNS(it); it = it->ai_next) {
@@ -80,9 +80,9 @@ bool resolve(const char *host, const char *port, const std::function<bool(const 
     return false;
 }
 
-SOCKET try_connect(const addrinfo &addr, uint16_t timeout) {
+bool try_connect(const addrinfo &addr, uint16_t timeout, SOCKET &sock) {
     // create socket
-    SOCKET sock = NativeWrapper::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
+    sock = NativeWrapper::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
 
     if (sock != INVALID_SOCKET) {
         // set read / write timeout
@@ -96,28 +96,32 @@ SOCKET try_connect(const addrinfo &addr, uint16_t timeout) {
 #ifdef WIN32
         if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
 #else
-        if (res == EINPROGRESS) {
+        if (res == -1 && errno == EINPROGRESS) {
 #endif
             // create a set of sockets for select, add only our socket
             fd_set set;
             FD_ZERO(&set);
             FD_SET(sock, &set);
 
-            // timeout
-            timeval tv = { .tv_sec = timeout, .tv_usec = 0 };
+            // timeout -> do not pass ZERO, instead pass NULL to block
+            timeval *ptv = nullptr;
+            if (timeout > 0) {
+                timeval tv = {.tv_sec = timeout, .tv_usec = 0};
+                ptv = &tv;
+            }
 
             // waits for socket to complete connect (become writeable)
-            if (select(sock + 1, nullptr, &set, nullptr, &tv) > 0) {
+            if (select(sock + 1, nullptr, &set, nullptr, ptv) > 0) {
                 // connect completed - successfully or not
 
                 int error;
                 socklen_t len = sizeof(error);
-                if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error == 0) {
+                if (getsockopt(sock, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) == 0 && error == 0) {
                     // connect success
 
                     // make socket blocking again
                     socket_io_nonblock(sock, false);
-                    return sock;
+                    return true;
                 }
             }
         }
@@ -126,15 +130,17 @@ SOCKET try_connect(const addrinfo &addr, uint16_t timeout) {
         NativeWrapper::close(sock);
     }
 
-    return INVALID_SOCKET;
+    return false;
 }
 
 Connection::ConnectResult Connection::connect() {
     ConnectResult res;
     bool canResolve = resolve(mHost.c_str(), std::to_string(mPort).c_str(), [&] (const addrinfo &addr) -> bool {
-        mSocket = try_connect(addr, mTimeout);
+        bool canConnect = try_connect(addr, mTimeout, mSocket);
 
-        if (mSocket != INVALID_SOCKET) {
+        if (canConnect) {
+            // connect success!
+
             switch (addr.ai_family) {
                 case AF_INET:
                     mProtocol = Protocol::IPv4; break;
@@ -144,24 +150,31 @@ Connection::ConnectResult Connection::connect() {
                     mProtocol = Protocol::UNSET;
             }
 
-            // try to establish SSL session
-            if (mUsesSSL && (res = initSsl()) == ConnectResult::SUCCESS)
+            // connected only if no SSL requested or if SSL success
+            if (!mUsesSSL || (res = initSsl()) == ConnectResult::SUCCESS) {
                 mStatus = Status::CONNECTED;
+                res = ConnectResult::SUCCESS;
+            }
+        }
+        else if(mSocket == INVALID_SOCKET) {
+            // socket error
 
-            // success
-            return true;
+            res = ConnectResult::ERROR_CONNECT;
+        }
+        else {
+            // connect error -> ignore and try next addr
+            return false;
         }
 
-        // no success -> continue lookup
-        return false;
+        // success, SSL error or socket error -> abort
+        return true;
     });
-
 
     // TODO more verbose error reporting
     if (!canResolve)
         return ConnectResult::ERROR_RESOLVE;
-    else
-        return res;
+
+    return res;
 }
 
 bool Connection::close() {
