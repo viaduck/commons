@@ -18,6 +18,11 @@ Connection::~Connection() {
     close();
 }
 
+/**
+ * Sets a socket's send and receive timeouts.
+ * @param s Socket descriptor
+ * @param t Timeout in milliseconds
+ */
 void socket_io_timeout(SOCKET s, uint16_t t) {
     if (t == 0)
         return;
@@ -25,24 +30,40 @@ void socket_io_timeout(SOCKET s, uint16_t t) {
 #ifdef WIN32
     DWORD tv = t;
 #else
-    timeval tv = { .tv_sec = t, .tv_usec = 0 };
+    timeval tv = { .tv_sec = 0, .tv_usec = t*1000 };
 #endif
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
     setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
 }
 
+/**
+ * Sets a socket's non-blocking state.
+ * @param s Socket descriptor
+ * @param value True for non-blocking state, false for blocking state
+ */
 void socket_io_nonblock(SOCKET s, bool value) {
 #ifdef WIN32
     u_long mode = value ? 1 : 0;  // 1 to enable non-blocking socket
     ioctlsocket(s, FIONBIO, &mode);
 #else
     int flags = fcntl(s, F_GETFL, NULL);
-    value ? (flags |= O_NONBLOCK) : (flags &= ~O_NONBLOCK);
+    if (value)
+        flags |= O_NONBLOCK;
+    else
+        flags &= ~O_NONBLOCK;
     fcntl(s, F_SETFL, flags);
 #endif
 }
 
+/**
+ * Handles special DNS resolved addresses
+ *
+ * Currently handled:
+ * - 127.0.53.53: DNS name collision (https://www.icann.org/news/announcement-2-2014-08-01-en)
+ * @param address Input address
+ * @return False indicates a failure, true success
+ */
 bool handle_special_DNS(const addrinfo *addr) {
     const static uint32_t DNS_NAME_COLLISION = ntoh(static_cast<uint32_t>(0x7f003535));       // 127.0.53.53
 
@@ -55,6 +76,14 @@ bool handle_special_DNS(const addrinfo *addr) {
     return true;
 }
 
+/**
+ * Resolves a host-port combination into an addrinfo struct.
+ * @param host Host
+ * @param port Port
+ * @param cb Callback that receives possible addrinfo structs. It might be called multiple times. A return value if true
+ *           instructs the resolve method to stop resolving addresses.
+ * @return False if there were no addresses resolved or no callback returned true. False otherwise.
+ */
 bool resolve(const char *host, const char *port, const std::function<bool(const addrinfo&)> &cb) {
     addrinfo addressQuery;
     memset(&addressQuery, 0, sizeof(addressQuery));
@@ -80,6 +109,13 @@ bool resolve(const char *host, const char *port, const std::function<bool(const 
     return false;
 }
 
+/**
+ * Tries connecting to host described by addr.
+ * @param addr Host info
+ * @param timeout Conneciton timeout
+ * @param sock Socket descriptor
+ * @return True if connection was successful. False otherwise.
+ */
 bool try_connect(const addrinfo &addr, uint16_t timeout, SOCKET &sock) {
     // create socket
     sock = NativeWrapper::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
