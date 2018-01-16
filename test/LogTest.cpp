@@ -21,8 +21,8 @@ TEST_F(LogTest, EnableDisable) {
     // check logging functionality if enabled
     Log::dbg<<"Test 123";
     Log::err<<"1337 456";
-    EXPECT_EQ("[LogLevel::LEVEL_DEBUG] Test 123", mLogger->toString(LogLevel::LEVEL_DEBUG));
-    EXPECT_EQ("[LogLevel::LEVEL_ERROR] 1337 456", mLogger->toString(LogLevel::LEVEL_ERROR));
+    EXPECT_EQ("[LogLevel::LEVEL_DEBUG] Test 123\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
+    EXPECT_EQ("[LogLevel::LEVEL_ERROR] 1337 456\n", mLogger->toString(LogLevel::LEVEL_ERROR));
     mLogger->clear();
 
     // disable logging globally
@@ -35,8 +35,8 @@ TEST_F(LogTest, EnableDisable) {
     EXPECT_FALSE(Log::err.isEnabled());
     Log::dbg<<"Test 123";
     Log::err<<"1337 456";
-    EXPECT_NE("[LogLevel::LEVEL_DEBUG] Test 123", mLogger->toString(LogLevel::LEVEL_DEBUG));
-    EXPECT_NE("[LogLevel::LEVEL_ERROR] 1337 456", mLogger->toString(LogLevel::LEVEL_ERROR));
+    EXPECT_NE("[LogLevel::LEVEL_DEBUG] Test 123\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
+    EXPECT_NE("[LogLevel::LEVEL_ERROR] 1337 456\n", mLogger->toString(LogLevel::LEVEL_ERROR));
 
 
     // disable individual log level
@@ -50,6 +50,6 @@ TEST_F(LogTest, EnableDisable) {
     EXPECT_TRUE(Log::err.isEnabled());
     Log::dbg<<"Test 123";
     Log::err<<"1337 456";
-    EXPECT_NE("[LogLevel::LEVEL_DEBUG] Test 123", mLogger->toString(LogLevel::LEVEL_DEBUG));
-    EXPECT_EQ("[LogLevel::LEVEL_ERROR] 1337 456", mLogger->toString(LogLevel::LEVEL_ERROR));
+    EXPECT_NE("[LogLevel::LEVEL_DEBUG] Test 123\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
+    EXPECT_EQ("[LogLevel::LEVEL_ERROR] 1337 456\n", mLogger->toString(LogLevel::LEVEL_ERROR));
 }
