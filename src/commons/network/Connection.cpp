@@ -11,7 +11,7 @@
 #include "NativeWrapper.h"
 
 Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore,
-                       uint16_t timeout) :
+                       uint32_t timeout) :
         mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore), mSocket(INVALID_SOCKET) { }
 
 Connection::~Connection() {
@@ -23,14 +23,14 @@ Connection::~Connection() {
  * @param s Socket descriptor
  * @param t Timeout in milliseconds
  */
-void socket_io_timeout(SOCKET s, uint16_t t) {
+void socket_io_timeout(SOCKET s, uint32_t t) {
     if (t == 0)
         return;
 
 #ifdef WIN32
     DWORD tv = t;
 #else
-    timeval tv = { .tv_sec = 0, .tv_usec = t*1000 };
+    timeval tv = { .tv_sec = 0, .tv_usec = 1000 * t };
 #endif
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
@@ -77,12 +77,13 @@ bool handle_special_DNS(const addrinfo *addr) {
 }
 
 /**
- * Resolves a host-port combination into an addrinfo struct.
+ * Resolves a host-port combination into addrinfo structs.
+ *
  * @param host Host
  * @param port Port
- * @param cb Callback that receives possible addrinfo structs. It might be called multiple times. A return value if true
+ * @param cb Callback that receives addrinfo structs. It can be called multiple times. A return value of true
  *           instructs the resolve method to stop resolving addresses.
- * @return False if there were no addresses resolved or no callback returned true. False otherwise.
+ * @return False if there were no addresses resolved or no callback returned true. True otherwise.
  */
 bool resolve(const char *host, const char *port, const std::function<bool(const addrinfo&)> &cb) {
     addrinfo addressQuery;
@@ -111,12 +112,13 @@ bool resolve(const char *host, const char *port, const std::function<bool(const 
 
 /**
  * Tries connecting to host described by addr.
+ *
  * @param addr Host info
- * @param timeout Conneciton timeout
- * @param sock Socket descriptor
+ * @param timeout Connection timeout
+ * @param sock Receives Socket descriptor on success, INVALID_SOCKET if socket couldn't be created
  * @return True if connection was successful. False otherwise.
  */
-bool try_connect(const addrinfo &addr, uint16_t timeout, SOCKET &sock) {
+bool try_connect(const addrinfo &addr, uint32_t timeout, SOCKET &sock) {
     // create socket
     sock = NativeWrapper::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
 
@@ -142,7 +144,7 @@ bool try_connect(const addrinfo &addr, uint16_t timeout, SOCKET &sock) {
             // timeout -> do not pass ZERO, instead pass NULL to block
             timeval *ptv = nullptr;
             if (timeout > 0) {
-                timeval tv = {.tv_sec = timeout, .tv_usec = 0};
+                timeval tv = {.tv_sec = 0, .tv_usec = 1000 * timeout};
                 ptv = &tv;
             }
 

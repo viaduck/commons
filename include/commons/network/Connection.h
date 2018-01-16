@@ -58,19 +58,19 @@ public:
      * @param ssl Whether to use SSL or not
      * @param certPath Path to system certificates directory. If left empty, no system certificates are used.
      * @param certStore CertificateStorage that holds allowed/denied certificates. Default: application-wide singleton
-     * @param timeout Receive timeout in seconds. 0 indicates no timeout
+     * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
      */
     Connection(std::string host, uint16_t port, bool ssl = true, std::string certPath = "",
-               CertificateStorage &certStore = CertificateStorage::getInstance(), uint16_t timeout = 0);
+               CertificateStorage &certStore = CertificateStorage::getInstance(), uint32_t timeout = 0);
 
     /**
      * Creates a connection object with the specified target. Does not connect yet.
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
      * @param ssl Whether to use SSL or not
-     * @param timeout Receive timeout in seconds. 0 indicates no timeout
+     * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
      */
-    Connection(std::string host, uint16_t port, bool ssl, uint16_t timeout) :
+    Connection(std::string host, uint16_t port, bool ssl, uint32_t timeout) :
             Connection(host, port, ssl, "", CertificateStorage::getInstance(), timeout) { }
 
     /**
@@ -195,7 +195,7 @@ protected:
 
     std::string mHost;
     uint16_t mPort;
-    uint16_t mTimeout;
+    uint32_t mTimeout;
     bool mUsesSSL;
     std::string mCertPath;
     CertificateStorage &mCertStore;
