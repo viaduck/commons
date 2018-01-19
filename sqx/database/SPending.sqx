@@ -1,7 +1,8 @@
 -
-foreign database/SMessage    pendingMessage     ON DELETE CASCADE
-foreign database/SAttachment pendingAttachment  ON DELETE CASCADE
+foreign database/SMessage       pendingMessage     ON DELETE CASCADE
+foreign database/SAttachment    pendingAttachment  ON DELETE CASCADE
+foreign database/SSendMethod    sendMethod         ON DELETE SET NULL
 
-bool    delivered   # indicates whether the message was delivered to server
-String  hash        # recipients hash
-Buffer  content     # binary content
+bool           delivered   # indicates whether the message was delivered to server
+Buffer         content     # binary content
+String         hash        # recipients hash

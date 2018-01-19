@@ -1,11 +1,8 @@
-SendMethodType enum/message/SendMethodType.the
 -
-foreign database/SContact inviteContact ON DELETE CASCADE
-foreign database/SGroup   invitedGroup  ON DELETE CASCADE
+foreign database/SContact       inviteContact   ON DELETE CASCADE
+foreign database/SGroup         invitedGroup    ON DELETE CASCADE
+foreign database/SSendMethod    sendMethod      ON DELETE SET NULL
 
 String          name             # name of the group (if own)
 int64_t         timestamp        # unix epoch in millis
 Buffer          inviteToken      # refer to this when accepting an invite
-
-SendMethodType  methodType       # method used to reach postbox
-String          address          # address of postbox method

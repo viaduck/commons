@@ -169,7 +169,7 @@ line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s
 class SQXEntry:
     def __init__(self, name, sqx_type, constraints=None, create_schema=None):
         self._name = name
-        self._member_name = 'm' + name[0].upper() + name[1:]
+        self._member_name = 'mSQX' + name[0].upper() + name[1:]
         self._type = hashed_types[sqx_type]
         self._constraints = constraints
         self._create_schema = '' if create_schema is None else create_schema

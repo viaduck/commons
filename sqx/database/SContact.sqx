@@ -4,5 +4,5 @@ foreign database/SIdentity contactIdentity ON DELETE CASCADE
 foreign database/SKeyInfo  ephemeralKey    ON DELETE SET NULL
 foreign database/SKeyInfo  symmetricKey    ON DELETE SET NULL
 
-bool sendLock               # indicates whether we hold the sendLock for this contact
+bool             sendLock   # indicates whether we hold the sendLock for this contact
 KeyExchangeState keyState   # current KeyExchangeState with this contact
