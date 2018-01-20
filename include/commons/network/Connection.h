@@ -56,11 +56,12 @@ public:
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
      * @param ssl Whether to use SSL or not
+     * @param verifyEnable Whether to verify the SSL certificate or not. Ignored if ssl is false
      * @param certPath Path to system certificates directory. If left empty, no system certificates are used.
      * @param certStore CertificateStorage that holds allowed/denied certificates. Default: application-wide singleton
      * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
      */
-    Connection(std::string host, uint16_t port, bool ssl = true, std::string certPath = "",
+    Connection(std::string host, uint16_t port, bool ssl = true, bool verifyEnable = true, std::string certPath = "",
                CertificateStorage &certStore = CertificateStorage::getInstance(), uint32_t timeout = 0);
 
     /**
@@ -68,10 +69,11 @@ public:
      * @param host Hostname or IP (both 4 and 6 are supported) to connect to
      * @param port TCP port
      * @param ssl Whether to use SSL or not
+     * @param verifyEnable Whether to verify the SSL certificate or not. Ignored if ssl is false
      * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
      */
-    Connection(std::string host, uint16_t port, bool ssl, uint32_t timeout) :
-            Connection(host, port, ssl, "", CertificateStorage::getInstance(), timeout) { }
+    Connection(std::string host, uint16_t port, bool ssl, bool verifyEnable, uint32_t timeout) :
+            Connection(host, port, ssl, verifyEnable, "", CertificateStorage::getInstance(), timeout) { }
 
     /**
      * Closes the connection and frees up allocated resources.
@@ -196,7 +198,7 @@ protected:
     std::string mHost;
     uint16_t mPort;
     uint32_t mTimeout;
-    bool mUsesSSL;
+    bool mUsesSSL, mVerifyEnable;
     std::string mCertPath;
     CertificateStorage &mCertStore;
     Protocol mProtocol = Protocol::UNSET;

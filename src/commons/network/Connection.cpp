@@ -10,9 +10,12 @@
 
 #include "NativeWrapper.h"
 
-Connection::Connection(std::string host, uint16_t port, bool ssl, std::string certPath, CertificateStorage &certStore,
-                       uint32_t timeout) :
-        mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mCertPath(certPath), mCertStore(certStore), mSocket(INVALID_SOCKET) { }
+Connection::Connection(std::string host, uint16_t port, bool ssl, bool verifyEnable, std::string certPath,
+                       CertificateStorage &certStore, uint32_t timeout) :
+        mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mVerifyEnable(verifyEnable),
+        mCertPath(certPath), mCertStore(certStore), mSocket(INVALID_SOCKET) {
+
+}
 
 Connection::~Connection() {
     close();
@@ -343,7 +346,7 @@ Connection::ConnectResult Connection::initSsl() {
 }
 
 bool Connection::initVerification() {
-    if (mCertPath != "")
+    if (!mCertPath.empty())
         if (SSL_CTX_load_verify_locations(SSLContext::getInstance(), nullptr, mCertPath.c_str()) == 0)
             return false;
 
@@ -358,6 +361,10 @@ bool Connection::initVerification() {
             // get context user data
             SSL *ssl = static_cast<SSL*>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
             Connection *thiz = static_cast<Connection*>(SSL_get_ex_data(ssl, CertificateStorage::getOpenSSLDataIndex()));
+
+            // allow any certificate if verification is turned off
+            if (!thiz->mVerifyEnable)
+                return 1;
 
             switch (thiz->mCertStore.check(pubKey, CertificateStorage::Mode::UNDECIDED)) {
                 case CertificateStorage::Mode::DENY:
