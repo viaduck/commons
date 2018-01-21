@@ -451,7 +451,7 @@ TEST_F(ConnectionTest, sessionResumption) {
 #endif
 
     // tries to establish a connection to viaduck servers
-    Connection conn("viaduck.org", 443, true, "/etc/ssl/certs");
+    Connection conn("viaduck.org", 443, true, true, "/etc/ssl/certs");
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
     ASSERT_TRUE(conn.isSSL());
@@ -460,7 +460,7 @@ TEST_F(ConnectionTest, sessionResumption) {
     uint16_t resumptionCount = SSLContext::getInstance().sessionsResumed();
 
     // following connections should use stored ssl sessions
-    Connection conn2("viaduck.org", 443, true, "/etc/ssl/certs");
+    Connection conn2("viaduck.org", 443, true, true, "/etc/ssl/certs");
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn2.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn2.status());
     ASSERT_EQ(resumptionCount+1, SSLContext::getInstance().sessionsResumed());
