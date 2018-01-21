@@ -409,7 +409,7 @@ TEST_F(ConnectionTest, realSSL) {
 #endif
 
     // tries to establish a connection to viaduck servers
-    Connection conn("viaduck.org", 443, true, "/etc/ssl/certs");
+    Connection conn("viaduck.org", 443, true, true, "/etc/ssl/certs");
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
     ASSERT_TRUE(conn.isSSL());
