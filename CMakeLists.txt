@@ -15,12 +15,6 @@ add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibil
 add_subdirectory(external)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
-# configure openssl dirs
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/openssl-cmake/openssl-config.cmake")
-    include(external/openssl-cmake/openssl-config.cmake)
-    config_openssl(external/openssl-cmake)
-endif()
-
 # collect files
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
 file(GLOB_RECURSE VDCOMMONS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
