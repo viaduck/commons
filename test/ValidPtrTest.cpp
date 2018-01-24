@@ -2,7 +2,7 @@
 
 #include <commons/ValidPtr.h>
 
-class TestImplementation : public ValidPtrObject<TestImplementation> {
+class TestImplementation : public ValidObject {
 public:
     TestImplementation() : IamValid(true) { }
     ~TestImplementation() override { IamValid = false; }

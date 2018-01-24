@@ -7,34 +7,55 @@
 
 #define _LOCK_SCOPE(x) std::lock_guard<std::mutex> _hopefullyUnusedVariableName_(x);
 
+class ValidObject;
+
+class ValidObjectListener {
+public:
+    virtual void onDestroy(ValidObject *) = 0;
+};
+
 template <typename T>
-class ValidPtr {
+class ValidPtr : public ValidObjectListener {
 public:
     ValidPtr(T* instance) : mInstance(instance) {
-        instance->subscribeValid(*this);
+        instance->subscribeValid(this);
     }
 
     ~ValidPtr() {
         _LOCK_SCOPE(busMutex);
-        if(mInstance && valid)
-            mInstance->unsubscribeValid(*this);
+        if (mInstance && valid)
+            mInstance->unsubscribeValid(this);
     }
 
     /**
      * called by encapsulated class to notify of destruction
      */
-    inline void setInvalid() { _LOCK_SCOPE(busMutex); valid = false; }
+    void onDestroy(ValidObject *) override {
+        _LOCK_SCOPE(busMutex);
+        valid = false;
+    }
+
+    inline T* get() {
+        return mInstance;
+    }
 
     /**
      * throw caller under bus if he calls on invalid ptr
      */
-    inline T* operator->() { if(valid) return mInstance; else throw std::invalid_argument("Attempt to dereference an invalid pointer"); }
+    inline T* operator->() {
+        if (valid)
+            return mInstance;
+        else
+            throw std::invalid_argument("Attempt to dereference an invalid pointer");
+    }
 
     /**
      * @return indicator whether object is valid
      * Note: use with lock only
      */
-    inline bool operator()() { return valid; }
+    inline bool operator()() {
+        return valid;
+    }
 
     /**
      * To minimize risk of race condition between usage of () operator and -> operator we need the caller to lock
@@ -55,37 +76,42 @@ private:
     std::mutex busMutex;
 };
 
-template <typename T>
-class ValidPtrObject {
+class ValidObject {
 public:
-    virtual ~ValidPtrObject() {
-        _LOCK_SCOPE(_mmtxs);
-        for (auto p : _mptrs)
-            p->setInvalid();
+    virtual ~ValidObject() {
+        notifyDestroy();
     }
 
     /**
      * Subscribes a ValidPtr to this object's validness
      * @param p ValidPtr to subscribe
      */
-    inline void subscribeValid(ValidPtr<T> &p) {
+    void subscribeValid(ValidObjectListener *p) {
         _LOCK_SCOPE(_mmtxs);
-        _mptrs.push_back(&p);
+        _mptrs.push_back(p);
     }
 
     /**
      * Unsubscribes a ValidPtr from this object's validness
      * @param p ValidPtr to unsubscribe
      */
-    inline void unsubscribeValid(ValidPtr<T> &p) {
+    void unsubscribeValid(ValidObjectListener *p) {
         _LOCK_SCOPE(_mmtxs);
         // remove/erase idiom
-        _mptrs.erase(std::remove(_mptrs.begin(), _mptrs.end(), &p), _mptrs.end());
+        _mptrs.erase(std::remove(_mptrs.begin(), _mptrs.end(), p), _mptrs.end());
     }
 
 protected:
-    std::vector<ValidPtr<T>*> _mptrs;
-    std::mutex                _mmtxs;
+    void notifyDestroy() {
+        _LOCK_SCOPE(_mmtxs);
+        for (auto p : _mptrs)
+            p->onDestroy(this);
+
+        _mptrs.clear();
+    }
+
+    std::vector<ValidObjectListener*> _mptrs;
+    std::mutex                        _mmtxs;
 };
 
 #endif //VDCOMMONS_VALIDPTR_H
