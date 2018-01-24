@@ -241,17 +241,19 @@ bool Connection::read(Buffer &buffer, const uint32_t size) {
         return false;
 
     uint32_t read = 0;
-    ssize_t res;
+    ssize_t res = 1;
     buffer.increase(size, true);        // must be big enough to hold at least size bytes
 
-    if (mUsesSSL)
-        res = SSL_read(mSSL, buffer.data(buffer.size()), size-read);
-    else
-        res = NativeWrapper::recv(mSocket, buffer.data(buffer.size()), size-read);
-
     while (read != size && (res > 0)) {
-        read += res;
-        buffer.use(static_cast<uint32_t>(res));
+        if (mUsesSSL)
+            res = SSL_read(mSSL, buffer.data(buffer.size()), size-read);
+        else
+            res = NativeWrapper::recv(mSocket, buffer.data(buffer.size()), size-read);
+
+        if (res > 0) {
+            read += res;
+            buffer.use(static_cast<uint32_t>(res));
+        }
     }
 
     return read == size;
