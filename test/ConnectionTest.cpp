@@ -7,14 +7,14 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
-#include <commons/network/Connection.h>
+#include <network/Connection.h>
 #include <secure_memory/String.h>
-#include <commons/network/SSLContext.h>
+#include <network/SSLContext.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
 // private include
-#include "../src/commons/network/NativeWrapper.h"
+#include "../src/network/NativeWrapper.h"
 
 /**
  * One-Time initialization for winsock (taken from Native-Wrapper)

@@ -3,7 +3,7 @@
 
 #include <openssl/ssl.h>
 
-#include <commons/network/ConnectionInfo.h>
+#include <network/ConnectionInfo.h>
 #include <unordered_map>
 
 /**

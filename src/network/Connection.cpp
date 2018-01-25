@@ -4,9 +4,9 @@
 #include <openssl/err.h>
 #include <openssl/x509_vfy.h>
 
-#include <commons/network/Connection.h>
-#include <commons/network/ConnectionInfo.h>
-#include <commons/network/SSLContext.h>
+#include <network/Connection.h>
+#include <network/ConnectionInfo.h>
+#include <network/SSLContext.h>
 
 #include "NativeWrapper.h"
 

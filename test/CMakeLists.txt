@@ -1,6 +1,6 @@
 # remove the native wrapper that will be mocked in tests
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-list(REMOVE_ITEM SOURCE_FILES ${PARENT_DIR}/src/commons/network/NativeWrapper.cpp)
+list(REMOVE_ITEM COMMONS_NETWORK_FILES ${PARENT_DIR}/src/network/NativeWrapper.cpp)
 
 # find system gtest
 include(FindOrBuildGTest)
@@ -19,7 +19,7 @@ if (GTEST_FOUND)
     include_directories(${GTEST_INCLUDE_DIRS})
 
     ###
-    add_executable(VDCommons_Test ${SOURCE_FILES} ${VDCOMMONS_HEADERS} ${CURVE25519_SOURCES} ${TEST_FILES_SOURCES} ${TEST_FILES_HEADERS})
+    add_executable(VDCommons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_FILES_SOURCES} ${TEST_FILES_HEADERS})
     add_dependencies(VDCommons_Test protocol_generation)
     add_dependencies(VDCommons_Test enum_generation)
     target_link_libraries(VDCommons_Test ${GTEST_BOTH_LIBRARIES} pthread VDCommons)

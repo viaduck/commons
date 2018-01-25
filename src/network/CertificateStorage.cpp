@@ -1,5 +1,5 @@
 #include <openssl/pem.h>
-#include "commons/network/CertificateStorage.h"
+#include <network/CertificateStorage.h>
 
 CertificateStorage CertificateStorage::mInstance;
 int CertificateStorage::mOpensslDataIndex = -1;

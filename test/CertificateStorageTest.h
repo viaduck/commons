@@ -2,7 +2,7 @@
 #define VDCOMMONS_CERTIFICATESTORAGETEST_H
 
 #include <gtest/gtest.h>
-#include <commons/network/CertificateStorage.h>
+#include <network/CertificateStorage.h>
 
 class CertificateStorageTest : public ::testing::Test {
 protected:

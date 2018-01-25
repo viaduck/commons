@@ -5,7 +5,7 @@
 
 #include <openssl/ssl.h>
 #include <commons/helper.h>
-#include <commons/network/Connection.h>
+#include <network/Connection.h>
 
 /**
  * Storage class to store connection details: host and port
