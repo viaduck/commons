@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(VDCommons)
 
 # add additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory/cmake-modules")
+
+# need the pathlib module, which is part of 3.4+
+find_package(PythonInterp 3.4 REQUIRED)
 
 # enable and require c++14 support
 set(CMAKE_CXX_STANDARD 14)
@@ -33,10 +36,6 @@ if (COMMONS_BASE_ONLY)
     add_library(VDCommons STATIC ${COMMONS_BASIC_FILES})
 
 else()
-
-    # required packages
-    # need the pathlib module, which is part of 3.4+
-    find_package(PythonInterp 3.4 REQUIRED)
 
     # require openssl
     add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibility
