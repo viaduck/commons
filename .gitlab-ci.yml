@@ -47,7 +47,7 @@ test:linux:x86_64:full:system-openssl:
         - cd build
         - test/VDCommons_Test             # runs gtest target
     dependencies:
-    - build:linux:x86_64:full:system-openssl:
+    - build:linux:x86_64:full:system-openssl
 
 build:linux:x86_64:base-only:
     stage: build
