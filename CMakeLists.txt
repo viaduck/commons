@@ -105,19 +105,16 @@ else()
     if (DOXYGEN_FOUND)
         setup_doxygen(VDCommons_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     endif()
-
-    # tests
-    add_subdirectory(test)
-
 endif()
+
+# tests
+add_subdirectory(test)
 
 # link to base dependencies in any case
 target_link_libraries(VDCommons SecureMemory)
 
 # force a rebuild of commons if one of the spec files changes
-add_dependencies(VDCommons protocol_generation)
-add_dependencies(VDCommons enum_generation)
-add_dependencies(VDCommons sqlite_generation)
+add_dependencies(VDCommons protocol_generation enum_generation sqlite_generation)
 
 # export the basic includes and compile options in any case
 target_include_directories(VDCommons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

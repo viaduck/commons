@@ -9,7 +9,7 @@ stages:
     - coverage
     - documentation
 
-build:linux:x86_64:
+build:linux:x86_64:full:
     stage: build
     script:
         - mkdir build
@@ -21,13 +21,53 @@ build:linux:x86_64:
         paths:
         - build/
 
-test:linux:x86_64:
+test:linux:x86_64:full:
     stage: test
     script:
         - cd build
         - test/VDCommons_Test             # runs gtest target
     dependencies:
-    - build:linux:x86_64
+    - build:linux:x86_64:full
+
+build:linux:x86_64:full:system-openssl:
+    stage: build
+    script:
+        - mkdir build
+        - cd build
+        - cmake -GNinja ../ -DSYSTEM_OPENSSL=ON -DGTEST_SRC_DIR=/usr/src/googletest/
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build/
+
+test:linux:x86_64:full:system-openssl:
+    stage: test
+    script:
+        - cd build
+        - test/VDCommons_Test             # runs gtest target
+    dependencies:
+    - build:linux:x86_64:full:system-openssl:
+
+build:linux:x86_64:base-only:
+    stage: build
+    script:
+        - mkdir build
+        - cd build
+        - cmake -GNinja ../ -DGTEST_SRC_DIR=/usr/src/googletest/
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build/
+
+test:linux:x86_64:base-only:
+    stage: test
+    script:
+        - cd build
+        - test/VDCommons_Test             # runs gtest target
+    dependencies:
+    - build:linux:x86_64:base-only
 
 coverage:linux:x86_64:
     stage: coverage
@@ -38,7 +78,7 @@ coverage:linux:x86_64:
         paths:
         - build/test/coverage/         # coverage data
     dependencies:
-    - build:linux:x86_64
+    - build:linux:x86_64:full
 
 documentation:linux:x86_64:
     stage: documentation
@@ -49,9 +89,9 @@ documentation:linux:x86_64:
         paths:
         - build/doc/html/                # doxygen documentation
     dependencies:
-    - build:linux:x86_64
+    - build:linux:x86_64:full
 
-build:windows:x86_64:
+build:windows:x86_64:full:
     image: viaduck/ci:mingw
     stage: build
     script:
@@ -62,3 +102,13 @@ build:windows:x86_64:
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
 
+build:windows:x86_64:base-only:
+    image: viaduck/ci:mingw
+    stage: build
+    script:
+        - update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix        # fix c++11 threading support on debian
+        - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        - mkdir build-windows-x86_64
+        - cd build-windows-x86_64
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - ninja
