@@ -54,7 +54,7 @@ build:linux:x86_64:base-only:
     script:
         - mkdir build
         - cd build
-        - cmake -GNinja ../ -DGTEST_SRC_DIR=/usr/src/googletest/
+        - cmake -GNinja ../ -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
         expire_in: 2h                   # do not pollute disk
@@ -110,5 +110,5 @@ build:windows:x86_64:base-only:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
