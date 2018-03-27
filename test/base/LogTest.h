@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_LOGTEST_H
-#define VDCOMMONS_LOGTEST_H
+#ifndef COMMONS_LOGTEST_H
+#define COMMONS_LOGTEST_H
 
 #include <gtest/gtest.h>
 
@@ -84,4 +84,4 @@ protected:
 };
 
 
-#endif //VDCOMMONS_LOGTEST_H
+#endif //COMMONS_LOGTEST_H

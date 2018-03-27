@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_SSLSESSION_H
-#define VDCOMMONS_SSLSESSION_H
+#ifndef COMMONS_SSLSESSION_H
+#define COMMONS_SSLSESSION_H
 
 #include <string>
 
@@ -94,4 +94,4 @@ namespace std {
     };
 }
 
-#endif //VDCOMMONS_SSLSESSION_H
+#endif //COMMONS_SSLSESSION_H

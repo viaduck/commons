@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_CONSTEXPRSTRINGTEST_H
-#define VDCOMMONS_CONSTEXPRSTRINGTEST_H
+#ifndef COMMONS_CONSTEXPRSTRINGTEST_H
+#define COMMONS_CONSTEXPRSTRINGTEST_H
 
 
 #include <gtest/gtest.h>
@@ -9,4 +9,4 @@ class ConstexprStringTest : public ::testing::Test {
 };
 
 
-#endif //VDCOMMONS_CONSTEXPRSTRINGTEST_H
+#endif //COMMONS_CONSTEXPRSTRINGTEST_H

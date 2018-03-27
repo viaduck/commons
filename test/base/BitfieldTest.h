@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_BITFIELDTEST_H
-#define VDCOMMONS_BITFIELDTEST_H
+#ifndef COMMONS_BITFIELDTEST_H
+#define COMMONS_BITFIELDTEST_H
 
 #include <gtest/gtest.h>
 
@@ -8,4 +8,4 @@ class BitfieldTest : public ::testing::Test {
 };
 
 
-#endif //VDCOMMONS_BITFIELDTEST_H
+#endif //COMMONS_BITFIELDTEST_H

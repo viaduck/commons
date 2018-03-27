@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_SYSTEMDLOGGER_H
-#define VDCOMMONS_SYSTEMDLOGGER_H
+#ifndef COMMONS_SYSTEMDLOGGER_H
+#define COMMONS_SYSTEMDLOGGER_H
 
 #include <commons/log/Log.h>
 #include <ctime>
@@ -59,4 +59,4 @@ public:
     }
 };
 
-#endif //VDCOMMONS_SYSTEMDLOGGER_H
+#endif //COMMONS_SYSTEMDLOGGER_H

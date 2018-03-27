@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_SQXBASE_H
-#define VDCOMMONS_SQXBASE_H
+#ifndef COMMONS_SQXBASE_H
+#define COMMONS_SQXBASE_H
 
 #include <stdexcept>
 
@@ -15,4 +15,4 @@ protected:
     virtual void process() {};
 };
 
-#endif //VDCOMMONS_SQXBASE_H
+#endif //COMMONS_SQXBASE_H

@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_SSLCONTEXT_H
-#define VDCOMMONS_SSLCONTEXT_H
+#ifndef COMMONS_SSLCONTEXT_H
+#define COMMONS_SSLCONTEXT_H
 
 #include <openssl/ssl.h>
 
@@ -83,4 +83,4 @@ protected:
 };
 
 
-#endif //VDCOMMONS_SSLCONTEXT_H
+#endif //COMMONS_SSLCONTEXT_H

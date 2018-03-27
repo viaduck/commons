@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_STDOUTLOGGER_H
-#define VDCOMMONS_STDOUTLOGGER_H
+#ifndef COMMONS_STDOUTLOGGER_H
+#define COMMONS_STDOUTLOGGER_H
 
 #include <commons/log/Log.h>
 #include <ctime>
@@ -31,4 +31,4 @@ public:
     }
 };
 
-#endif //VDCOMMONS_STDOUTLOGGER_H
+#endif //COMMONS_STDOUTLOGGER_H

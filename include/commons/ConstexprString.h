@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_CONSTEXPRSTRING_H
-#define VDCOMMONS_CONSTEXPRSTRING_H
+#ifndef COMMONS_CONSTEXPRSTRING_H
+#define COMMONS_CONSTEXPRSTRING_H
 
 using size_type = std::size_t;
 template <size_type Size>
@@ -51,4 +51,4 @@ constexpr ConstexprString<Size-1> MakeConstexprString(char const (&src) [Size]) 
     return ConstexprString<Size-1>(src);
 }
 
-#endif //VDCOMMONS_CONSTEXPRSTRING_H
+#endif //COMMONS_CONSTEXPRSTRING_H

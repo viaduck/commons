@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_CUSTOM_ASSERT_H
-#define VDCOMMONS_CUSTOM_ASSERT_H
+#ifndef COMMONS_CUSTOM_ASSERT_H
+#define COMMONS_CUSTOM_ASSERT_H
 
 #define EXPECT_ARRAY_EQ(TARTYPE, reference, actual, element_count) \
     {\
@@ -32,4 +32,4 @@
         EXPECT_TRUE(found) << actual << " must be any of " << str.str();\
     }
 
-#endif //VDCOMMONS_CUSTOM_ASSERT_H
+#endif //COMMONS_CUSTOM_ASSERT_H

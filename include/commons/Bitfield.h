@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_BITFIELD_H
-#define VDCOMMONS_BITFIELD_H
+#ifndef COMMONS_BITFIELD_H
+#define COMMONS_BITFIELD_H
 
 #include <cstdint>
 #include <type_traits>
@@ -53,4 +53,4 @@ public:
     }
 };
 
-#endif //VDCOMMONS_BITFIELD_H
+#endif //COMMONS_BITFIELD_H

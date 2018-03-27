@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_LOG_H
-#define VDCOMMONS_LOG_H
+#ifndef COMMONS_LOG_H
+#define COMMONS_LOG_H
 
 #include <logger/LogLevel.h>
 
@@ -259,4 +259,4 @@ protected:
     friend class LogStream;
 };
 
-#endif //VDCOMMONS_LOG_H
+#endif //COMMONS_LOG_H

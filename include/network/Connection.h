@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_CONNECTION_H
-#define VDCOMMONS_CONNECTION_H
+#ifndef COMMONS_CONNECTION_H
+#define COMMONS_CONNECTION_H
 
 #include <cstdint>
 #include <string>
@@ -209,4 +209,4 @@ protected:
     SSL *mSSL;
 };
 
-#endif //VDCOMMONS_CONNECTION_H
+#endif //COMMONS_CONNECTION_H

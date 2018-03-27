@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_CERTIFICATESTORAGE_H
-#define VDCOMMONS_CERTIFICATESTORAGE_H
+#ifndef COMMONS_CERTIFICATESTORAGE_H
+#define COMMONS_CERTIFICATESTORAGE_H
 
 #include <secure_memory/Buffer.h>
 #include <openssl/evp.h>
@@ -145,4 +145,4 @@ protected:
     std::mutex mLockKeys;
 };
 
-#endif //VDCOMMONS_CERTIFICATESTORAGE_H
+#endif //COMMONS_CERTIFICATESTORAGE_H

@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_VALIDPTR_H
-#define VDCOMMONS_VALIDPTR_H
+#ifndef COMMONS_VALIDPTR_H
+#define COMMONS_VALIDPTR_H
 
 #include <mutex>
 #include <vector>
@@ -114,4 +114,4 @@ protected:
     std::mutex                        _mmtxs;
 };
 
-#endif //VDCOMMONS_VALIDPTR_H
+#endif //COMMONS_VALIDPTR_H

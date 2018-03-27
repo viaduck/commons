@@ -1,5 +1,5 @@
-#ifndef VDCOMMONS_NATIVEWRAPPER_H
-#define VDCOMMONS_NATIVEWRAPPER_H
+#ifndef COMMONS_NATIVEWRAPPER_H
+#define COMMONS_NATIVEWRAPPER_H
 
 /* network includes */
 #if defined(__WIN32)
@@ -37,4 +37,4 @@ namespace NativeWrapper {
     int getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen);
 }
 
-#endif //VDCOMMONS_NATIVEWRAPPER_H
+#endif //COMMONS_NATIVEWRAPPER_H
