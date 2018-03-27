@@ -1,15 +1,10 @@
 """
 Used from sqx template header
 """
-import os
 import re
 from os.path import basename
 
-import common
-import math
-from enum_generator import do as enum_do
-
-from tools.common import parse_enum_include
+from common import parse_enum_include
 
 
 class SQXIO:

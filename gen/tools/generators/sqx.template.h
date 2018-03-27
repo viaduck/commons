@@ -1,7 +1,7 @@
 [[[cog
 import os
 import cog
-import sqx.sqlite_generator as g
+import sqlite_generator as g
 from protocol_generator import variable_arrays, variable_arrays_type
 import common as c
 import pathlib

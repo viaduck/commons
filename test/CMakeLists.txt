@@ -27,19 +27,19 @@ if (GTEST_FOUND)
 
     ###
     if (COMMONS_BASE_ONLY)
-        add_executable(VDCommons_Test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
+        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
     else()
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/curve25519/ed25519_tests.txt ${CMAKE_CURRENT_BINARY_DIR}/ed25519_tests.txt COPYONLY)
-        add_executable(VDCommons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES} ${TEST_CURVE_FILES})
+        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES} ${TEST_CURVE_FILES})
     endif()
 
-    add_dependencies(VDCommons_Test protocol_generation enum_generation sqlite_generation)
-    target_link_libraries(VDCommons_Test ${GTEST_BOTH_LIBRARIES} pthread VDCommons)
+    add_dependencies(Commons_Test protocol_generation enum_generation sqlite_generation)
+    target_link_libraries(Commons_Test ${GTEST_BOTH_LIBRARIES} pthread Commons)
 
     ## code coverage
     include(CodeCoverage)
     if (LCOV_PATH AND NOT ANDROID)
-        setup_target_for_coverage(VDCommons_Coverage VDCommons_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*'")
+        setup_target_for_coverage(Commons_Coverage Commons_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*'")
     endif()
 
 endif()

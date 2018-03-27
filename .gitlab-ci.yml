@@ -25,7 +25,7 @@ test:linux:x86_64:full:
     stage: test
     script:
         - cd build
-        - test/VDCommons_Test             # runs gtest target
+        - test/Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:full
 
@@ -45,7 +45,7 @@ test:linux:x86_64:full:system-openssl:
     stage: test
     script:
         - cd build
-        - test/VDCommons_Test             # runs gtest target
+        - test/Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:full:system-openssl
 
@@ -65,7 +65,7 @@ test:linux:x86_64:base-only:
     stage: test
     script:
         - cd build
-        - test/VDCommons_Test             # runs gtest target
+        - test/Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:base-only
 
@@ -73,7 +73,7 @@ coverage:linux:x86_64:
     stage: coverage
     script:
         - cd build
-        - ninja VDCommons_Coverage        # generate code coverage
+        - ninja Commons_Coverage        # generate code coverage
     artifacts:
         paths:
         - build/test/coverage/         # coverage data
@@ -84,7 +84,7 @@ documentation:linux:x86_64:
     stage: documentation
     script:
         - cd build
-        - ninja VDCommons_doc             # generate doxygen code documentation
+        - ninja Commons_doc             # generate doxygen code documentation
     artifacts:
         paths:
         - build/doc/html/                # doxygen documentation

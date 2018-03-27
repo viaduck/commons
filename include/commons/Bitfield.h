@@ -2,8 +2,7 @@
 #define VDCOMMONS_BITFIELD_H
 
 #include <cstdint>
-
-#include <commons/helper.h>
+#include <type_traits>
 
 /**
  * This class provides static mehtods for Bitfield access to integral variables

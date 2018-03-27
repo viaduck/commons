@@ -4,7 +4,6 @@
 #include <string>
 
 #include <openssl/ssl.h>
-#include <commons/helper.h>
 #include <network/Connection.h>
 
 /**
@@ -69,6 +68,19 @@ namespace std {
      */
     template<>
     struct hash<ConnectionInfo> {
+        /**
+        * Helper method for std::hash<> specializations to combine a proper hash value
+        * @tparam T Type of value to hash
+        * @param seed Current hash value, will be updated
+        * @param v Value to hash
+        */
+        template <class T>
+        inline void hash_combine(std::size_t& seed, const T& v) const
+        {
+            std::hash<T> hasher;
+            seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+        }
+
         std::size_t operator()(const ConnectionInfo &k) const {
             using std::size_t;
             using std::hash;

@@ -9,7 +9,7 @@ import math
 from enum_generator import do as enum_do
 
 # tuple of variable types that have array support
-from tools.common import enum_include_matcher
+from common import enum_include_matcher
 
 arr_supported = ('uint8_t',)
 variable_arrays = ("var", "Var", "VAR")
