@@ -1,52 +1,55 @@
-# libCom
-## Introduction
-Provides common communication and management features used by all subprojects of ViaDuck.
+# Commons
+Provides common features used by multiple subprojects of ViaDuck.
 
-## What's included (by now)?
-- Smart pointers:
-    - `SecureUniquePtr`: Wrapper around`std::unique_ptr` which securely erases the used memory on deletion
-    - `ValidPtr`: Pointer that tracks the state of encapsulated object
-- Simple binary protocol helper (convenience get-set access to members) based on compile-time code generation
-- `Bitfield`: Convenient bitfield manipulation functions
-- `BlockCache`: Generation based fixed-cache
-- `Buffer`: Dynamic raw buffers making use of secure memory erase
-    - `String`: Secure strings based on buffer
-- `KeyValueStorage`: Storage for key-value-pairs with (de)serialization
-- `SecureStorage`: Secure RAM storage buffer, that prevents data tampering (only useful in conjunction with encryption methods exposed by core)
-- `UTF8Decoder/UTF8Encoder`: UTF8 decoding and encoding with codepoint manipulation
+## Overview
+### Base module
+- Compile-time code generation of enums, protocol classes and sqlite classes.
+  - `Bitfield`: Convenient bitfield manipulation functions (used in protocol classes)
+  - `ConstexprString`: Compile-time string with concat support (used to generate sqlite queries)
+- Custom logging infrastructure with various levels and outputs
+- `ValidPtr`: Pointer that tracks the state of an encapsulated object
 
+### Curve25519 module
+- Adapted `curve25519` implementation for `OpenSSL` from `BoringSSL`
+
+### Network module
+- Platform-independent `Connection` class with support for `SSL`,
+`CertificateStorage` for pinning, `SSLContext` for session resumption
+- Convenience methods for exact reading/writing, (de)serializing protocol classes
 
 ## Requirements
-- CMake 3.0
-- Compiler and linker platform supported by CMake
-- Python 3
-- cogapp (python package)
-- Google Test (referenced by submodule)
-- openssl-cmake (referenced by submodule)
-
-### Windows notes:
-- Only mingw-w64 compiler infrastructure is supported (32 and 64 bits)
+- Compiler with C++ 14 support
+- Python 3.4+ with `cogapp` package
+- For Windows: `mingw-w64` infrastructure (32 or 64 bits)
 
 ## How to use
 ### Adding to project
-#### Init git submodule
-```
-$ git submodule add <repo url> <path>
-```
-```
-$ git submodule update --init --recursive
-```
+1. Add as git submodule `external/commons`
+2. In CMakeLists: `add_subdirectory(external/commons)` and link against `Commons`
 
-#### CMake
-```
-include_directories(<path-to-libcom>/include/)
-```
-```
-add_subdirectory(<path-to-libcom>)
-target_link_libraries(YourProject libCom)
-```
-`<path-to-libcom>` was supplied in submodules initialization
+Note: In order to build `Commons` with only the base module, set `COMMONS_BASE_ONLY=ON`.
 
-### Binary protocol
-To add new messages and their specifications, create a new file in `protocol/` (arbitrary subdirectory) describing the message (available data types and structures
-can be found in examples (see `protocol/test/`). Message specification is automatically picked up by CMake (a CMake reload is necessary).
+### Usage
+- Add own enums, protocol or sqlite classes as definitions to `gen/` subdirectories
+- See [tests](test) for usage examples
+
+## Licensing
+This library is subject to the GNU Lesser General Public License v3.0 (GNU
+LGPLv3).
+
+```
+Copyright (C) 2015-2018  The ViaDuck Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```
