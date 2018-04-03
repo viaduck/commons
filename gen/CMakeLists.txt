@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
 
-# python used to generate the files
-find_package(PythonInterp 3.4 REQUIRED)
-
 # output directory
 set(GEN_INCLUDES ${CMAKE_BINARY_DIR}/include)
 

@@ -21,6 +21,9 @@ project(Commons)
 # add additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory/cmake-modules")
 
+# python used to auto generate files
+find_package(PythonInterp 3.4 REQUIRED)
+
 # enable and require c++14 support
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
