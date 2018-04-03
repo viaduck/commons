@@ -1,6 +1,6 @@
-foreign database/SMessage       pendingMessage     ON DELETE CASCADE
-foreign database/SAttachment    pendingAttachment  ON DELETE CASCADE
-foreign database/SSendMethod    sendMethod         ON DELETE SET NULL
+foreign sqx/database/SMessage       pendingMessage     ON DELETE CASCADE
+foreign sqx/database/SAttachment    pendingAttachment  ON DELETE CASCADE
+foreign sqx/database/SSendMethod    sendMethod         ON DELETE SET NULL
 
 bool           delivered   # indicates whether the message was delivered to server
 Buffer         content     # binary content

@@ -1,2 +1,2 @@
-foreign database/SIdentity memberIdentity ON DELETE CASCADE
-foreign database/SGroup    memberGroup    ON DELETE CASCADE
+foreign sqx/database/SIdentity memberIdentity ON DELETE CASCADE
+foreign sqx/database/SGroup    memberGroup    ON DELETE CASCADE

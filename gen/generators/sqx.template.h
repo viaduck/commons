@@ -35,8 +35,8 @@ public:
     [[[cog
         for elem in s_def.elements:
             elem.outl('struct Column_{name} {{\n'
-                      '    static constexp auto ID() {{ return MakeConstexpString("{name}"); }}\n'
-                      '}}')
+                      '    static constexpr auto ID() {{ return MakeConstexprString("{name}"); }}\n'
+                      '}};')
     ]]]
     [[[end]]]
 
@@ -125,7 +125,7 @@ public:
                 if elem.sqx_type == ElemType.Foreign:
                     elem.out(" REFERENCES {type.cpp_t} {constraints}")
 
-            s_def.outl(';";')
+            s_def.outl(');";')
         ]]]
         [[[end]]]
     }
@@ -301,7 +301,7 @@ public:
                           "}}\n")
 
             if 'range' in elem.type.setter:
-                elem.outl("inline void {name}(const BufferRangeConst &{name}) {{\n"
+                elem.outl("inline void {name}_range(const BufferRangeConst &{name}) {{\n"
                           "    " + elem.type.load_setter + "\n"
                           "}}\n")
     ]]]
@@ -318,7 +318,7 @@ public:
                           "    return {member_name};\n"
                           "}}\n")
 
-                elem.outl("inline const {type.cpp_ref_t} {name}() const {{\n"
+                elem.outl("inline {type.cpp_const_ref_t} {name}() const {{\n"
                           "    if (!{member_name})\n"
                           "        throw SQXBase::load_exception(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
                           "    return {member_name};\n"

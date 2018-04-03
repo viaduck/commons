@@ -1,6 +1,6 @@
-foreign database/SContact       inviteContact   ON DELETE CASCADE
-foreign database/SGroup         invitedGroup    ON DELETE CASCADE
-foreign database/SSendMethod    sendMethod      ON DELETE SET NULL
+foreign sqx/database/SContact       inviteContact   ON DELETE CASCADE
+foreign sqx/database/SGroup         invitedGroup    ON DELETE CASCADE
+foreign sqx/database/SSendMethod    sendMethod      ON DELETE SET NULL
 
 String          name             # name of the group (if own)
 int64_t         timestamp        # unix epoch in millis

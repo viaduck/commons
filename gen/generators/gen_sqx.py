@@ -79,10 +79,14 @@ class SQXForeignType(SQXReferenceType):
     def __init__(self, cpp_t):
         super().__init__(cpp_t, "INTEGER", "const std::unique_ptr<int64_t> &")
 
+        # use unique_ptr for foreign types
+        self.cpp_ref_t = 'std::unique_ptr<' + cpp_t + '> &'
+        self.cpp_const_ref_t = 'const ' + self.cpp_ref_t
+
         # when loading from sqlite, convert "null" values to -1
         self.load = '{member_name}_id = {name} ? *{name} : -1;'
         # when storing to sqlite, convert -1 to "null"
-        self.store = '({member_name}_id >=0 ? std::make_unqiue<int64_t>({member_name}_id) : std::unqiue_ptr<int64_t>())'
+        self.store = '({member_name}_id >=0 ? std::make_unique<int64_t>({member_name}_id) : std::unique_ptr<int64_t>())'
 
         # one member for foreign id, one for the type (using unique_ptr to allow null)
         self.member = 'int64_t {member_name}_id = -1;\n' \

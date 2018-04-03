@@ -1,4 +1,4 @@
-foreign database/SSendMethod       sendMethod      ON DELETE SET NULL
+foreign sqx/database/SSendMethod       sendMethod      ON DELETE SET NULL
 
 String          name       # identity name
 String          hash       # public key hash
