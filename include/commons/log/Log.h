@@ -20,7 +20,7 @@
 #ifndef COMMONS_LOG_H
 #define COMMONS_LOG_H
 
-#include <logger/LogLevel.h>
+#include <enum/logger/LogLevel.h>
 
 #include <vector>
 #include <ostream>

@@ -17,7 +17,7 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "test/TestEnum.h"
+#include <enum/test/TestEnum.h>
 
 #include "EnumTest.h"
 

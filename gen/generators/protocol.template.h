@@ -153,7 +153,7 @@ public:
         return mBuffer;
     }
 
-    // getters (basic)
+    // getters (basic, var)
 
     [[[cog
         for elem in p_def.elements:
@@ -162,7 +162,7 @@ public:
                           "    " + elem.load + "\n"
                           "}}\n")
 
-                elem.outl("static inline uint32_t {name}_size {{\n"
+                elem.outl("static inline uint32_t {name}_size() {{\n"
                           "   " + elem.size + "\n"
                           "}}\n")
 
@@ -173,7 +173,7 @@ public:
     ]]]
     [[[end]]]
 
-    // setters (basic, array)
+    // setters (basic, array, enum, var)
 
     [[[cog
         for elem in p_def.elements:
@@ -201,6 +201,11 @@ public:
                 elem.outl("inline BufferRange {name}_mutable_range() {{\n"
                            "    return BufferRange(mBuffer, {offset}, {name}_size());\n"
                            "}}\n")
+
+            if 'enum' in elem.setter:
+                elem.outl("inline void {name}({base_type} v) {{\n"
+                "    {name}(to{type}(v));\n"
+                "}}\n")
 
             if 'var' in elem.setter:
                 elem.outl("inline Buffer &{name}() {{\n"

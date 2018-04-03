@@ -81,6 +81,9 @@ class ProtoEnumType(ProtoIntegralType):
         # calculate size
         self.size = "return sizeof({base_type});"
 
+        # add special enum setter
+        self.setter.append('enum')
+
 
 class ProtoIntegralArrayType(ProtoIntegralType):
     def __init__(self, elem_type, elem_name, elem_count):

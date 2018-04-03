@@ -17,12 +17,12 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <logger/LogLevel.h>
-#include "test/VarMsg.h"
-#include "test/EnumMsg.h"
+#include <enum/logger/LogLevel.h>
+#include <protocol/test/VarMsg.h>
+#include <protocol/test/EnumMsg.h>
 #include <secure_memory/conversions.h>
 #include <secure_memory/Buffer.h>
-#include "test/sometest.h"
+#include <protocol/test/sometest.h>
 #include "ContainerTest.h"
 #include "custom_assert.h"
 
@@ -32,7 +32,6 @@ TEST_F(ContainerTest, SimpleRead) {
     const uint8_t secondInt = 0xfe;
     const uint16_t third = hton<uint16_t>(0xDEAD);
     const uint8_t arr[] = { 'a', 'b', 'c' };
-//    const uint8_t arr[] = { 'a', 'b', 'c' };
 
     a.append(&firstInt, sizeof(firstInt));
     a.append(&secondInt, sizeof(secondInt));
@@ -46,10 +45,8 @@ TEST_F(ContainerTest, SimpleRead) {
     ASSERT_EQ(c.version(), 0xBEEFDEAD);
     ASSERT_EQ(c.first(), 0xfe);
     ASSERT_EQ(c.second(), 0xDEAD);
-    EXPECT_ARRAY_EQ(const uint8_t, "abc", c.const_buf(), 3);
-    EXPECT_ARRAY_EQ(const uint8_t, "abc", const_cast<const uint8_t*>(c.buf()), 3);
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.const_buf()+3, 7);
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", const_cast<const uint8_t*>(c.buf()+3), 7);
+    EXPECT_ARRAY_EQ(const uint8_t, "abc", c.buf(), 3);
+    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf()+3, 7);
 }
 
 TEST_F(ContainerTest, SimpleWrite) {
@@ -63,8 +60,7 @@ TEST_F(ContainerTest, SimpleWrite) {
     ASSERT_EQ(c.first(), 0xfe);
     c.second(0xDEAD);
     ASSERT_EQ(c.second(), 0xDEAD);
-    memset(c.buf(), 0xAB, 10);
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.const_buf(), 10);
+    c.buf(reinterpret_cast<const uint8_t*>("\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB"), 10);
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf(), 10);
 
     ASSERT_EQ(hton(0xBEEFDEAD), *reinterpret_cast<const uint32_t*>(c.buffer().const_data()));
@@ -129,18 +125,14 @@ TEST_F(ContainerTest, Enum) {
     EnumMsg msg;
     msg.myTestEnum(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY);
     EXPECT_EQ(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY, msg.myTestEnum());
-    EXPECT_EQ(static_cast<uint16_t>(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY), msg.myTestEnum_low());
 
     msg.myTestEnum(TestEnum::INVALID_ENUM_VALUE);
     EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
-    EXPECT_EQ(static_cast<uint16_t>(TestEnum::INVALID_ENUM_VALUE), msg.myTestEnum_low());
 
     const int val = static_cast<uint16_t>(TestEnum::INVALID_ENUM_VALUE)+2;
-    msg.myTestEnum_low(val);
+    msg.myTestEnum(val);
     EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
-    EXPECT_EQ(val, msg.myTestEnum_low());
 
-    msg.myTestEnum_low(static_cast<uint16_t>(TestEnum::VALUE_X55));
+    msg.myTestEnum(static_cast<uint16_t>(TestEnum::VALUE_X55));
     EXPECT_EQ(TestEnum::VALUE_X55, msg.myTestEnum());
-    EXPECT_EQ(static_cast<uint16_t>(TestEnum::VALUE_X55), msg.myTestEnum_low());
 }

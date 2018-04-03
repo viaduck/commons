@@ -22,7 +22,7 @@
     e_def.outl("inline std::string toString(const {name} &e) {{")
     e_def.outl("    switch (e) {{")
     for elem in e_def.elements:
-        elem.outl('    case {e_def.name}::{value}: return "{value}";', e_def=e_def)
+        elem.outl('    case {e_def.name}::{value}: return "{e_def.name}::{value}";', e_def=e_def)
     e_def.outl('    }}');
     e_def.outl('    return "";');
     e_def.outl("}}");
