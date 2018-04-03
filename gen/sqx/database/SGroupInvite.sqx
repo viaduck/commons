@@ -1,4 +1,3 @@
--
 foreign database/SContact       inviteContact   ON DELETE CASCADE
 foreign database/SGroup         invitedGroup    ON DELETE CASCADE
 foreign database/SSendMethod    sendMethod      ON DELETE SET NULL

@@ -1,5 +1,5 @@
-ProtocolVersion enum/server/ProtocolVersion.the
-ProtocolOpcode enum/server/ProtocolOpcode.the
+import enum/server/ProtocolVersion.the
+import enum/server/ProtocolOpcode.the
 -
 ProtocolVersion version
 ProtocolOpcode  opcode

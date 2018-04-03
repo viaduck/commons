@@ -50,8 +50,7 @@ if (GTEST_FOUND)
         add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES} ${TEST_CURVE_FILES})
     endif()
 
-    add_dependencies(Commons_Test protocol_generation enum_generation sqlite_generation)
-    target_link_libraries(Commons_Test ${GTEST_BOTH_LIBRARIES} pthread Commons)
+    target_link_libraries(Commons_Test ${GTEST_BOTH_LIBRARIES} pthread Commons auto_gen)
 
     ## code coverage
     include(CodeCoverage)

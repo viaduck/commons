@@ -1,4 +1,3 @@
--
 Buffer key1        # first key
 Buffer key2        # second key
 Buffer sendHint    # AIT for hinting an outgoing message

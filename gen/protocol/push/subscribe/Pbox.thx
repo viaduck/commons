@@ -1,2 +1,1 @@
--
-uint8_t(20)     phash
+uint8_t[20]     phash

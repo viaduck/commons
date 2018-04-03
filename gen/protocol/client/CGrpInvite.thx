@@ -1,7 +1,7 @@
-SendMethodType enum/message/SendMethodType.the
+import enum/message/SendMethodType.the
 -
-uint8_t(4)      inviteToken
-uint8_t(Var)    groupName
+uint8_t[4]      inviteToken
+uint8_t[Var]    groupName
 
 SendMethodType  methodType # method used to reach postbox
-uint8_t(var)    address    # address of postbox method
+uint8_t[var]    address    # address of postbox method

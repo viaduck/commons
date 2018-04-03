@@ -1,4 +1,3 @@
--
 foreign database/SMessage       pendingMessage     ON DELETE CASCADE
 foreign database/SAttachment    pendingAttachment  ON DELETE CASCADE
 foreign database/SSendMethod    sendMethod         ON DELETE SET NULL

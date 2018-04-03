@@ -1,4 +1,3 @@
--
 foreign database/SMessage attachmentMessage ON DELETE CASCADE
 
 int64_t timestamp

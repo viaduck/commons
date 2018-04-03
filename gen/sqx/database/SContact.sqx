@@ -1,4 +1,4 @@
-KeyExchangeState enum/key/KeyExchangeState.the
+import enum/key/KeyExchangeState.the
 -
 foreign database/SIdentity contactIdentity ON DELETE CASCADE
 foreign database/SKeyInfo  ephemeralKey    ON DELETE SET NULL

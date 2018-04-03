@@ -1,4 +1,4 @@
-SendMethodType enum/message/SendMethodType.the
+import enum/message/SendMethodType.the
 -
 SendMethodType  methodType # method used to reach postbox
 String          address    # address of postbox method

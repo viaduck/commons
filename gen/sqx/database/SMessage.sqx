@@ -1,4 +1,3 @@
--
 foreign database/SContact       messageContact      ON DELETE CASCADE
 foreign database/SGroupMember   messageGrpMember    ON DELETE SET NULL
 foreign database/SGroup         messageGroup        ON DELETE CASCADE
