@@ -1,5 +1,5 @@
 import enum/message/SendMethodType.the
--
+
 uint8_t[4]      inviteToken
 uint8_t[Var]    groupName
 

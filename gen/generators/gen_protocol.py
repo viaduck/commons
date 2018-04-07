@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 from os.path import basename, splitext
-from common import CogBase, read_definition, type_bits, bits_type
+from common import CogBase, DefBase, read_definition, type_bits, bits_type
 
 from generators.gen_enum import enum_import
 
@@ -186,75 +186,13 @@ class ProtoSubType(ProtoIntegralType):
         self.byte_size = 0
 
 
-def parse_line(line, elements):
-    match = integral_matcher.match(line)
-    if match is not None:
-        elem_type = match.group('type').strip()
-        elem_name = match.group('name').strip()
-
-        # enum or integral
-        if elem_type in enum_types:
-            elements.append(ProtoEnumType(elem_type, elem_name, enum_types[elem_type]))
-        else:
-            elements.append(ProtoIntegralType(elem_type, elem_name))
-        return
-
-    match = squeeze_matcher.match(line)
-    if match is not None:
-        elem_type = match.group('type').strip()
-        elem_name = match.group('name').strip()
-
-        # create dummy parent element
-        sub_parent = ProtoSubParentType(elem_type, elem_name)
-
-        # add subs to elements, then parent
-        for sub in sub_parent.subs:
-            elements.append(sub)
-
-        # parent is only added to ensure following elements have right offset (parent holds combined size of subs)
-        elements.append(sub_parent)
-        return
-
-    match = array_matcher.match(line)
-    if match is not None:
-        elem_type = match.group('type').strip()
-        elem_name = match.group('name').strip()
-        elem_count = match.group('size').strip()
-
-        # integral array
-        elements.append(ProtoIntegralArrayType(elem_type, elem_name, elem_count))
-        return
-
-    match = var_array_matcher.match(line)
-    if match is not None:
-        elem_type = match.group('type').strip()
-        elem_name = match.group('name').strip()
-        elem_size = match.group('size').strip()
-
-        # variable array
-        elements.append(ProtoVariableArrayType(elem_type, elem_name, var_types[elem_size]))
-        return
-
-    raise Exception("parse error on line: " + line)
-
-
 # all protocol definitions
-class ProtoDef(CogBase):
+class ProtoDef(DefBase, CogBase):
     def __init__(self, filename):
-        # split input
-        includes, body = read_definition(filename)
+        DefBase.__init__(self, filename)
 
-        # collect enum includes
-        self.include_enums = [enum_import(i) for i in includes]
-        # add each enum as a custom type
-        for e_def in self.include_enums:
-            enum_types.update({e_def.name: e_def})
-
-        # list of elements with one element per field and squeeze value
-        self.elements = []
-        for line in body:
-            parse_line(line, self.elements)
-
+        # create elements
+        self.parse()
         # list of elements contained in constructor
         self.ctr_elements = [element for element in self.elements if element.is_in_ctr]
 
@@ -275,5 +213,55 @@ class ProtoDef(CogBase):
         # number of variable array elements
         self.n_vars = sum(1 for elem in self.elements if 'var' in elem.getter)
 
+    def parse_line(self, line):
+        e_def = enum_import(line)
+        if e_def is not None:
+            # add enum as a custom type
+            enum_types.update({e_def.name: e_def})
+            self.includes.append(e_def)
+            return []
+
+        match = integral_matcher.match(line)
+        if match is not None:
+            elem_type = match.group('type').strip()
+            elem_name = match.group('name').strip()
+
+            # enum or integral
+            if elem_type in enum_types:
+                return [ProtoEnumType(elem_type, elem_name, enum_types[elem_type])]
+            else:
+                return [ProtoIntegralType(elem_type, elem_name)]
+
+        match = squeeze_matcher.match(line)
+        if match is not None:
+            elem_type = match.group('type').strip()
+            elem_name = match.group('name').strip()
+
+            # create dummy parent element
+            sub_parent = ProtoSubParentType(elem_type, elem_name)
+
+            # subs first, then parent
+            # parent is only added to ensure following elements have right offset (parent holds combined size of subs)
+            return sub_parent.subs + [sub_parent]
+
+        match = array_matcher.match(line)
+        if match is not None:
+            elem_type = match.group('type').strip()
+            elem_name = match.group('name').strip()
+            elem_count = match.group('size').strip()
+
+            # integral array
+            return [ProtoIntegralArrayType(elem_type, elem_name, elem_count)]
+
+        match = var_array_matcher.match(line)
+        if match is not None:
+            elem_type = match.group('type').strip()
+            elem_name = match.group('name').strip()
+            elem_size = match.group('size').strip()
+
+            # variable array
+            return [ProtoVariableArrayType(elem_type, elem_name, var_types[elem_size])]
+
+        raise Exception("parse error on line: " + line)
 
 

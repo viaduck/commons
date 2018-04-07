@@ -22,10 +22,12 @@
         if elem.sqx_type == ElemType.Foreign:
             elem.outl('#include "{path}.h"')
 
-    for e_def in s_def.include_enums:
+    # imported includes
+    for e_def in s_def.includes:
         e_def.outl('#include "{import_path}"')
 
     s_def.outl("")
+    s_def.outl("{doxygen}")
     s_def.outl("class {name} : public SQXBase {{")
 ]]]
 [[[end]]]

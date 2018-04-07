@@ -1,6 +1,8 @@
-import enum/message/PayloadType.the
+/**
+ * BasicMessage as defined in protocol spec
+ */
 -
-# BasicMessage as defined in protocol spec
+import enum/message/PayloadType.the
 
 uint8_t[64]     signature   # signature needs to go first to be able to skip it on signature check
 uint8_t[20]     senderHash  # hash of the sender to check signature against

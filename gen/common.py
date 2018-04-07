@@ -27,12 +27,30 @@ class CogBase:
         CogBase._first_comma = False
         self.out(s, **kwargs)
 
+    def outl(self, s, **kwargs):
+        cog.outl(s.format(**dict(vars(self), **kwargs)))
+
     @staticmethod
     def reset_list():
         CogBase._first_comma = True
 
-    def outl(self, s, **kwargs):
-        cog.outl(s.format(**dict(vars(self), **kwargs)))
+
+class DefBase:
+    def __init__(self, filename):
+        # split input
+        self.initial, self.body = read_definition(filename)
+        # reassemble doxygen comment
+        self.doxygen = "".join(self.initial)
+        # placeholder
+        self.elements = []
+        self.includes = []
+
+    def parse(self):
+        # sub elements, allow parse_line to add multiple elements per parsed line
+        self.elements = sum((self.parse_line(line) for line in self.body), [])
+
+    def parse_line(self, line):
+        return []
 
 
 def read_definition(filename):

@@ -1,5 +1,5 @@
 import enum/key/KeyExchangeState.the
--
+
 foreign sqx/database/SIdentity contactIdentity ON DELETE CASCADE
 foreign sqx/database/SKeyInfo  ephemeralKey    ON DELETE SET NULL
 foreign sqx/database/SKeyInfo  symmetricKey    ON DELETE SET NULL

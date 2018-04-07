@@ -17,11 +17,12 @@
 #include <cstring>
 
 [[[cog
-    # enum includes
-    for e_def in p_def.include_enums:
+    # imported includes
+    for e_def in p_def.includes:
         e_def.outl('#include "{import_path}"')
 
     p_def.outl("")
+    p_def.outl("{doxygen}")
     p_def.outl("class {name} : public Serializable {{")
 ]]]
 [[[end]]]

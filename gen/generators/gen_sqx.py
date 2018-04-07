@@ -1,12 +1,12 @@
 import re
 from enum import Enum
 from os.path import basename, splitext
-from common import CogBase, read_definition
+from common import CogBase, DefBase, read_definition
 
 from generators.gen_enum import enum_import
 
 # matches "foreign Type name ON CASCADE SET NULL"
-fk_matcher = re.compile(r"foreign (?P<type>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*")
+fk_matcher = re.compile(r"foreign (?P<path>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*")
 # matches "Type name"
 line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s*#?.*")
 
@@ -123,48 +123,70 @@ SQLiteTypes = {
 }
 
 
-# various types of protocol elements
+# various types of sqx elements
 class ElemType(Enum):
     Column = 1,
     Foreign = 2,
 
 
-# a single sqx element
+# a sqx element for foreign key
+class SQXElemFK(CogBase):
+    def __init__(self, name, path, constraints):
+        self.path = path
+        self.constraints = constraints
+        self.name = name
+
+        self.sqx_type = ElemType.Foreign
+        self.type = SQXForeignType(basename(self.path))
+
+        # mSQXFoo
+        self.member_name = 'mSQX' + self.name[0].upper() + self.name[1:]
+
+
+# a sqx element
 class SQXElem(CogBase):
-    def __init__(self, line):
-        # foreign key vs table column
-        m = fk_matcher.match(line)
-        if m is not None:
-            self.sqx_type = ElemType.Foreign
-            self.path = m.group('type').strip()
-            self.constraints = m.group('constraints').strip()
+    def __init__(self, name, typename):
+        self.name = name
 
-            self.name = m.group('name').strip()
-            self.type = SQXForeignType(basename(self.path))
-
-        else:
-            m = line_matcher.match(line)
-            self.sqx_type = ElemType.Column
-
-            self.name = m.group('name').strip()
-            self.type = SQLiteTypes[m.group('type').strip()]
+        self.sqx_type = ElemType.Column
+        self.type = SQLiteTypes[typename]
 
         # mSQXFoo
         self.member_name = 'mSQX' + self.name[0].upper() + self.name[1:]
 
 
 # all sqx definitions
-class SQXDef(CogBase):
+class SQXDef(DefBase, CogBase):
     def __init__(self, filename):
-        # split input
-        includes, body = read_definition(filename)
+        DefBase.__init__(self, filename)
 
-        # collect enum includes
-        self.include_enums = [enum_import(i) for i in includes]
-        # add each enum as a custom type
-        for e_def in self.include_enums:
-            SQLiteTypes.update({e_def.name: SQXEnumType(e_def.name, e_def.type)})
-
+        # add elements
+        self.parse()
         # root variables
-        self.elements = [SQXElem(b) for b in body]
         self.name = splitext(basename(filename))[0]
+
+    def parse_line(self, line):
+        e_def = enum_import(line)
+        if e_def is not None:
+            # add enum as a custom type
+            SQLiteTypes.update({e_def.name: SQXEnumType(e_def.name, e_def.type)})
+            self.includes.append(e_def)
+            return []
+
+        match = fk_matcher.match(line)
+        if match is not None:
+            fk_path = match.group('path').strip()
+            fk_name = match.group('name').strip()
+            fk_constraints = match.group('constraints').strip()
+
+            return [SQXElemFK(fk_name, fk_path, fk_constraints)]
+
+        match = line_matcher.match(line)
+        if match is not None:
+            elem_type = match.group('type').strip()
+            elem_name = match.group('name').strip()
+
+            return [SQXElem(elem_name, elem_type)]
+
+        raise Exception("parse error on line: " + line)
+

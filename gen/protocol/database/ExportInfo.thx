@@ -1,5 +1,5 @@
 import enum/message/SendMethodType.the
--
+
 uint8_t[32]    pHintOnce
 uint8_t[64]    pubkey
 SendMethodType methodType # method used to reach postbox
