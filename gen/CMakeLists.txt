@@ -25,11 +25,11 @@ add_custom_command(
 )
 
 # and targets
-add_custom_target(auto_gen_files ALL DEPENDS ${GEN_HEADERS})
+add_custom_target(Commons_gen_files ALL DEPENDS ${GEN_HEADERS})
 
 # fake target for linking and source files
-add_library(auto_gen INTERFACE)
-add_dependencies(auto_gen auto_gen_files)
+add_library(Commons_gen INTERFACE)
+add_dependencies(Commons_gen Commons_gen_files)
 
 # include autogen headers
-target_include_directories(auto_gen INTERFACE ${GEN_INCLUDES})
+target_include_directories(Commons_gen INTERFACE ${GEN_INCLUDES})

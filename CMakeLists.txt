@@ -89,7 +89,7 @@ add_subdirectory(gen)
 
 # link to base dependencies in any case
 # and force a rebuild of Commons if one of the spec files changes
-target_link_libraries(Commons SecureMemory auto_gen)
+target_link_libraries(Commons SecureMemory Commons_gen)
 
 # export the basic includes and compile options in any case
 target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
