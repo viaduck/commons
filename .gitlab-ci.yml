@@ -73,6 +73,7 @@ coverage:linux:x86_64:
     stage: coverage
     script:
         - cd build
+        - cmake . -DCMAKE_BUILD_TYPE=Debug
         - ninja Commons_Coverage        # generate code coverage
     artifacts:
         paths:
