@@ -2,6 +2,8 @@ foreign sqx/database/SContact       messageContact      ON DELETE CASCADE
 foreign sqx/database/SGroupMember   messageGrpMember    ON DELETE SET NULL
 foreign sqx/database/SGroup         messageGroup        ON DELETE CASCADE
 
-int64_t timestamp    # unix time milliseconds
+int64_t timestamp    # unix time in milliseconds (compose time for our messages, process time for others)
+int64_t sender_timestamp    # unix time in milliseconds (alleged time of sender compose)
+
 bool    own          # whether we sent the message or we received it
 Buffer  content      # binary message content
