@@ -55,7 +55,7 @@ if (GTEST_FOUND)
     ## code coverage
     include(CodeCoverage)
     if (LCOV_PATH AND NOT ANDROID)
-        setup_target_for_coverage(Commons_Coverage Commons_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*'")
+        setup_target_for_coverage(Commons_Coverage Commons_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*';'${CMAKE_SOURCE_DIR}/build/*'")
     endif()
 
 endif()
