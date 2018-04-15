@@ -26,6 +26,9 @@ public:
         # ctr with existing field
         b_def.outl("{name}({type} *field) : mField(field), mAllocated(false) {{ }}\n")
 
+        # copy ctr
+        b_def.outl("{name}(const {name} &other) : mField(new {type}(*other.mField)), mAllocated(true) {{ }}\n")
+
         # ctr with new field, set args
         b_def.out("{name}(")
 
@@ -73,7 +76,7 @@ public:
                    "}}\n")
 
         for elem in b_def.elements:
-            elem.outl("{type} {name}() {{\n"
+            elem.outl("{type} {name}() const {{\n"
                       "    return Bitfield::get<{type}>({offset}, {size}, value());\n"
                       "}}\n")
 
