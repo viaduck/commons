@@ -22,14 +22,10 @@ from os.path import basename, splitext
 from common import CogBase, DefBase, read_definition, type_bits, bits_type, comment_pattern
 
 from generators.gen_enum import enum_import
-
-# matches name(bits)
-squeeze_name_matcher = re.compile("(?P<name>\w*)\((?P<bits>\d*)\),?\s*?")
+from generators.gen_bit import bit_import
 
 # matches integral "type name"
 integral_matcher = re.compile(r"(?P<type>\w*)\s+(?P<name>\w*)" + comment_pattern)
-# matches squeeze "type name1(12),name2(3)"
-squeeze_matcher = re.compile(r"(?P<type>\w*)\s+(?P<name>[(),a-zA-Z0-9_ ]*?)" + comment_pattern)
 # matches "type[123] name" integral array
 array_matcher = re.compile(r"(?P<type>[\w]*)\[(?P<size>\d+)\]\s+(?P<name>\w*)" + comment_pattern)
 # matches "var|Var|VAR name" variable array
@@ -39,6 +35,8 @@ var_array_matcher = re.compile(r"(?P<type>[\w]*)\[(?P<size>[a-zA-Z]+)\]\s+(?P<na
 var_types = {"var": "uint8_t", "Var": "uint16_t", "VAR": "uint32_t"}
 # types of enums
 enum_types = {}
+# types of bitfields
+bit_types = {}
 
 
 class ProtoIntegralType(CogBase):
@@ -101,6 +99,22 @@ class ProtoEnumType(ProtoIntegralType):
         self.setter.append('enum')
 
 
+class ProtoBitType(ProtoIntegralType):
+    def __init__(self, elem_type, elem_name, b_def):
+        super().__init__(b_def.type, elem_name)
+
+        # type of bitfield class
+        self.super_type = elem_type
+
+        # load value from argument
+        self.ctr_load = "{name}().value(_{name});"
+        self.ctr_range_load = self.ctr_load
+
+        # getter is modifier, no setter needed
+        self.getter = ['bitfield']
+        self.setter = []
+
+
 class ProtoIntegralArrayType(ProtoIntegralType):
     def __init__(self, elem_type, elem_name, elem_count):
         super().__init__(elem_type, elem_name)
@@ -150,58 +164,6 @@ class ProtoVariableArrayType(ProtoIntegralType):
         self.setter = ['var']
 
 
-class ProtoSubParentType(ProtoIntegralType):
-    def __init__(self, elem_type, elem_name):
-        super().__init__(elem_type, elem_name)
-
-        # empty type only for size and offset calculation
-        self.is_in_ctr = False
-        self.getter = []
-        self.setter = []
-
-        # create sub types
-        self.subs = []
-        for sub_match in squeeze_name_matcher.finditer(elem_name):
-            sub_name = sub_match.group('name').strip()
-            sub_bits = sub_match.group('bits').strip()
-
-            self.subs.append(ProtoSubType(elem_type, sub_name, sub_bits))
-
-        # set each subs shift offset
-        offset = 0
-        for sub in self.subs:
-            sub.shift_offset = offset
-            offset = offset + sub.bits
-
-        # check squeeze overflow
-        if offset > self.type_bytes * 8:
-            raise Exception("Squeeze overflow in: " + elem_name)
-
-
-class ProtoSubType(ProtoIntegralType):
-    def __init__(self, parent_type, sub_name, sub_bits):
-        self.name = sub_name
-        self.bits = int(sub_bits)
-        self.type = bits_type(self.bits)
-        self.parent_type = parent_type
-        self.shift_offset = 0
-
-        super().__init__(self.type, self.name)
-
-        # load from mBuffer
-        self.load = "return Bitfield::get<{type}>({shift_offset}, {bits}, " \
-                    "ntoh(*static_cast<const {parent_type}*>(mBuffer.const_data({offset}))));"
-        # store from v to mBuffer
-        self.store = "{parent_type} _temp = ntoh(*static_cast<{parent_type}*>(mBuffer.data({offset})));\n" \
-                     "    Bitfield::set({shift_offset}, {bits}, v, _temp);\n" \
-                     "    *static_cast<{parent_type}*>(mBuffer.data({offset})) = hton(_temp);\n"
-        # calculate size
-        self.size = "return {bits};"
-
-        # sub types don't affect offset
-        self.byte_size = 0
-
-
 # all protocol definitions
 class ProtoDef(DefBase, CogBase):
     def __init__(self, filename):
@@ -231,10 +193,17 @@ class ProtoDef(DefBase, CogBase):
 
     def parse_line(self, line):
         e_def = enum_import(line)
+        b_def = bit_import(line)
         if e_def is not None:
             # add enum as a custom type
             enum_types.update({e_def.name: e_def})
             self.includes.append(e_def)
+            return []
+
+        elif b_def is not None:
+            # add bitfield as custom type
+            bit_types.update({b_def.name: b_def})
+            self.includes.append(b_def)
             return []
 
         match = integral_matcher.match(line)
@@ -242,23 +211,13 @@ class ProtoDef(DefBase, CogBase):
             elem_type = match.group('type').strip()
             elem_name = match.group('name').strip()
 
-            # enum or integral
+            # enum, bitfield or integral
             if elem_type in enum_types:
                 return [ProtoEnumType(elem_type, elem_name, enum_types[elem_type])]
+            elif elem_type in bit_types:
+                return [ProtoBitType(elem_type, elem_name, bit_types[elem_type])]
             else:
                 return [ProtoIntegralType(elem_type, elem_name)]
-
-        match = squeeze_matcher.match(line)
-        if match is not None:
-            elem_type = match.group('type').strip()
-            elem_name = match.group('name').strip()
-
-            # create dummy parent element
-            sub_parent = ProtoSubParentType(elem_type, elem_name)
-
-            # subs first, then parent
-            # parent is only added to ensure following elements have right offset (parent holds combined size of subs)
-            return sub_parent.subs + [sub_parent]
 
         match = array_matcher.match(line)
         if match is not None:

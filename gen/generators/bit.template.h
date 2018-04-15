@@ -77,6 +77,10 @@ public:
                       "    return Bitfield::get<{type}>({offset}, {size}, value());\n"
                       "}}\n")
 
+            elem.outl("uint32_t {name}_width() {{\n"
+                      "    return {size};\n"
+                      "}}\n")
+
             elem.outl("void {name}({type} v) {{\n"
                       "    auto fld = value();\n"
                       "    Bitfield::set({offset}, {size}, v, fld);\n"

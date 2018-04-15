@@ -154,7 +154,7 @@ public:
         return mBuffer;
     }
 
-    // getters (basic, var)
+    // getters (basic, var, bitfield)
 
     [[[cog
         for elem in p_def.elements:
@@ -170,6 +170,11 @@ public:
             if 'var' in elem.getter:
                 elem.outl("inline const Buffer &const_{name}() const {{\n"
                           "    return const_cast<const Buffer&>(mBuffer_{name});\n"
+                          "}}\n")
+
+            if 'bitfield' in elem.getter:
+                elem.outl("inline {super_type} {name}() {{\n"
+                          "    return {super_type}(static_cast<{type}*>(mBuffer.data({offset})));\n"
                           "}}\n")
     ]]]
     [[[end]]]

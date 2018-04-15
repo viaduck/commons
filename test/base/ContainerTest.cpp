@@ -76,27 +76,27 @@ TEST_F(ContainerTest, SimpleWrite) {
 TEST_F(ContainerTest, BitField) {
     VarMsg msg;
 
-    EXPECT_EQ(15u, msg.squeezed_one_size());
-    EXPECT_EQ(4u, msg.squeezed_two_size());
+    EXPECT_EQ(15u, msg.testField().squeezed_one_width());
+    EXPECT_EQ(12u, msg.testField().squeezed_two_width());
 
-    EXPECT_EQ(0u, msg.squeezed_one());
-    EXPECT_EQ(0u, msg.squeezed_two());
+    EXPECT_EQ(0u, msg.testField().squeezed_one());
+    EXPECT_EQ(0u, msg.testField().squeezed_two());
 
-    msg.squeezed_one(1337);
-    EXPECT_EQ(1337u, msg.squeezed_one());
-    EXPECT_EQ(0u, msg.squeezed_two());
+    msg.testField().squeezed_one(1337);
+    EXPECT_EQ(1337u, msg.testField().squeezed_one());
+    EXPECT_EQ(0u, msg.testField().squeezed_two());
 
-    msg.squeezed_two(15);
-    EXPECT_EQ(1337u, msg.squeezed_one());
-    EXPECT_EQ(15u, msg.squeezed_two());
+    msg.testField().squeezed_two(15);
+    EXPECT_EQ(1337u, msg.testField().squeezed_one());
+    EXPECT_EQ(15u, msg.testField().squeezed_two());
 
-    msg.squeezed_two(0);
-    EXPECT_EQ(1337u, msg.squeezed_one());
-    EXPECT_EQ(0u, msg.squeezed_two());
+    msg.testField().squeezed_two(0);
+    EXPECT_EQ(1337u, msg.testField().squeezed_one());
+    EXPECT_EQ(0u, msg.testField().squeezed_two());
 
-    msg.squeezed_one(987);
-    EXPECT_EQ(987u, msg.squeezed_one());
-    EXPECT_EQ(0u, msg.squeezed_two());
+    msg.testField().squeezed_one(987);
+    EXPECT_EQ(987u, msg.testField().squeezed_one());
+    EXPECT_EQ(0u, msg.testField().squeezed_two());
 }
 
 TEST_F(ContainerTest, Serialize) {
@@ -128,18 +128,17 @@ TEST_F(ContainerTest, Bit) {
     TestField field;
 
     // put squeeze values, expect bitfield value
-    field.squeeze_one(123);
-    EXPECT_EQ(123, field.squeeze_one());
-    field.squeeze_two(3);
-    EXPECT_EQ(3, field.squeeze_two());
+    field.squeezed_one(123);
+    EXPECT_EQ(123, field.squeezed_one());
+    field.squeezed_two(3);
+    EXPECT_EQ(3, field.squeezed_two());
     EXPECT_EQ(0x1807B, field.value());
 
     // put bitfield value, expect squeeze values
     field.value(0x123412);
-    EXPECT_EQ(0x3412, field.squeeze_one());
-    EXPECT_EQ(0x24, field.squeeze_two());
+    EXPECT_EQ(0x3412, field.squeezed_one());
+    EXPECT_EQ(0x24, field.squeezed_two());
 }
-
 
 TEST_F(ContainerTest, Enum) {
     EnumMsg msg;

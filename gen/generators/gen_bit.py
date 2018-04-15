@@ -50,3 +50,16 @@ class BitDef(DefBase, CogBase):
     def parse_line(self, line):
         # enum definitions only have enum lines
         return [BitElem(line)]
+
+
+def bit_import(line):
+    # match import
+    m = import_matcher.match(line)
+    if m is None:
+        return None
+
+    # extract path
+    path = m.group('path').strip()
+
+    # return BitDef from path
+    return BitDef(path)
