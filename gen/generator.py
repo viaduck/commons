@@ -20,8 +20,8 @@ import subprocess
 import os
 from sys import executable, argv
 
-generators = ['enum', 'protocol', 'sqx']
-allowed_exts = ['.thx', '.the', '.sqx']
+generators = ['enum', 'protocol', 'sqx', 'bit']
+allowed_exts = ['.thx', '.the', '.sqx', '.btx']
 
 rel_definitions = "{generator}/"
 rel_template = "generators/{generator}.template.h"

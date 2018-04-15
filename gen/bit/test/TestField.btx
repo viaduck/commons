@@ -1,0 +1,3 @@
+# this is a comment
+squeeze_one(15) # also a comment
+squeeze_two(12)

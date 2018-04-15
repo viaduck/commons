@@ -32,6 +32,9 @@ types = OrderedDict([
     ("uint8_t", 8),
 ])
 
+# matches in-line comment
+comment_pattern = r"\s*(?:#.*)?$"
+
 
 class CogBase:
     _first_comma = True

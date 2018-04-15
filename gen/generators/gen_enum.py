@@ -25,7 +25,7 @@ from common import CogBase, DefBase, read_definition, suggested_type
 # "enum_value, comment"
 line_matcher = re.compile(r"(?P<value>[a-zA-Z0-9_]*)\s*,?(?P<comment>[^#]+)?\s*(?:#.*)?")
 # matches "import enum/path/to/EnumName.the"
-import_matcher = re.compile(r"^import\s(?P<path>.+)$")
+import_matcher = re.compile(r"^import\s(?P<path>enum.+)$")
 
 
 # a single enum element

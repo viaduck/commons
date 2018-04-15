@@ -19,12 +19,10 @@
 import re
 from enum import Enum
 from os.path import basename, splitext
-from common import CogBase, DefBase, read_definition, type_bits, bits_type
+from common import CogBase, DefBase, read_definition, type_bits, bits_type, comment_pattern
 
 from generators.gen_enum import enum_import
 
-# matches in-line comment
-comment_pattern = r"\s*(?:#.*)?$"
 # matches name(bits)
 squeeze_name_matcher = re.compile("(?P<name>\w*)\((?P<bits>\d*)\),?\s*?")
 

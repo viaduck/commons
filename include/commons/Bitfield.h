@@ -24,7 +24,7 @@
 #include <type_traits>
 
 /**
- * This class provides static mehtods for Bitfield access to integral variables
+ * This class provides static methods for Bitfield access to integral variables
  */
 class Bitfield {
 public:

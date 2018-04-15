@@ -20,9 +20,12 @@
 #include <enum/logger/LogLevel.h>
 #include <protocol/test/VarMsg.h>
 #include <protocol/test/EnumMsg.h>
+#include <protocol/test/sometest.h>
+#include <bit/test/TestField.h>
+
 #include <secure_memory/conversions.h>
 #include <secure_memory/Buffer.h>
-#include <protocol/test/sometest.h>
+
 #include "ContainerTest.h"
 #include "custom_assert.h"
 
@@ -120,6 +123,23 @@ TEST_F(ContainerTest, Serialize) {
             "\x00\x00\x00\x00" // bufVarBig - size indicator
     , out.const_data(), out.size());
 }
+
+TEST_F(ContainerTest, Bit) {
+    TestField field;
+
+    // put squeeze values, expect bitfield value
+    field.squeeze_one(123);
+    EXPECT_EQ(123, field.squeeze_one());
+    field.squeeze_two(3);
+    EXPECT_EQ(3, field.squeeze_two());
+    EXPECT_EQ(0x1807B, field.value());
+
+    // put bitfield value, expect squeeze values
+    field.value(0x123412);
+    EXPECT_EQ(0x3412, field.squeeze_one());
+    EXPECT_EQ(0x24, field.squeeze_two());
+}
+
 
 TEST_F(ContainerTest, Enum) {
     EnumMsg msg;
