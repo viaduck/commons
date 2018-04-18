@@ -248,7 +248,7 @@ bool Connection::close() {
             SSL_free(mSSL);
         }
 
-        NativeWrapper::shutdown(mSocket, SHUT_RDWR);
+        NativeWrapper::shutdown(mSocket, NW__SHUT_RDWR);
         NativeWrapper::close(mSocket);
         mStatus = Status::UNCONNECTED;
         return true;
