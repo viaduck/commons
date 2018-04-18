@@ -48,12 +48,16 @@ int ::NativeWrapper::getaddrinfo(const char *__name, const char *__service, cons
     return ::getaddrinfo(__name, __service, __req, __pai);
 }
 
+void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
+    return ::freeaddrinfo(__ai);
+}
+
 int ::NativeWrapper::socket(int __domain, int __type, int __protocol) {
     return ::socket(__domain, __type, __protocol);
 }
 
-int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
-    return ::connect(__fd, __addr, __len);
+int ::NativeWrapper::shutdown(int __fd, int how) {
+    return ::shutdown(__fd, how);
 }
 
 int ::NativeWrapper::close(int __fd) {
@@ -64,23 +68,23 @@ int ::NativeWrapper::close(int __fd) {
 #endif
 }
 
-ssize_t (::NativeWrapper::recv(int socket, void *buffer, size_t length)) {
-    return ::recv(socket, static_cast<char*>(buffer), length, 0);
+int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
+    return ::getsockopt(sockfd, level, optname, optval, optlen);
 }
 
-ssize_t (::NativeWrapper::send(int socket, const void *buffer, size_t length)) {
-    return ::send(socket, static_cast<const char*>(buffer), length, 0);
-}
-
-void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
-    return ::freeaddrinfo(__ai);
+int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
+    return ::connect(__fd, __addr, __len);
 }
 
 int ::NativeWrapper::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
     return ::select(ndfs, _read, _write, _except, timeout);
 }
 
-int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
-    return ::getsockopt(sockfd, level, optname, optval, optlen);
+ssize_t (::NativeWrapper::recv(int socket, void *buffer, size_t length)) {
+    return ::recv(socket, static_cast<char*>(buffer), length, 0);
+}
+
+ssize_t (::NativeWrapper::send(int socket, const void *buffer, size_t length)) {
+    return ::send(socket, static_cast<const char*>(buffer), length, 0);
 }
 

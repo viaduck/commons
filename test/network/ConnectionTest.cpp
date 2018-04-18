@@ -80,6 +80,10 @@ int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) 
     return callMockFunction(connect, __fd, __addr, __len);
 }
 
+int ::NativeWrapper::shutdown(int __fd, int how) {
+    return callMockFunction(shutdown, __fd, how);
+}
+
 int ::NativeWrapper::close(int __fd) {
     return callMockFunction(close, __fd);
 }
@@ -115,6 +119,11 @@ TEST_F(ConnectionTest, noHost) {
             // noop
         });
 
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
+            // noop
+        });
+
     mocks[currentTestName()]["freeaddrinfo"] =
         (void*)+([] (struct addrinfo *) {
             // noop
@@ -136,6 +145,11 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
 
     mocks[currentTestName()]["close"] =
         (void*)+([] (int ) {
+            // noop
+        });
+
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
             // noop
         });
 
@@ -170,6 +184,11 @@ TEST_F(ConnectionTest, dnsCollision) {
 
     mocks[currentTestName()]["close"] =
         (void*)+([] (int ) {
+            // noop
+        });
+
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
             // noop
         });
 
@@ -216,6 +235,10 @@ TEST_F(ConnectionTest, invalidSocket) {
 
     mocks[currentTestName()]["close"] =
         (void*)+([] (int ) {
+            // noop
+        });
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
             // noop
         });
     mocks[currentTestName()]["freeaddrinfo"] =
@@ -283,6 +306,11 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
 
     mocks[currentTestName()]["close"] =
         (void*)+([] (int ) {
+            // noop
+        });
+
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
             // noop
         });
 
@@ -396,6 +424,11 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
             }
         });
 
+    mocks[currentTestName()]["shutdown"] =
+        (void*)+([] (int, int) {
+            // noop
+        });
+
     mocks[currentTestName()]["freeaddrinfo"] =
         (void*)+([] (struct addrinfo *__ai) {
             delete __ai->ai_next->ai_addr;
@@ -421,6 +454,7 @@ TEST_F(ConnectionTest, realSSL) {
     mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
     mocks[currentTestName()]["select"] = (void*)&::select;
     mocks[currentTestName()]["getsockopt"] = (void*)&::getsockopt;
+    mocks[currentTestName()]["shutdown"] = (void*)&::shutdown;
 #ifdef __WIN32
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else
@@ -442,6 +476,7 @@ TEST_F(ConnectionTest, realNoSSL) {
     mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
     mocks[currentTestName()]["select"] = (void*)&::select;
     mocks[currentTestName()]["getsockopt"] = (void*)&::getsockopt;
+    mocks[currentTestName()]["shutdown"] = (void*)&::shutdown;
 #ifdef __WIN32
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else
@@ -463,6 +498,7 @@ TEST_F(ConnectionTest, sessionResumption) {
     mocks[currentTestName()]["freeaddrinfo"] = (void*)&::freeaddrinfo;
     mocks[currentTestName()]["select"] = (void*)&::select;
     mocks[currentTestName()]["getsockopt"] = (void*)&::getsockopt;
+    mocks[currentTestName()]["shutdown"] = (void*)&::shutdown;
 #ifdef __WIN32
     mocks[currentTestName()]["close"] = (void*)&::closesocket;
 #else

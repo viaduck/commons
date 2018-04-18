@@ -39,21 +39,23 @@ namespace NativeWrapper {
     int getaddrinfo (const char * __name, const char * __service,
                      const struct addrinfo * __req, struct addrinfo ** __pai);
 
+    void freeaddrinfo(struct addrinfo *__ai);
+
     int socket(int __domain, int __type, int __protocol);
 
-    int connect(int __fd, const sockaddr *__addr, socklen_t __len);
+    int shutdown(int __fd, int how);
 
     int close(int __fd);
 
-    ssize_t recv(int socket, void *buffer, size_t length);
+    int getsockopt(int __fd, int level, int optname, char *optval, socklen_t *optlen);
 
-    ssize_t send(int socket, const void *buffer, size_t length);
-
-    void freeaddrinfo(struct addrinfo *__ai);
+    int connect(int __fd, const sockaddr *__addr, socklen_t __len);
 
     int select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout);
 
-    int getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen);
+    ssize_t recv(int __fd, void *buffer, size_t length);
+
+    ssize_t send(int __fd, const void *buffer, size_t length);
 }
 
 #endif //COMMONS_NATIVEWRAPPER_H

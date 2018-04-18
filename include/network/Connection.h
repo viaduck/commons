@@ -147,20 +147,12 @@ public:
     }
 
     /**
-	 * Read at most size bytes from remote into the buffer
-	 * @param buffer Buffer receiving the read data
-     * @param size Maximum bytes to read
-	 * @return >0: Actual bytes read. 0: (clean) shutdown. <0: error occurred
-	 */
-    ssize_t readMax(Buffer &buffer, const uint32_t size);
-
-    /**
      * Read exactly size bytes from remote into the buffer. Blocks while waiting
      * @param buffer Buffer receiving the read data
      * @param size Exact count of bytes to read
      * @return True if exactly bytes have been read, false if not
      */
-    bool read(Buffer &buffer, const uint32_t size);
+    bool read(Buffer &buffer, uint32_t size);
 
     /**
      * Write from buffer to remote

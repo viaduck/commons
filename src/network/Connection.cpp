@@ -248,6 +248,7 @@ bool Connection::close() {
             SSL_free(mSSL);
         }
 
+        NativeWrapper::shutdown(mSocket, SHUT_RDWR);
         NativeWrapper::close(mSocket);
         mStatus = Status::UNCONNECTED;
         return true;
@@ -255,7 +256,7 @@ bool Connection::close() {
     return false;
 }
 
-bool Connection::read(Buffer &buffer, const uint32_t size) {
+bool Connection::read(Buffer &buffer, uint32_t size) {
     if (status() != Status::CONNECTED)
         return false;
 
@@ -276,24 +277,6 @@ bool Connection::read(Buffer &buffer, const uint32_t size) {
     }
 
     return read == size;
-}
-
-ssize_t Connection::readMax(Buffer &buffer, const uint32_t size) {
-    if (status() != Status::CONNECTED)
-        return -1;
-
-    ssize_t res;
-    buffer.increase(size, true);     // must be big enough to hold at least size bytes
-
-    if (mUsesSSL)
-        res = SSL_read(mSSL, buffer.data(buffer.size()), size);
-    else
-        res = NativeWrapper::recv(mSocket, buffer.data(buffer.size()), size);
-
-    if (res > 0)
-        buffer.use(static_cast<uint32_t>(res));
-
-    return res;
 }
 
 bool Connection::write(const Buffer &buffer) {
