@@ -51,7 +51,11 @@ public:
         // pre-format fmt with millis using %k
         fmt = format_k(fmt, mMillis);
 
-        if (mIsLocal) {
+        if (mIsUTC) {
+            // prevent %z from resolving to local timezone by manually formatting it to +0000 for UTC on all platforms
+            fmt = format_z(fmt, 0);
+        }
+        else {
             // %z already resolves to local timezone except on windows mingw-w64, which we handle manually
 #ifdef WIN32
             // get timezone info
@@ -62,10 +66,6 @@ public:
             // pre-format fmt with timezone using %z
             fmt = format_z(fmt, tzinfo.Bias);
 #endif
-        }
-        else {
-            // prevent %z from resolving to local timezone by manually formatting it to +0000 for UTC on all platforms
-            fmt = format_z(fmt, 0);
         }
 
         return format(fmt.c_str());
