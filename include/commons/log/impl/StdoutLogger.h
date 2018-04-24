@@ -45,8 +45,7 @@ public:
     }
 
     bool wantsLog(LogLevel level) override {
-        Time localNow(false);
-        std::cout<< localNow.formatIso8601() << " [" << level << "] ";
+        std::cout << Time::nowLocal().formatFull("%Y-%m-%dT%H:%M:%S%z") << " [" << level << "] ";
         return true;
     }
 };

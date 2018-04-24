@@ -18,6 +18,7 @@
  */
 
 #include <commons/log/Log.h>
+#include <commons/log/impl/StdoutLogger.h>
 #include "LogTest.h"
 
 TEST_F(LogTest, Simple) {
@@ -26,6 +27,19 @@ TEST_F(LogTest, Simple) {
 
     EXPECT_EQ("[LogLevel::LEVEL_DEBUG] Test 123 456 1\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
     EXPECT_EQ("[LogLevel::LEVEL_ERROR] This is an error 539 0.0559897\n", mLogger->toString(LogLevel::LEVEL_ERROR));
+}
+
+TEST_F(LogTest, StdOut) {
+    auto stdoutLogger = new StdoutLogger;
+
+    // just log to stdout for manual overview
+    Log::get().unregisterLogger(mLogger);
+    Log::get().registerLogger(stdoutLogger);
+    Log::dbg << "Test test 123";
+
+    // enable mLogger again
+    Log::get().unregisterLogger(stdoutLogger);
+    Log::get().registerLogger(mLogger);
 }
 
 TEST_F(LogTest, EnableDisable) {

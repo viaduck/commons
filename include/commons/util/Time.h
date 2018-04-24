@@ -5,6 +5,16 @@
 #include <iomanip>
 #include <commons/util/Except.h>
 
+#ifdef WIN32
+    /*
+     * Even though we just need windows.h, winsock.h has to be included in case it is later used,
+     * since winsock.h must always be included before windows.h
+     */
+
+    #include <winsock2.h>
+    #include <windows.h>
+#endif
+
 DEFINE_ERROR(time, base_error);
 
 /**
@@ -12,16 +22,22 @@ DEFINE_ERROR(time, base_error);
  */
 class Time {
 public:
-    explicit Time(int64_t timestamp) : mIsUTC(true) {
-        // given utc timestamp
-        set(timestamp, true);
+    explicit Time(int64_t timestamp, bool utc = true) : mIsUTC(utc) {
+        // given timestamp
+        set(timestamp, utc);
     }
 
-    explicit Time(bool utc = true) : mIsUTC(utc) {
+    static inline int64_t now() {
         using namespace std::chrono;
-        // current local or utc time
+        return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    }
 
-        set(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count(), utc);
+    static Time nowUTC() {
+        return Time(now(), true);
+    }
+
+    static Time nowLocal() {
+        return Time(now(), false);
     }
 
     /**
