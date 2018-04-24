@@ -163,7 +163,7 @@ public:
 
             # check found
             s_def.outl('if (!found)\n'
-                       '    throw SQXBase::load_exception("{name} could not be loaded");')
+                       '    throw SQXBase::load_error("{name} could not be loaded");')
 
         ]]]
         [[[end]]]
@@ -316,13 +316,13 @@ public:
                 elem.outl("inline {type.cpp_ref_t} {name}() {{\n"
                           "    if (!{member_name}) load_{name}();\n"
                           "    if (!{member_name})\n"
-                          "        throw SQXBase::load_exception(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
+                          "        throw SQXBase::load_error(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
                           "    return {member_name};\n"
                           "}}\n")
 
                 elem.outl("inline {type.cpp_const_ref_t} {name}() const {{\n"
                           "    if (!{member_name})\n"
-                          "        throw SQXBase::load_exception(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
+                          "        throw SQXBase::load_error(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
                           "    return {member_name};\n"
                           "}}\n")
 

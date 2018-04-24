@@ -20,9 +20,10 @@
 #ifndef COMMONS_STDOUTLOGGER_H
 #define COMMONS_STDOUTLOGGER_H
 
-#include <commons/log/Log.h>
-#include <ctime>
 #include <iomanip>
+
+#include <commons/log/Log.h>
+#include <commons/util/Time.h>
 
 /**
  * This ILogger implementation logs all log levels to stdout.
@@ -44,8 +45,8 @@ public:
     }
 
     bool wantsLog(LogLevel level) override {
-        std::time_t now = std::time(nullptr);
-        std::cout<<std::put_time(std::localtime(&now), "%FT%T%z")<<" ["<<level<<"] ";
+        Time localNow(false);
+        std::cout<< localNow.formatIso8601() << " [" << level << "] ";
         return true;
     }
 };

@@ -20,14 +20,12 @@
 #ifndef COMMONS_SQXBASE_H
 #define COMMONS_SQXBASE_H
 
-#include <stdexcept>
+#include <commons/util/Except.h>
+
+DEFINE_ERROR(load, base_error);
 
 class SQXBase {
 public:
-    struct load_exception : public std::runtime_error {
-        explicit load_exception(const std::string &what) : std::runtime_error(what) {}
-    };
-
     virtual sqlite::cryptosqlite_database *db() = 0;
 
 protected:
