@@ -68,7 +68,7 @@ else()
 
     # ntoh related stuff on windows needs winsock
     if (WIN32)
-        target_link_libraries(Commons ws2_32)
+        target_link_libraries(Commons ws2_32 crypt32)
     endif()
 
     # export all includes but the basics
