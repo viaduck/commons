@@ -24,8 +24,8 @@ build:linux:x86_64:full:
 test:linux:x86_64:full:
     stage: test
     script:
-        - cd build
-        - test/Commons_Test             # runs gtest target
+        - cd build/test
+        - ./Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:full
 
@@ -44,8 +44,8 @@ build:linux:x86_64:full:system-openssl:
 test:linux:x86_64:full:system-openssl:
     stage: test
     script:
-        - cd build
-        - test/Commons_Test             # runs gtest target
+        - cd build/test
+        - ./Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:full:system-openssl
 
@@ -104,7 +104,8 @@ build:windows:x86_64:full:
         - cd build-windows-x86_64
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
-        - peldd test/Commons_Test.exe | xargs cp -t .
+        - cd test
+        - peldd Commons_Test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
