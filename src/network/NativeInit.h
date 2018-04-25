@@ -45,7 +45,7 @@ public:
     }
 
     ~NativeInit() {
-        L_assert(WSACleanup(), native_init_error);
+        L_expect(WSACleanup());
     }
 
     // adapted from https://stackoverflow.com/a/40046425/207861
