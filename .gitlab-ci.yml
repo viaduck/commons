@@ -66,8 +66,8 @@ test:linux:x86_64:base-only:
           GIT_STRATEGY: none
     stage: test
     script:
-        - cd build
-        - test/Commons_Test             # runs gtest target
+        - cd build/test
+        - ./Commons_Test             # runs gtest target
     dependencies:
     - build:linux:x86_64:base-only
 
@@ -126,8 +126,8 @@ test:windows:x86_64:full:
       GIT_STRATEGY: none
     stage: test
     script:
-        - cd build-windows-x86_64
-        - test\Commons_Test.exe             # runs gtest target
+        - cd build-windows-x86_64\test
+        - Commons_Test.exe             # runs gtest target
     dependencies:
     - build:windows:x86_64:full
     tags:

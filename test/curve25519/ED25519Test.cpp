@@ -21,14 +21,8 @@
 #include "ED25519Test.h"
 #include "file_test.h"
 
-#ifdef WIN32
-    #define _PATH_DELIM "\\"
-#else
-    #define _PATH_DELIM "/"
-#endif
-
 TEST_F(ED25519Test, testSignature) {
-    FileTest t(CMAKE_CURRENT_BINARY_DIR _PATH_DELIM "ed25519_tests.txt");
+    FileTest t("ed25519_tests.txt");
     ASSERT_TRUE(t.is_open());
 
     std::vector<uint8_t> private_key, public_key, message, expected_signature;

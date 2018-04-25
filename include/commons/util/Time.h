@@ -116,7 +116,9 @@ protected:
 
     static void localtime_safe(const time_t *time, tm *result) {
 #ifdef WIN32
-
+        errno_t res = localtime_s(result, time);
+        if (res != 0)
+            throw time_error(std::to_string(res));
 #else
         if (!localtime_r(time, result))
             throw time_error(std::to_string(errno));

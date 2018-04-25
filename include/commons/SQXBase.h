@@ -22,10 +22,10 @@
 
 #include <commons/util/Except.h>
 
-DEFINE_ERROR(load, base_error);
-
 class SQXBase {
 public:
+    DEFINE_ERROR(load, base_error);
+
     virtual sqlite::cryptosqlite_database *db() = 0;
 
 protected:
