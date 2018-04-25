@@ -354,8 +354,8 @@ Connection::ConnectResult Connection::initSsl() {
 
 bool Connection::initVerification() {
     if (mCertPath.empty()) {
-        // load platform specific certificate store
-        gNativeInit.setStore(SSLContext::getInstance());
+        // load platform specific default certificate store
+        gNativeInit.defaultStore(SSLContext::getInstance());
     }
     else if (SSL_CTX_load_verify_locations(SSLContext::getInstance(), nullptr, mCertPath.c_str()) == 0) {
         // try to load given cert path

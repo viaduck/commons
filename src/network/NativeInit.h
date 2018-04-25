@@ -74,12 +74,17 @@ public:
     ~NativeInit() = default;
 #endif
 
-    void setStore(SSL_CTX *ctx) {
+    void defaultStore(SSL_CTX *ctx) {
+#ifdef WIN32
         if (mRootStore) {
             // ensure our store does not get freed on ctx store replace
             X509_STORE_up_ref(mRootStore);
             SSL_CTX_set_cert_store(ctx, mRootStore);
         }
+#else
+        // TODO: better *nix logic here
+        SSL_CTX_load_verify_locations(ctx, nullptr, "/etc/ssl/certs");
+#endif
     }
 
 protected:
