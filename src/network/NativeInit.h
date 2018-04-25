@@ -37,41 +37,42 @@ public:
     NativeInit() {
         // windows socket startup
         WSADATA w;
-        L_assert(WSAStartup(MAKEWORD(2,2), &w) == 0);
+        L_assert(WSAStartup(MAKEWORD(2,2), &w) == 0, native_init_error);
 
         // populate openssl certificate store from windows cert store
-        rootStore = X509_STORE_new();
+        mRootStore = X509_STORE_new();
         populateStore("ROOT", mRootStore);
     }
 
     ~NativeInit() {
-        L_assert(WSACleanup());
+        L_assert(WSACleanup(), native_init_error);
     }
 
     // adapted from https://stackoverflow.com/a/40046425/207861
     void populateStore(const char *winStore, X509_STORE *targetStore) {
         // open windows CA store
-        HCERTSTORE store = CertOpenSystemStore(nullptr, winStore);
+        HCERTSTORE store = CertOpenSystemStore(0, winStore);
         L_assert(store, native_init_error);
 
         // due to the structure of the loop, each cert context will be automatically freed by the next iteration
-        for (PCCERT_CONTEXT winCert = nullptr; winCert = CertEnumCertificatesInStore(store, winCert); ) {
+        for (PCCERT_CONTEXT winCert = nullptr; (winCert = CertEnumCertificatesInStore(store, winCert)); ) {
             // warning: always pass the ptr as local variable, never directly (d2i_X509 modifies the ptr)
             const unsigned char *encodedCert = winCert->pbCertEncoded;
             // warning: do NOT pass a reuse parameter (d2i_X509 expects it to be valid X509 and preserves its data)
             X509_ref target(d2i_X509(nullptr, &encodedCert, winCert->cbCertEncoded), &X509_free);
 
             if (target)
-                L_expect(X509_STORE_add_cert(targetStore, target) != 0);
+                L_expect(X509_STORE_add_cert(targetStore, target.get()) != 0);
         }
 
         // close store
         L_assert(CertCloseStore(store, 0), native_init_error);
     }
 
-#endif
+#else
     NativeInit() = default;
     ~NativeInit() = default;
+#endif
 
     void setStore(SSL_CTX *ctx) {
         if (mRootStore) {
