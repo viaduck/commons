@@ -15,6 +15,7 @@
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <fcntl.h>
+    #include <dirent.h>
     #include <cerrno>
     #define INVALID_SOCKET  (SOCKET)(~0)
     #define SOCKET_ERROR            (-1)
@@ -69,26 +70,66 @@ public:
         L_assert(CertCloseStore(store, 0), native_init_error);
     }
 
-#else
-    NativeInit() = default;
-    ~NativeInit() = default;
-#endif
-
     void defaultStore(SSL_CTX *ctx) {
-#ifdef WIN32
+        // Windows has no certs without the root store
+        L_expect(mRootStore);
+
         if (mRootStore) {
             // ensure our store does not get freed on ctx store replace
             X509_STORE_up_ref(mRootStore);
             SSL_CTX_set_cert_store(ctx, mRootStore);
         }
-#else
-        // TODO: better *nix logic here
-        SSL_CTX_load_verify_locations(ctx, nullptr, "/etc/ssl/certs");
-#endif
     }
 
 protected:
     X509_STORE *mRootStore = nullptr;
+
+#else
+    NativeInit() {
+        // paths taken from https://serverfault.com/a/722646
+        const char *checkDirs[] = {
+        #ifdef __ANDROID__
+            "/system/etc/security/cacerts", // Android
+        #else
+            "/etc/ssl/certs",               // Debian / Ubuntu / Gentoo / OpenSUSE / Arch
+            "/etc/pki/tls/certs",           // Fedora/RHEL 6 / OpenELEC / CentOS
+            "/etc/openssl/certs",           // NetBSD
+        #endif
+        };
+
+        for (auto checkDir : checkDirs) {
+            if (isValid(checkDir)) {
+                mVerifyLocation = checkDir;
+                break;
+            }
+        }
+
+        if (mVerifyLocation.empty())
+            Log::warn << "Default certificate path could not be found";
+    }
+
+    ~NativeInit() = default;
+
+    bool isValid(const char *dirPath) {
+        using dir_ref = std::unique_ptr<DIR, decltype(&closedir)>;
+        dir_ref dir(opendir(dirPath), &closedir);
+
+        // check directory exists and has some content
+        return dir && readdir(dir.get()) != 0;
+    }
+
+    void defaultStore(SSL_CTX *ctx) {
+        #ifdef SYSTEM_OPENSSL
+            SSL_CTX_set_default_verify_paths(ctx);
+        #else
+            L_expect(!mVerifyLocation.empty());
+            SSL_CTX_load_verify_locations(ctx, nullptr, mVerifyLocation.c_str());
+        #endif
+    }
+
+protected:
+    std::string mVerifyLocation;
+#endif
 };
 
 #endif //COMMONS_NATIVEINIT_H

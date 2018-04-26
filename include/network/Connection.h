@@ -29,8 +29,8 @@
 #include <network/CertificateStorage.h>
 
 /* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
-#if ! defined(__WIN32)
-#define SOCKET int
+#ifndef WIN32
+    #define SOCKET int
 #endif
 
 /**
