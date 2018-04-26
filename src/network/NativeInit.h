@@ -111,11 +111,11 @@ protected:
     ~NativeInit() = default;
 
     bool isValid(const char *dirPath) {
-        using dir_ref = std::unique_ptr<DIR, decltype(&closedir)>;
-        dir_ref dir(opendir(dirPath), &closedir);
+        using dir_ref = std::unique_ptr<DIR, decltype(&closeDir)>;
+        dir_ref dir(opendir(dirPath), &closeDir);
 
         // check directory exists and has some content
-        return dir && readdir(dir.get()) != 0;
+        return dir && readdir(dir.get()) != nullptr;
     }
 
     void defaultStore(SSL_CTX *ctx) {
@@ -128,6 +128,11 @@ protected:
     }
 
 protected:
+    static void closeDir(DIR *dir) {
+        if (dir)
+            closedir(dir);
+    }
+
     std::string mVerifyLocation;
 #endif
 };

@@ -169,7 +169,7 @@ bool try_connect(const addrinfo &addr, uint32_t timeout, SOCKET &sock) {
             // timeout -> do not pass ZERO, instead pass NULL to block
             timeval *ptv = nullptr;
             if (timeout > 0) {
-                timeval tv = {.tv_sec = 0, .tv_usec = 1000 * timeout};
+                timeval tv = {.tv_sec = 0, .tv_usec = 1000 * static_cast<int32_t>(timeout)};
                 ptv = &tv;
             }
 
