@@ -20,22 +20,7 @@
 #ifndef COMMONS_NATIVEWRAPPER_H
 #define COMMONS_NATIVEWRAPPER_H
 
-/* network includes */
-#if defined(__WIN32)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#define NW__SHUT_RDWR SD_BOTH
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <fcntl.h>
-#include <cerrno>
-#define INVALID_SOCKET  (SOCKET)(~0)
-#define SOCKET_ERROR            (-1)
-#define NW__SHUT_RDWR SHUT_RDWR
-#endif
+#include "NativeInit.h"
 
 namespace NativeWrapper {
     int getaddrinfo (const char * __name, const char * __service,

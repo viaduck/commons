@@ -29,6 +29,9 @@
 
 #include "NativeWrapper.h"
 
+// global one-time network init on a per-platform basis
+NativeInit gNativeInit;
+
 Connection::Connection(std::string host, uint16_t port, bool ssl, bool verifyEnable, std::string certPath,
                        CertificateStorage &certStore, uint32_t timeout) :
         mHost(host), mPort(port), mTimeout(timeout), mUsesSSL(ssl), mVerifyEnable(verifyEnable),
@@ -166,7 +169,7 @@ bool try_connect(const addrinfo &addr, uint32_t timeout, SOCKET &sock) {
             // timeout -> do not pass ZERO, instead pass NULL to block
             timeval *ptv = nullptr;
             if (timeout > 0) {
-                timeval tv = {.tv_sec = 0, .tv_usec = 1000 * timeout};
+                timeval tv = {.tv_sec = 0, .tv_usec = 1000 * static_cast<int32_t>(timeout)};
                 ptv = &tv;
             }
 
@@ -350,9 +353,14 @@ Connection::ConnectResult Connection::initSsl() {
 }
 
 bool Connection::initVerification() {
-    if (!mCertPath.empty())
-        if (SSL_CTX_load_verify_locations(SSLContext::getInstance(), nullptr, mCertPath.c_str()) == 0)
-            return false;
+    if (mCertPath.empty()) {
+        // load platform specific default certificate store
+        gNativeInit.defaultStore(SSLContext::getInstance());
+    }
+    else if (SSL_CTX_load_verify_locations(SSLContext::getInstance(), nullptr, mCertPath.c_str()) == 0) {
+        // try to load given cert path
+        return false;
+    }
 
     SSL_CTX_set_verify(SSLContext::getInstance(), SSL_VERIFY_PEER, [] (int preVerify, X509_STORE_CTX *ctx) -> int {
         // preVerify indicates success of last level. 1 is success, 0 is fail

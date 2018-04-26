@@ -1,6 +1,8 @@
 #ifndef COMMONS_EXCEPT_H
 #define COMMONS_EXCEPT_H
 
+#include <commons/log/Log.h>
+
 // defines a exception class "name"_error with full qualified base "fqbase"
 #define DEFINE_ERROR_FQ(name, base, fqbase)                         \
 class name##_error : public fqbase {                                    \
@@ -21,10 +23,19 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error)
 #define __VD_LINE__ STRINGIZE(__LINE__)
 
 // asserts a condition, throws err on fail
-#define VD_ASSERT(condition, err)   \
+#define L_assert(condition, error)      \
+    do {                              \
+        if (!(condition)) {           \
+            Log::err << "Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__; \
+            throw error("Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__); \
+        }                             \
+    } while(false)
+
+// expects a condition, logs errors
+#define L_expect(condition)           \
     do {                              \
         if (!(condition))             \
-            throw err("Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__); \
+            Log::err << "Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__; \
     } while(false)
 
 #endif //COMMONS_EXCEPT_H

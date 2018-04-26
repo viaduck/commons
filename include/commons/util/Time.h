@@ -76,11 +76,30 @@ public:
 #ifdef WIN32
             // get timezone info
             TIME_ZONE_INFORMATION tzinfo;
-            if (GetTimeZoneInformation(&tzinfo) < 0)
-                throw time_error("Failed to get timezone data");
+            long bias;
+
+            /*
+             * Note:
+             * - Windows defines bias as UTC=localtime+bias, therefore we flip the sign
+             * - StandardBias or DaylightBias is the additional bias introduced by standard time/daylight savings time
+             * - In unknown case, use only timezone default bias
+             */
+            switch(GetTimeZoneInformation(&tzinfo)) {
+                case TIME_ZONE_ID_UNKNOWN:
+                    bias = -tzinfo.Bias;
+                    break;
+                case TIME_ZONE_ID_STANDARD:
+                    bias = -(tzinfo.Bias + tzinfo.StandardBias);
+                    break;
+                case TIME_ZONE_ID_DAYLIGHT:
+                    bias = -(tzinfo.Bias + tzinfo.DaylightBias);
+                    break;
+                default:
+                    throw time_error("Failed to get timezone data");
+            }
 
             // pre-format fmt with timezone using %z
-            fmt = format_z(fmt, tzinfo.Bias);
+            fmt = format_z(fmt, bias);
 #endif
         }
 

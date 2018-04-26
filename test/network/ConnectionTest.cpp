@@ -35,30 +35,7 @@
 // private include
 #include "../src/network/NativeWrapper.h"
 
-/**
- * One-Time initialization for winsock (taken from Native-Wrapper)
- */
-class OneTimeInit {
-public:
-    OneTimeInit() {
-#ifdef __WIN32
-        WSADATA w;
-        if (WSAStartup(MAKEWORD(2,2), &w) != 0) {
-            // TODO proper fatal shutdown
-            return;
-        }
-#endif
-    }
-
-    ~OneTimeInit() {
-#ifdef __WIN32
-        WSACleanup();
-#endif
-    }
-};
-OneTimeInit go;
-
-// let's mock the socket functions to emulate network behavior
+// mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->name();
 }
@@ -385,7 +362,7 @@ TEST_F(ConnectionTest, realSSL) {
     mockReal();
 
     // tries to establish a connection to viaduck servers
-    Connection conn("viaduck.org", 443, true, true, "/etc/ssl/certs");
+    Connection conn("viaduck.org", 443);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
     ASSERT_TRUE(conn.isSSL());
@@ -409,7 +386,7 @@ TEST_F(ConnectionTest, sessionResumption) {
     mockReal();
 
     // tries to establish a connection to viaduck servers
-    Connection conn("viaduck.org", 443, true, true, "/etc/ssl/certs");
+    Connection conn("viaduck.org", 443);
     ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
     ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
     ASSERT_TRUE(conn.isSSL());
