@@ -47,6 +47,7 @@ if (GTEST_FOUND)
         add_executable(Commons_Test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
     else()
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/curve25519/ed25519_tests.txt ${CMAKE_CURRENT_BINARY_DIR}/ed25519_tests.txt COPYONLY)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/curve25519/ed25519_tests.txt ${CMAKE_BINARY_DIR}/ed25519_tests.txt COPYONLY)
         add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES} ${TEST_CURVE_FILES})
     endif()
 
