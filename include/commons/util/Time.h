@@ -23,6 +23,7 @@
 #include <chrono>
 #include <iomanip>
 #include <commons/util/Except.h>
+#include <sstream>
 
 #ifdef WIN32
     /*
