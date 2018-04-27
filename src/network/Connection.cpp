@@ -55,7 +55,7 @@ void socket_io_timeout(SOCKET s, uint32_t t) {
 #ifdef WIN32
     DWORD tv = t;
 #else
-    timeval tv = { .tv_sec = 0, .tv_usec = 1000 * t };
+    timeval tv = { .tv_sec = 0, .tv_usec = 1000 * static_cast<int32_t>(t) };
 #endif
 
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));

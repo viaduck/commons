@@ -132,7 +132,7 @@ TEST_F(ContainerTest, Bit) {
     EXPECT_EQ(123, field.squeezed_one());
     field.squeezed_two(3);
     EXPECT_EQ(3, field.squeezed_two());
-    EXPECT_EQ(0x1807B, field.value());
+    EXPECT_EQ(0x1807Bu, field.value());
 
     // put bitfield value, expect squeeze values
     field.value(0x123412);
