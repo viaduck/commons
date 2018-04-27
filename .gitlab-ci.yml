@@ -2,6 +2,8 @@ image: viaduck/ci
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  ANDROID_PLATFORM: "android-26"
+  ANDROID_NDK: "/android/ndk"
 
 stages:
     - build
@@ -132,3 +134,55 @@ test:windows:x86_64:full:
     - build:windows:x86_64:full
     tags:
     - windows
+
+build:android:arm64-v8a:full:
+    image: viaduck/ci:android
+    stage: build
+    script:
+        - mkdir build-android-arm64-v8a
+        - cd build-android-arm64-v8a
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=arm64-v8a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=arm64-v8a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build-android-arm64-v8a/
+
+build:android:armeabi-v7a:full:
+    image: viaduck/ci:android
+    stage: build
+    script:
+        - mkdir build-android-armeabi-v7a
+        - cd build-android-armeabi-v7a
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=armeabi-v7a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=armeabi-v7a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build-android-armeabi-v7a/
+
+build:android:x86:full:
+    image: viaduck/ci:android
+    stage: build
+    script:
+        - mkdir build-android-x86
+        - cd build-android-x86
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=x86-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build-android-x86/
+
+build:android:x86_64:full:
+    image: viaduck/ci:android
+    stage: build
+    script:
+        - mkdir build-android-x86_64
+        - cd build-android-x86_64
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86_64 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=x86_64-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - ninja
+    artifacts:
+        expire_in: 2h                   # do not pollute disk
+        paths:
+        - build-android-x86_64/
