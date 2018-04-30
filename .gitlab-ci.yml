@@ -104,7 +104,7 @@ build:windows:x86_64:full:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/securememory/cmake-modules/toolchains/debian-jessie-mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
         - peldd test/Commons_Test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
@@ -120,7 +120,7 @@ build:windows:x86_64:base-only:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/toolchains/debian-jessie-mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/securememory/cmake-modules/toolchains/debian-jessie-mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
 
 test:windows:x86_64:full:
