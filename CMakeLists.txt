@@ -35,6 +35,10 @@ add_subdirectory(external/securememory)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/protobuf/cmake)
+# disable this target as it is not needed and does not cross compile
+set_target_properties(libprotoc protoc PROPERTIES 
+    EXCLUDE_FROM_ALL ON
+    EXCLUDE_FROM_DEFAULT_BUILD ON)
 
 # auto generated files
 add_subdirectory(gen)
