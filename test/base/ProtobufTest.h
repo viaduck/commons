@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2018 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,15 +17,17 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMONS_CONTAINERTEST_H
-#define COMMONS_CONTAINERTEST_H
+#ifndef COMMONS_PROTOBUFTEST_H
+#define COMMONS_PROTOBUFTEST_H
 
-#include <cstdint>
 #include <gtest/gtest.h>
 
-class ContainerTest : public ::testing::Test {
+#include <secure_memory/Buffer.h>
+#include <protobuf/test/test.pb.h>
+
+class ProtobufTest : public ::testing::Test {
 
 };
 
 
-#endif //COMMONS_CONTAINERTEST_H
+#endif //COMMONS_PROTOBUFTEST_H

@@ -31,6 +31,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # externals
 add_subdirectory(external/securememory)
 
+# compile protobuf lib to support cross compilation
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/protobuf/cmake)
+
+# auto generated files
+add_subdirectory(gen)
+
 # collect files
 file(GLOB_RECURSE COMMONS_BASE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
 file(GLOB_RECURSE COMMONS_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/*.h)
@@ -84,12 +92,10 @@ endif()
 
 # tests
 add_subdirectory(test)
-# auto generated files
-add_subdirectory(gen)
 
 # link to base dependencies in any case
 # and force a rebuild of Commons if one of the spec files changes
-target_link_libraries(Commons SecureMemory Commons_gen)
+target_link_libraries(Commons SecureMemory Commons_gen Commons_protobuf)
 
 # export the basic includes and compile options in any case
 target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

@@ -24,7 +24,7 @@
 
 #include <commons/util/Time.h>
 
-class UtilTest : public ::testing::Test{
+class UtilTest : public ::testing::Test {
 
 };
 

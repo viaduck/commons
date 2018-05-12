@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-class LogTest : public ::testing::Test{
+class LogTest : public ::testing::Test {
 protected:
     class TestLogger : public ILogger {
     public:
