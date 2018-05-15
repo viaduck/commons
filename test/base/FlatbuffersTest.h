@@ -23,9 +23,9 @@
 #include <gtest/gtest.h>
 
 #include <secure_memory/Buffer.h>
-#include <protobuf/test/test.pb.h>
+#include <flatbuffers/test/test_generated.h>
 
-class ProtobufTest : public ::testing::Test {
+class FlatbuffersTest : public ::testing::Test {
 
 };
 

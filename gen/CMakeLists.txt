@@ -61,7 +61,7 @@ else()
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar x ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif()
 
-    set(FLATC_PROGRAM ${CMAKE_CURRENT_BINARY_DIR}/bin/flatc)
+    set(FLATC_PROGRAM ${CMAKE_CURRENT_BINARY_DIR}/${GEN_FLATBUFFER_ARCH}/bin/flatc)
 endif()
 
 # get list of flatbuffer files that need to be generated
@@ -87,6 +87,6 @@ add_custom_command(
 
 # library for flatbuffers
 add_library(Commons_flatbuffers STATIC ${GEN_FLATC_FILES})
-target_include_directories(Commons_flatbuffers PUBLIC ${GEN_INCLUDES})
+target_include_directories(Commons_flatbuffers PUBLIC ${GEN_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/../external/flatbuffers/include)
 target_link_libraries(Commons_flatbuffers flatbuffers)
 

@@ -34,9 +34,9 @@ def generate(infile, flatc, gendir, outdir):
         # generate c++
         "--cpp",
         # include directory (of definition files)
-        "-I=" + gendir,
+        "-I " + gendir,
         # output the cpp files
-        "-o=" + outdir,
+        "-o " + outdir,
         # fbs definition file
         infile]
 
@@ -72,9 +72,12 @@ def list_files(gen_dir, out_dir):
 
                     # transfer it to out dir
                     out_file_h = os.path.join(gen_out_dir, def_rel_base) + "_generated.h"
+                    
+                    # out dir for this file
+                    out_dir_h = os.path.dirname(out_file_h)
 
                     # add to result
-                    result.append({'src': def_file, 'h_out': out_file_h})
+                    result.append({'src': def_file, 'h_out': out_file_h, 'dest': out_dir_h})
 
     return result
 
@@ -103,7 +106,7 @@ if __name__ == "__main__":
     elif _verb == "generate":
         # actually generate the files
         for f in file_list:
-            generate(f['src'], _flatc, _gen_dir, _out_dir)
+            generate(f['src'], _flatc, _gen_dir, f['dest'])
 
     else:
         raise Exception("Unknown verb")
