@@ -4,6 +4,6 @@
 [submodule "external/securememory"]
 	path = external/securememory
 	url = ../../viaduck/securememory.git
-[submodule "external/protobuf"]
-	path = external/protobuf
-	url = https://github.com/viaduck/protobuf.git
+[submodule "external/flatbuffers"]
+	path = external/flatbuffers
+	url = https://github.com/google/flatbuffers.git

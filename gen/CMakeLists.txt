@@ -34,59 +34,59 @@ add_dependencies(Commons_gen Commons_gen_files)
 # include autogen headers
 target_include_directories(Commons_gen INTERFACE ${GEN_INCLUDES})
 
-## protobuf
+## flatbuffers
 
-if (SYSTEM_PROTOC)
-    # use system provided protoc
-    find_program(PROTOC_PROGRAM protoc)
-    if (NOT PROTOC_PROGRAM)
-        message(FATAL_ERROR "Could not find protoc. Please install protobuf")
+if (SYSTEM_FLATC)
+    # use system provided flatc
+    find_program(FLATC_PROGRAM flatc)
+    if (NOT FLATC_PROGRAM)
+        message(FATAL_ERROR "Could not find flatc. Please install flatbuffers.")
     endif()
 else()
-    # download prebuilt protoc
+    # download prebuilt flatc
 
     # detect host system
     if (CMAKE_HOST_WIN32)
-        set(GEN_PROTOBUF_ARCH win32)
+        set(GEN_FLATBUFFER_ARCH win32)
     elseif (CMAKE_HOST_APPLE)
-        set(GEN_PROTOBUF_ARCH osx-x86_64)
+        set(GEN_FLATBUFFER_ARCH osx-x86_64)
     elseif (CMAKE_HOST_UNIX)
-        set(GEN_PROTOBUF_ARCH linux-x86_64)
+        set(GEN_FLATBUFFER_ARCH x86_64-linux)
     endif()
 
     # only download if needed
-    if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/protoc.zip)
-        set(PREBUILT_URL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-${GEN_PROTOBUF_ARCH}.zip)
-        file(DOWNLOAD ${PREBUILT_URL} ${CMAKE_CURRENT_BINARY_DIR}/protoc.zip SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar x ${CMAKE_CURRENT_BINARY_DIR}/protoc.zip WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz)
+        set(PREBUILT_URL https://mirror.viaduck.org/prebuilts/flatbuffers/${GEN_FLATBUFFER_ARCH}.tar.gz)
+        file(DOWNLOAD ${PREBUILT_URL} ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar x ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif()
 
-    set(PROTOC_PROGRAM ${CMAKE_CURRENT_BINARY_DIR}/bin/protoc)
+    set(FLATC_PROGRAM ${CMAKE_CURRENT_BINARY_DIR}/bin/flatc)
 endif()
 
-# get list of protobuf files that need to be generated
+# get list of flatbuffer files that need to be generated
 execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/protobuf_generator.py list ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${PROTOC_PROGRAM}
+        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py list ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GEN_PROTOBUF_FILES)
+        OUTPUT_VARIABLE GEN_FLATC_FILES)
 
-# get list of proto files to depend on
+# get list of flatbuffer files to depend on
 execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/protobuf_generator.py depend ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${PROTOC_PROGRAM}
+        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py depend ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GEN_PROTOBUF_DEPENDS)
+        OUTPUT_VARIABLE GEN_FLATC_DEPENDS)
 
-# custom command for actually generating the files using proto files
+# custom command for actually generating the files using flatbuffer files
 add_custom_command(
-        OUTPUT ${GEN_PROTOBUF_FILES}
+        OUTPUT ${GEN_FLATC_FILES}
         COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/protobuf_generator.py generate ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${PROTOC_PROGRAM}
+        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py generate ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS ${GEN_PROTOBUF_DEPENDS} ${GEN_HEADERS}
+        DEPENDS ${GEN_FLATC_DEPENDS} ${GEN_HEADERS}
 )
 
-# library for protobuf
-add_library(Commons_protobuf STATIC ${GEN_PROTOBUF_FILES})
-target_include_directories(Commons_protobuf PUBLIC ${GEN_INCLUDES})
-target_link_libraries(Commons_protobuf libprotobuf-lite)
+# library for flatbuffers
+add_library(Commons_flatbuffers STATIC ${GEN_FLATC_FILES})
+target_include_directories(Commons_flatbuffers PUBLIC ${GEN_INCLUDES})
+target_link_libraries(Commons_flatbuffers flatbuffers)
 

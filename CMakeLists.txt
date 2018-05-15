@@ -31,9 +31,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # externals
 add_subdirectory(external/securememory)
 
-# compile protobuf lib to support cross compilation
-set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/protobuf/cmake)
+# compile flatbuffers lib to support cross compilation
+set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_INSTALL OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "" FORCE)
+set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/flatbuffers)
 
 # auto generated files
 add_subdirectory(gen)

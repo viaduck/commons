@@ -20,22 +20,24 @@ import subprocess
 import os
 from sys import argv
 
-generators = ['protobuf']
-allowed_exts = ['.proto']
+generators = ['flatbuffers']
+allowed_exts = ['.fbs']
 
 rel_definitions = "{generator}/"
 
 
-def generate(infile, protoc, gendir, outdir):
-    # assemble cogapp arguments
+def generate(infile, flatc, gendir, outdir):
+    # assemble shell arguments
     shell_args = [
         # quote to avoid platform issues
-        '"' + protoc + '"',
+        '"' + flatc + '"',
+        # generate c++
+        "--cpp",
         # include directory (of definition files)
         "-I=" + gendir,
         # output the cpp files
-        "--cpp_out=" + outdir,
-        # proto definition file
+        "-o=" + outdir,
+        # fbs definition file
         infile]
 
     # call generator on shell to generate an instance of the template
@@ -69,11 +71,10 @@ def list_files(gen_dir, out_dir):
                     def_rel_base = os.path.relpath(def_file_base, gen_def_dir)
 
                     # transfer it to out dir
-                    out_file_h = os.path.join(gen_out_dir, def_rel_base) + ".pb.h"
-                    out_file_cc = os.path.join(gen_out_dir, def_rel_base) + ".pb.cc"
+                    out_file_h = os.path.join(gen_out_dir, def_rel_base) + "_generated.h"
 
                     # add to result
-                    result.append({'src': def_file, 'h_out': out_file_h, 'cc_out': out_file_cc})
+                    result.append({'src': def_file, 'h_out': out_file_h})
 
     return result
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
         raise Exception("Invalid arguments")
 
     # extract args
-    _verb, _gen_dir, _out_dir, _protoc = argv[1], argv[2], argv[3], argv[4]
+    _verb, _gen_dir, _out_dir, _flatc = argv[1], argv[2], argv[3], argv[4]
 
     # all source files, their templates and respective output files
     file_list = list_files(_gen_dir, _out_dir)
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     if _verb == "list":
         # only list the output files, don't actually do anything
         # also, use CMake list format "a;b;c"
-        print(";".join(e for f in file_list for e in (f['h_out'], f['cc_out'])), end="")
+        print(";".join(f['h_out'] for f in file_list), end="")
 
     elif _verb == "depend":
         # build a list of all the dependencies of the output files
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     elif _verb == "generate":
         # actually generate the files
         for f in file_list:
-            generate(f['src'], _protoc, _gen_dir, _out_dir)
+            generate(f['src'], _flatc, _gen_dir, _out_dir)
 
     else:
         raise Exception("Unknown verb")
