@@ -24,16 +24,6 @@ add_custom_command(
         DEPENDS ${GEN_DEPENDS}
 )
 
-# add target
-add_custom_target(Commons_gen_files ALL DEPENDS ${GEN_HEADERS})
-
-# fake target for linking and source files
-add_library(Commons_gen INTERFACE)
-add_dependencies(Commons_gen Commons_gen_files)
-
-# include autogen headers
-target_include_directories(Commons_gen INTERFACE ${GEN_INCLUDES})
-
 ## flatbuffers
 
 if (SYSTEM_FLATC)
@@ -85,8 +75,14 @@ add_custom_command(
         DEPENDS ${GEN_FLATC_DEPENDS} ${GEN_HEADERS}
 )
 
-# library for flatbuffers
-add_library(Commons_flatbuffers STATIC ${GEN_FLATC_FILES})
-target_include_directories(Commons_flatbuffers PUBLIC ${GEN_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/../external/flatbuffers/include)
-target_link_libraries(Commons_flatbuffers flatbuffers)
+# add targets
+add_custom_target(Commons_gen_files ALL DEPENDS ${GEN_HEADERS})
+add_custom_target(Commons_flatbuffers_files ALL DEPENDS ${GEN_FLATC_FILES})
 
+# fake target for linking and source files
+add_library(Commons_gen INTERFACE)
+add_dependencies(Commons_gen Commons_gen_files)
+add_dependencies(Commons_gen Commons_flatbuffers_files)
+
+# include autogen headers
+target_include_directories(Commons_gen INTERFACE ${GEN_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/../external/flatbuffers/include)

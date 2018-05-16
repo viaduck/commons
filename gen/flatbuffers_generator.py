@@ -33,6 +33,8 @@ def generate(infile, flatc, gendir, outdir):
         '"' + flatc + '"',
         # generate c++
         "--cpp",
+        # use object oriented API
+        "--gen-object-api",
         # include directory (of definition files)
         "-I " + gendir,
         # output the cpp files

@@ -28,29 +28,35 @@ TEST_F(FlatbuffersTest, testExample) {
     short t_id = 0x1337;
 
     // generate person
-    auto p_name = builder.CreateString(t_name);
-    auto p_num1 = builder.CreateString(t_num1);
-    auto p_num2 = builder.CreateString(t_num2);
-    auto p_phone1 = tutorial::CreatePhoneNumber(builder, p_num1);
-    auto p_phone2 = tutorial::CreatePhoneNumber(builder, p_num2);
-    std::vector<flatbuffers::Offset<tutorial::PhoneNumber>> t_phones = {p_phone1, p_phone2};
-    auto p_phones = builder.CreateVector(t_phones);
+    auto phone1 = new tutorial::PhoneNumberT();
+    phone1->number = t_num1;
 
-    auto person1 = tutorial::CreatePerson(builder, p_name, t_id, 0, p_phones);
-    builder.Finish(person1);
+    auto phone2 = new tutorial::PhoneNumberT();
+    phone2->number = t_num2;
+
+    tutorial::PersonT person1;
+    person1.name = t_name;
+    person1.id = t_id;
+    person1.phones.emplace_back(phone1);
+    person1.phones.emplace_back(phone2);
+
+    builder.Finish(tutorial::Person::Pack(builder, &person1));
 
     // serialize to buffer
     Buffer data;
     data.write(builder.GetBufferPointer(), builder.GetSize(), 0);
 
+    // check buffer
+    flatbuffers::Verifier verifier(static_cast<const uint8_t*>(data.const_data()), data.size());
+    ASSERT_TRUE(tutorial::VerifyPersonBuffer(verifier));
+
     // deserialize to person2
-    auto person2 = tutorial::GetPerson(data.const_data());
-    //tutorial::VerifyPersonBuffer(flatbuffers::Verifier())
+    auto person2 = tutorial::UnPackPerson(data.const_data());
 
     // check values
-    EXPECT_EQ(t_name, person2->name()->str());
-    EXPECT_EQ(t_id, person2->id());
-    EXPECT_EQ(2, person2->phones()->size());
-    EXPECT_EQ(t_num1, person2->phones()->Get(0)->number()->str());
-    EXPECT_EQ(t_num2, person2->phones()->Get(1)->number()->str());
+    EXPECT_EQ(t_name, person2->name);
+    EXPECT_EQ(t_id, person2->id);
+    EXPECT_EQ(2, person2->phones.size());
+    EXPECT_EQ(t_num1, person2->phones.at(0)->number);
+    EXPECT_EQ(t_num2, person2->phones.at(1)->number);
 }

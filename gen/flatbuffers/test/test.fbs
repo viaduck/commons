@@ -9,7 +9,7 @@ table PhoneNumber {
 
 table Person {
   name:string;
-  id:short = 150;
+  id:short;
   email:string;
 
   phones:[PhoneNumber];        // Vector of Tables.
