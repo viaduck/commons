@@ -1,9 +1,0 @@
-# This is a line comment
-uint32_t    version         # this is an inline comment
-uint8_t     first
-uint16_t     second
-
-
-uint8_t[10]     buf
-uint16_t     third
-uint32_t     this_is_a_cool_property

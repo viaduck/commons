@@ -20,8 +20,8 @@ import subprocess
 import os
 from sys import executable, argv
 
-generators = ['enum', 'protocol', 'sqx', 'bit']
-allowed_exts = ['.thx', '.the', '.sqx', '.btx']
+generators = ['enum', 'flatbuffers', 'sqx', 'bit']
+allowed_exts = ['.the', '.thx', '.sqx', '.btx']
 
 rel_definitions = "{generator}/"
 rel_template = "generators/{generator}.template.h"
@@ -38,10 +38,30 @@ def generate(infile, template, outfile):
         "-d",
         # pass "def_file" global variable to cog script
         "-D def_file=" + infile,
+        # pass "out_file" global variable to cog script
+        "-D out_file=" + outfile,
         # outfile name
         "-o " + outfile,
         # cog template file
         template]
+
+    # call generator on shell to generate an instance of the template
+    subprocess.call(" ".join(shell_args), shell=True)
+
+
+def generate_fbs(flatc, infile, outdir):
+    # assemble shell arguments
+    shell_args = [
+        # quote to avoid platform issues
+        '"' + flatc + '"',
+        # generate c++
+        "--cpp",
+        # include directory (of definition files)
+        "-I " + os.path.dirname(infile),
+        # output the cpp files
+        "-o " + outdir,
+        # fbs definition file
+        infile]
 
     # call generator on shell to generate an instance of the template
     subprocess.call(" ".join(shell_args), shell=True)
@@ -82,6 +102,10 @@ def list_files(gen_dir, out_dir):
                     # add to result
                     result.append({'src': def_file, 'template': gen_template, 'out': out_file})
 
+                    if generator == "flatbuffers":
+                        result[-1]['fbs'] = os.path.join(gen_out_dir, def_rel_base) + ".fbs"
+                        result[-1]['outdir'] = os.path.dirname(out_file)
+
     return result
 
 
@@ -111,6 +135,10 @@ if __name__ == "__main__":
         # actually generate the files
         for f in file_list:
             generate(f['src'], f['template'], f['out'])
+
+            # optionally generate fbs
+            if "fbs" in f:
+                generate_fbs(argv[4], f['fbs'], f['outdir'])
 
     else:
         raise Exception("Unknown verb")

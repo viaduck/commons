@@ -1,0 +1,7 @@
+import enum/message/SendMethodType.the
+
+bytes           inviteToken
+bytes           groupName
+
+SendMethodType  methodType # method used to reach postbox
+bytes           address    # address of postbox method

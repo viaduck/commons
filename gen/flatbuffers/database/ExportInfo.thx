@@ -1,0 +1,6 @@
+import enum/message/SendMethodType.the
+
+bytes           pHintOnce
+bytes           pubkey
+SendMethodType  methodType # method used to reach postbox
+bytes           address    # address of postbox method

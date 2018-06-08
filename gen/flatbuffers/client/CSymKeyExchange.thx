@@ -1,0 +1,4 @@
+bytes sKeyHint
+bytes pKeyHint
+bytes ecpubkey1
+bytes ecpubkey2

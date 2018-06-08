@@ -15,15 +15,6 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 OUTPUT_VARIABLE GEN_DEPENDS)
 
-# custom command for actually generating the headers using the spec files
-add_custom_command(
-        OUTPUT ${GEN_HEADERS}
-        COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/generator.py generate ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS ${GEN_DEPENDS}
-)
-
 ## flatbuffers
 
 if (SYSTEM_FLATC)
@@ -54,35 +45,21 @@ else()
     set(FLATC_PROGRAM ${CMAKE_CURRENT_BINARY_DIR}/${GEN_FLATBUFFER_ARCH}/bin/flatc)
 endif()
 
-# get list of flatbuffer files that need to be generated
-execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py list ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GEN_FLATC_FILES)
-
-# get list of flatbuffer files to depend on
-execute_process(COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py depend ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        OUTPUT_VARIABLE GEN_FLATC_DEPENDS)
-
-# custom command for actually generating the files using flatbuffer files
+# custom command for actually generating the headers using the spec files
 add_custom_command(
-        OUTPUT ${GEN_FLATC_FILES}
+        OUTPUT ${GEN_HEADERS}
         COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers_generator.py generate ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
+        ${CMAKE_CURRENT_SOURCE_DIR}/generator.py generate ${CMAKE_CURRENT_SOURCE_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS ${GEN_FLATC_DEPENDS} ${GEN_HEADERS}
+        DEPENDS ${GEN_DEPENDS}
 )
 
 # add targets
 add_custom_target(Commons_gen_files ALL DEPENDS ${GEN_HEADERS})
-add_custom_target(Commons_flatbuffers_files ALL DEPENDS ${GEN_FLATC_FILES})
 
 # fake target for linking and source files
 add_library(Commons_gen INTERFACE)
 add_dependencies(Commons_gen Commons_gen_files)
-add_dependencies(Commons_gen Commons_flatbuffers_files)
 
 # include autogen headers
 target_include_directories(Commons_gen INTERFACE ${GEN_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/../external/flatbuffers/include)

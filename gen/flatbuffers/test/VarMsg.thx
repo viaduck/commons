@@ -1,0 +1,13 @@
+import bit/test/TestField.btx
+
+TestField   testField
+uint32_t    version
+uint8_t     first
+uint16_t    second
+bytes       buf
+uint16_t    third
+bytes       bufVar
+bytes       bufVar2
+bytes       bufVarMedium
+bytes       bufVarBig
+uint32_t    this_is_a_cool_property

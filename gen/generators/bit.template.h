@@ -20,14 +20,11 @@
 public:
     // constructors
     [[[cog
-        # ctr with new field
-        b_def.outl("{name}() : mField(new {type}()), mAllocated(true) {{ }}\n")
-
         # ctr with existing field
-        b_def.outl("{name}({type} *field) : mField(field), mAllocated(false) {{ }}\n")
+        b_def.outl("explicit {name}({type} field = 0) : mField(field) {{ }}\n")
 
         # copy ctr
-        b_def.outl("{name}(const {name} &other) : mField(new {type}(*other.mField)), mAllocated(true) {{ }}\n")
+        b_def.outl("{name}(const {name} &other) : mField(other.mField) {{ }}\n")
 
         # ctr with new field, set args
         b_def.out("{name}(")
@@ -40,27 +37,6 @@ public:
         for elem in b_def.elements:
             elem.outl("    {name}(_{name});")
         b_def.outl("}}")
-
-        # ctr with existing field, set args
-        b_def.out("{name}({type} *field")
-
-        for elem in b_def.elements:
-            elem.out(", {type} _{name}")
-
-        b_def.outl(") : {name}(field) {{")
-        for elem in b_def.elements:
-            elem.outl("    {name}(_{name});")
-        b_def.outl("}}")
-    ]]]
-    [[[end]]]
-
-    // destructor
-
-    [[[cog
-        b_def.outl("~{name}() {{\n"
-                   "    if (mAllocated)\n"
-                   "        delete mField;\n"
-                   "}}")
     ]]]
     [[[end]]]
 
@@ -68,11 +44,11 @@ public:
 
     [[[cog
         b_def.outl("{type} value() const {{\n"
-                   "    return ntoh(*mField);\n"
+                   "    return mField;\n"
                    "}}\n")
 
         b_def.outl("void value({type} v) {{\n"
-                   "    *mField = hton(v);\n"
+                   "    mField = v;\n"
                    "}}\n")
 
         for elem in b_def.elements:
@@ -95,7 +71,7 @@ public:
 private:
     // members
     [[[cog
-        b_def.outl("{type} *mField;")
+        b_def.outl("{type} mField;")
     ]]]
     [[[end]]]
     bool mAllocated = false;

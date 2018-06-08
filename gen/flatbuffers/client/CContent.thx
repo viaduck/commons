@@ -1,0 +1,7 @@
+import bit/client/MessageFlags.btx
+
+MessageFlags    messageFlags
+
+uint8_t         numAttachments
+bytes           contentTypeStr
+bytes           content
