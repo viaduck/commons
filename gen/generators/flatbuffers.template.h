@@ -53,11 +53,14 @@ public:
 
     [[[cog
         # default ctor
-        f_def.out("{name}() : ")
-        f_def.reset_list()
-        for elem in f_def.elements:
-            if not elem.type.is_ref:
-                elem.lout("_{name}({type.default})")
+        f_def.out("{name}()")
+        # only if ref types exist
+        if sum(1 for elem in f_def.elements if not elem.type.is_ref) > 0:
+            f_def.out(" : ")
+            f_def.reset_list()
+            for elem in f_def.elements:
+                if not elem.type.is_ref:
+                    elem.lout("_{name}({type.default})")
         f_def.outl(" {{ }}\n")
 
         # arguments ctor
@@ -72,6 +75,22 @@ public:
         for elem in f_def.elements:
             elem.outl("    {name}(__{name});")
         f_def.outl("}}\n")
+
+        # arguments ctor with ranges if buffer exist
+        if sum(1 for elem in f_def.elements if "bytes" in elem.setter) > 0:
+            f_def.out("{name}(")
+            f_def.reset_list()
+            for elem in f_def.elements:
+                if "type_wrap" in elem.setter:
+                    elem.lout("{set_wrap_type} __{name}")
+                elif "bytes" in elem.setter:
+                    elem.lout("const BufferRangeConst &__{name}")
+                else:
+                    elem.lout("{type.ref_type} __{name}")
+            f_def.outl(") {{")
+            for elem in f_def.elements:
+                elem.outl("    {name}(__{name});")
+            f_def.outl("}}\n")
 
         for elem in f_def.elements:
             # getters
@@ -103,6 +122,9 @@ public:
                 elem.outl("inline void {name}(const uint8_t *v, uint32_t size) {{\n"
                           "    _{name}.write(v, size, 0);\n"
                           "}}")
+                elem.outl("inline void {name}(const BufferRangeConst &v) {{\n"
+                          "    _{name}.write(v, 0);\n"
+                          "}}")
 
             # modifier
             if elem.type.is_ref:
@@ -115,7 +137,7 @@ public:
     [[[end]]]
     // (de)serialization
 
-    void serialize(Buffer &out) {
+    void serialize(Buffer &out) const {
         flatbuffers::FlatBufferBuilder fbb;
         fbb.FinishSizePrefixed(
             [[[cog

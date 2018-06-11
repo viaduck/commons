@@ -4,7 +4,6 @@
 -
 import enum/message/PayloadType.the
 
-bytes       signature   # signature needs to go first to be able to skip it on signature check
 bytes       senderHash  # hash of the sender to check signature against
 
 int64_t     timestamp   # sender timestamp
