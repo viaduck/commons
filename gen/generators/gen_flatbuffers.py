@@ -24,7 +24,7 @@ from generators.gen_enum import enum_import
 from generators.gen_bit import bit_import
 
 # matches non-array "type name"
-matcher = re.compile(r"(?P<type>\w*)\s+(?P<name>\w*)" + comment_pattern)
+matcher = re.compile(r"(?P<depr>~)?(?P<type>\w*)\s+(?P<name>\w*)" + comment_pattern)
 
 # types of enums
 enum_types = {}
@@ -89,9 +89,10 @@ class FlatbuffersType(CogBase):
         else:
             self.setter = ['basic']
 
-    def fbs_line(self):
+    def fbs_line(self, is_depr):
         # line in fbs file for this field
-        return self.name + ":" + self.type.fbs_type + ";"
+        depr = " (deprecated)" if is_depr else ""
+        return self.name + ":" + self.type.fbs_type + depr + ";"
 
 
 class FlatbuffersEnumType(FlatbuffersType):
@@ -128,14 +129,14 @@ class FlatbuffersDef(DefBase, CogBase):
         # name fbs table after basename of the file
         self.name = splitext(basename(filename))[0]
 
+        # fbs header
+        self.fbs = ["namespace internal;",
+                    "table " + self.name + " {"]
+
         # create elements
         self.parse()
 
-        # generate fbs definition
-        self.fbs = ["namespace internal;",
-                    "table " + self.name + " {"]
-        for elem in self.elements:
-            self.fbs.append(elem.fbs_line())
+        # fbs footer
         self.fbs.append("}")
         self.fbs.append("root_type " + self.name + ";")
 
@@ -161,15 +162,22 @@ class FlatbuffersDef(DefBase, CogBase):
 
         match = matcher.match(line)
         if match is not None:
+            is_depr = match.group('depr') is not None
             elem_type = match.group('type').strip()
             elem_name = match.group('name').strip()
 
             # handle enum or bitfield types
             if elem_type in enum_types:
-                return [FlatbuffersEnumType(elem_type, elem_name, enum_types[elem_type])]
+                result = FlatbuffersEnumType(elem_type, elem_name, enum_types[elem_type])
             elif elem_type in bit_types:
-                return [FlatbuffersBitType(elem_type, elem_name, bit_types[elem_type])]
+                result = FlatbuffersBitType(elem_type, elem_name, bit_types[elem_type])
             else:
-                return [FlatbuffersType(elem_type, elem_name)]
+                result = FlatbuffersType(elem_type, elem_name)
+
+            # add to fbs with deprecation info
+            self.fbs.append(result.fbs_line(is_depr))
+
+            # do not add deprecated fields to elements
+            return [] if is_depr else [result]
 
         raise Exception("parse error on line: " + line)

@@ -25,6 +25,7 @@ allowed_exts = ['.the', '.thx', '.sqx', '.btx']
 
 rel_definitions = "{generator}/"
 rel_template = "generators/{generator}.template.h"
+rel_generator = "generators/gen_{generator}.py"
 
 
 def generate(infile, template, outfile):
@@ -46,7 +47,7 @@ def generate(infile, template, outfile):
         template]
 
     # call generator on shell to generate an instance of the template
-    subprocess.call(" ".join(shell_args), shell=True)
+    subprocess.check_call(" ".join(shell_args), shell=True)
 
 
 def generate_fbs(flatc, infile, outdir):
@@ -64,7 +65,7 @@ def generate_fbs(flatc, infile, outdir):
         infile]
 
     # call generator on shell to generate an instance of the template
-    subprocess.call(" ".join(shell_args), shell=True)
+    subprocess.check_call(" ".join(shell_args), shell=True)
 
 
 def list_files(gen_dir, out_dir):
@@ -79,11 +80,14 @@ def list_files(gen_dir, out_dir):
         # this generators relative paths
         gen_rel = rel_definitions.format(generator=generator)
         gen_rel_template = rel_template.format(generator=generator)
+        gen_rel_generator = rel_generator.format(generator=generator)
 
         # definitions of this generator
         gen_def_dir = os.path.join(gen_dir, gen_rel)
         # template file of this generator
         gen_template = os.path.join(gen_dir, gen_rel_template)
+        # python file of this generator
+        gen_generator = os.path.join(gen_dir, gen_rel_generator)
         # outputs of this generator
         gen_out_dir = os.path.join(out_dir, gen_rel)
 
@@ -100,7 +104,12 @@ def list_files(gen_dir, out_dir):
                     out_file = os.path.join(gen_out_dir, def_rel_base) + ".h"
 
                     # add to result
-                    result.append({'src': def_file, 'template': gen_template, 'out': out_file})
+                    result.append({
+                        'src': def_file,
+                        'template': gen_template,
+                        'generator': gen_generator,
+                        'out': out_file
+                    })
 
                     if generator == "flatbuffers":
                         result[-1]['fbs'] = os.path.join(gen_out_dir, def_rel_base) + ".fbs"
@@ -127,7 +136,10 @@ if __name__ == "__main__":
 
     elif _verb == "depend":
         # build a list of all the dependencies of the output files
-        dep_files = [f['src'] for f in file_list] + [f['template'] for f in file_list]
+        dep_files = \
+            [f['src'] for f in file_list] + \
+            [f['template'] for f in file_list] + \
+            [f['generator'] for f in file_list]
         # also, use CMake list format "a;b;c"
         print(";".join(dep_files), end="")
 

@@ -20,6 +20,8 @@
 #include <flatbuffers/test/VarMsg.h>
 #include <flatbuffers/test/EnumMsg.h>
 #include <flatbuffers/test/sometest.h>
+#include <flatbuffers/test/TestLegacy.h>
+#include <flatbuffers/test/TestFuture.h>
 
 #include "ContainerTest.h"
 #include "custom_assert.h"
@@ -100,6 +102,28 @@ TEST_F(ContainerTest, Serialize) {
     EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);
     EXPECT_EQ(5, omsg.bufVar2().size());
     EXPECT_ARRAY_EQ(const uint8_t, "defgh", omsg.bufVar2().const_data(), 5);
+}
+
+TEST_F(ContainerTest, Evolve) {
+    Buffer test, testData;
+    testData.append("asdf", 4);
+
+    // construct and serialize a legacy data object
+    TestLegacy legacy(TestField(0), 123, 45, TestEnum::VALUE_BLA, 678, testData, 901);
+    legacy.serialize(test);
+
+    // deserialize into a future object having deprecated flags
+    TestFuture future;
+    ASSERT_TRUE(future.deserialize(test));
+
+    // check the leftover fields
+    EXPECT_EQ(123, future.first());
+    EXPECT_EQ(45, future.second());
+    EXPECT_EQ(4, future.fourth().size());
+    EXPECT_ARRAY_EQ(const uint8_t, "asdf", future.fourth().const_data(), 4);
+    EXPECT_EQ(901, future.fifth());
+    EXPECT_EQ(TestEnum::VALUE_1, future.newEnum());
+    EXPECT_EQ(0, future.newFieldValue());
 }
 
 TEST_F(ContainerTest, Bit) {

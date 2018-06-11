@@ -1,0 +1,13 @@
+import bit/test/TestField.btx
+import enum/test/TestEnum.the
+
+~TestField   testField
+uint32_t    first
+uint8_t     second
+~TestEnum    myTestEnum
+~uint16_t    third
+bytes       fourth
+uint16_t    fifth
+
+TestField   newField
+TestEnum    newEnum
