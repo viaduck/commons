@@ -8,3 +8,4 @@ TestEnum    myTestEnum
 uint16_t    third
 bytes       fourth
 uint16_t    fifth
+uint32_t[]  myVector

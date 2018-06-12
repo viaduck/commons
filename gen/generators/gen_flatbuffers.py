@@ -24,7 +24,7 @@ from generators.gen_enum import enum_import
 from generators.gen_bit import bit_import
 
 # matches non-array "type name"
-matcher = re.compile(r"(?P<depr>~)?(?P<type>\w*)\s+(?P<name>\w*)" + comment_pattern)
+matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)\s+(?P<name>\w*)" + comment_pattern)
 
 # types of enums
 enum_types = {}
@@ -50,6 +50,17 @@ class FlatbuffersTypeDef:
         self.unpack = "_{name} = ptr->{name}()" if unpack is None else unpack
 
 
+def flatbuffers_vector_type(type_name):
+    base_type = flatbuffers_type[type_name]
+    return FlatbuffersTypeDef(
+        type_name+"[]", "["+base_type.fbs_type+"]", "",
+        "std::vector<"+type_name+">",
+        "std::vector<"+type_name+"> &",
+        "_{name}.size() > 0 ? fbb.CreateVector(_{name}) : 0",
+        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back(i)"
+    )
+
+
 flatbuffers_type = {
     "bytes": FlatbuffersTypeDef(
         "bytes", "[ubyte]", "", "Buffer", "Buffer &",
@@ -69,11 +80,15 @@ flatbuffers_type = {
     "int64_t": FlatbuffersTypeDef("int64_t", "int64"),
     "uint64_t": FlatbuffersTypeDef("uint64_t", "uint64"),
 }
+for t_name, t_type in dict(flatbuffers_type).items():
+    if not t_type.is_ref:
+        t_vec = flatbuffers_vector_type(t_name)
+        flatbuffers_type[t_vec.type_name] = t_vec
 
 
 class FlatbuffersType(CogBase):
     def __init__(self, elem_type, elem_name):
-        self.type = flatbuffers_type[elem_type]
+        self.type = flatbuffers_type[elem_type] if elem_type is not None else None
         self.name = elem_name
 
         # for wrapped types

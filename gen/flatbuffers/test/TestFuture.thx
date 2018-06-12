@@ -8,6 +8,7 @@ uint8_t     second
 ~uint16_t    third
 bytes       fourth
 uint16_t    fifth
+~uint32_t[]  myVector
 
 TestField   newField
 TestEnum    newEnum

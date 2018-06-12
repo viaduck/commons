@@ -11,3 +11,4 @@ bytes       bufVar2
 bytes       bufVarMedium
 bytes       bufVarBig
 uint32_t    this_is_a_cool_property
+uint16_t[]  some_vector

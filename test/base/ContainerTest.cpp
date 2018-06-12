@@ -52,6 +52,67 @@ TEST_F(ContainerTest, SimpleWrite) {
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", d.buf().const_data(), 10);
 }
 
+TEST_F(ContainerTest, Serialize) {
+    VarMsg msg, omsg;
+    msg.this_is_a_cool_property(123);
+    msg.bufVar().append("abc", 3);
+    msg.bufVar2().append("defgh", 5);
+    msg.some_vector({1, 2, 3, 4});
+
+    Buffer out;
+    msg.serialize(out);
+    ASSERT_TRUE(omsg.deserialize(out));
+
+    EXPECT_EQ(123, omsg.this_is_a_cool_property());
+    EXPECT_EQ(3, omsg.bufVar().size());
+    EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);
+    EXPECT_EQ(5, omsg.bufVar2().size());
+    EXPECT_ARRAY_EQ(const uint8_t, "defgh", omsg.bufVar2().const_data(), 5);
+    EXPECT_EQ(4, omsg.some_vector().size());
+    EXPECT_EQ(1, omsg.some_vector()[0]);
+    EXPECT_EQ(2, omsg.some_vector()[1]);
+    EXPECT_EQ(3, omsg.some_vector()[2]);
+    EXPECT_EQ(4, omsg.some_vector()[3]);
+}
+
+TEST_F(ContainerTest, Evolve) {
+    Buffer test, testData;
+    testData.append("asdf", 4);
+
+    // construct and serialize a legacy data object
+    TestLegacy legacy(TestField(0), 123, 45, TestEnum::VALUE_BLA, 678, testData, 901, {1, 2, 3});
+    legacy.serialize(test);
+
+    // deserialize into a future object having deprecated flags
+    TestFuture future;
+    ASSERT_TRUE(future.deserialize(test));
+
+    // check the leftover fields
+    EXPECT_EQ(123, future.first());
+    EXPECT_EQ(45, future.second());
+    EXPECT_EQ(4, future.fourth().size());
+    EXPECT_ARRAY_EQ(const uint8_t, "asdf", future.fourth().const_data(), 4);
+    EXPECT_EQ(901, future.fifth());
+    EXPECT_EQ(TestEnum::VALUE_1, future.newEnum());
+    EXPECT_EQ(0, future.newFieldValue());
+}
+
+TEST_F(ContainerTest, Bit) {
+    TestField field;
+
+    // put squeeze values, expect bitfield value
+    field.squeezed_one(123);
+    EXPECT_EQ(123, field.squeezed_one());
+    field.squeezed_two(3);
+    EXPECT_EQ(3, field.squeezed_two());
+    EXPECT_EQ(0x1807Bu, field.value());
+
+    // put bitfield value, expect squeeze values
+    field.value(0x123412);
+    EXPECT_EQ(0x3412, field.squeezed_one());
+    EXPECT_EQ(0x24, field.squeezed_two());
+}
+
 TEST_F(ContainerTest, BitField) {
     VarMsg msg;
     TestField field = msg.testField();
@@ -85,61 +146,6 @@ TEST_F(ContainerTest, BitField) {
 
     EXPECT_EQ(987u, msg.testField().squeezed_one());
     EXPECT_EQ(0u, msg.testField().squeezed_two());
-}
-
-TEST_F(ContainerTest, Serialize) {
-    VarMsg msg, omsg;
-    msg.this_is_a_cool_property(123);
-    msg.bufVar().append("abc", 3);
-    msg.bufVar2().append("defgh", 5);
-
-    Buffer out;
-    msg.serialize(out);
-    ASSERT_TRUE(omsg.deserialize(out));
-
-    EXPECT_EQ(123, omsg.this_is_a_cool_property());
-    EXPECT_EQ(3, omsg.bufVar().size());
-    EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);
-    EXPECT_EQ(5, omsg.bufVar2().size());
-    EXPECT_ARRAY_EQ(const uint8_t, "defgh", omsg.bufVar2().const_data(), 5);
-}
-
-TEST_F(ContainerTest, Evolve) {
-    Buffer test, testData;
-    testData.append("asdf", 4);
-
-    // construct and serialize a legacy data object
-    TestLegacy legacy(TestField(0), 123, 45, TestEnum::VALUE_BLA, 678, testData, 901);
-    legacy.serialize(test);
-
-    // deserialize into a future object having deprecated flags
-    TestFuture future;
-    ASSERT_TRUE(future.deserialize(test));
-
-    // check the leftover fields
-    EXPECT_EQ(123, future.first());
-    EXPECT_EQ(45, future.second());
-    EXPECT_EQ(4, future.fourth().size());
-    EXPECT_ARRAY_EQ(const uint8_t, "asdf", future.fourth().const_data(), 4);
-    EXPECT_EQ(901, future.fifth());
-    EXPECT_EQ(TestEnum::VALUE_1, future.newEnum());
-    EXPECT_EQ(0, future.newFieldValue());
-}
-
-TEST_F(ContainerTest, Bit) {
-    TestField field;
-
-    // put squeeze values, expect bitfield value
-    field.squeezed_one(123);
-    EXPECT_EQ(123, field.squeezed_one());
-    field.squeezed_two(3);
-    EXPECT_EQ(3, field.squeezed_two());
-    EXPECT_EQ(0x1807Bu, field.value());
-
-    // put bitfield value, expect squeeze values
-    field.value(0x123412);
-    EXPECT_EQ(0x3412, field.squeezed_one());
-    EXPECT_EQ(0x24, field.squeezed_two());
 }
 
 TEST_F(ContainerTest, Enum) {
