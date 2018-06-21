@@ -2,13 +2,16 @@
  * BasicMessage as defined in protocol spec
  */
 -
-import enum/message/PayloadType.the
-
+# required for message processing
 bytes       senderHash  # hash of the sender to check signature against
+uint64_t    seq         # sequence number of this message
+uint64_t[]  confirmed   # confirmed sequence numbers
 
+# required for security
 int64_t     timestamp   # sender timestamp
 bytes       nonce       # 10 random bytes
-uint64_t    seq         # sequence number
 
-PayloadType payloadType
+# actual content
+string      payloadType
 bytes       payload
+
