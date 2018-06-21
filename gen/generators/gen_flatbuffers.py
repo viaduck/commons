@@ -68,7 +68,7 @@ flatbuffers_type = {
         "if (ptr->{name}()) _{name}.write(ptr->{name}()->Data(), ptr->{name}()->Length(), 0)"),
     "string": FlatbuffersTypeDef(
         "string", "string", "", "std::string", "std::string &",
-        "_{name}.empty ? 0 : fbb.CreateString(_{name})",
+        "_{name}.empty() ? 0 : fbb.CreateString(_{name})",
         "if (ptr->{name}()) _{name} = ptr->{name}()->str()"),
     "bool": FlatbuffersTypeDef("bool", "bool", "false"),
     "int8_t": FlatbuffersTypeDef("int8_t", "int8"),
