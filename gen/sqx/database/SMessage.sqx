@@ -5,5 +5,6 @@ foreign sqx/database/SGroup         messageGroup        ON DELETE CASCADE
 int64_t timestamp    # unix time in milliseconds (compose time for our messages, process time for others)
 int64_t sender_timestamp    # unix time in milliseconds (alleged time of sender compose)
 
-bool    own          # whether we sent the message or we received it
-Buffer  content      # binary message content
+bool        own          # whether we sent the message or we received it
+std::string contentType  # content type of binary message
+Buffer      content      # binary message content
