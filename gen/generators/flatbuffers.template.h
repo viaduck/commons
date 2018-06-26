@@ -139,6 +139,7 @@ public:
 
     void serialize(Buffer &out) const {
         flatbuffers::FlatBufferBuilder fbb;
+        fbb.ForceDefaults(true);
         fbb.FinishSizePrefixed(
             [[[cog
                 f_def.out("internal::Create{name}(fbb")
