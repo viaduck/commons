@@ -138,6 +138,11 @@ public:
     // (de)serialization
 
     void serialize(Buffer &out) const {
+        BufferRange r = out.end();
+        return serialize(r);
+    }
+
+    void serialize(BufferRange &out) const {
         flatbuffers::FlatBufferBuilder fbb;
         fbb.ForceDefaults(true);
         fbb.FinishSizePrefixed(
@@ -152,7 +157,9 @@ public:
             ]]]
             [[[end]]]
         );
-        out.write(fbb.GetBufferPointer(), fbb.GetSize(), 0);
+        if (!BufferRange::applyPolicy(out, fbb.GetSize()))
+            throw std::range_error("BufferRange::applyPolicy failed");
+        out.object().write(fbb.GetBufferPointer(), fbb.GetSize(), out.offset());
     }
 
     bool deserialize(const Buffer &in) {
