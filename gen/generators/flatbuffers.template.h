@@ -177,8 +177,10 @@ public:
         [[[cog
             f_def.outl("auto ptr = flatbuffers::GetSizePrefixedRoot<internal::{name}>(in.const_data());\n"
                        "flatbuffers::Verifier v(static_cast<const uint8_t*>(in.const_data()), in.size());\n"
-                       "if (!ptr->Verify(v))\n"
-                       "    return false;\n")
+                       "if (!ptr->Verify(v)) {{\n"
+                       "    missing = 0;\n"
+                       "    return false;\n"
+                       "}}\n")
 
             for elem in f_def.elements:
                 elem.outl(elem.type.unpack + ";")
