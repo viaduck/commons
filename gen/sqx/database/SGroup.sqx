@@ -1,5 +1,0 @@
-foreign sqx/database/SIdentity groupIdentity ON DELETE CASCADE
-foreign sqx/database/SKeyInfo  symmetricKey  ON DELETE SET NULL
-
-String groupName    # groups name
-String groupHash    # groups hash and admin hash

@@ -1,0 +1,6 @@
+import enum/key/KeyExchangeState.the
+
+KeyExchangeState state  # current state of the key exchange
+
+foreign sqx/SKeyInfo ephemeralKey1 ON DELETE SET NULL
+foreign sqx/SKeyInfo ephemeralKey2 ON DELETE SET NULL

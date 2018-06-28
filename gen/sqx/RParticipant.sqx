@@ -1,0 +1,5 @@
+# conversation side
+foreign sqx/SConversation conversation ON DELETE CASCADE
+
+# identity side
+foreign sqx/SIdentity identity ON DELETE CASCADE

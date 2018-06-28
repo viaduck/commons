@@ -1,0 +1,2 @@
+String hash  # target hash
+foreign sqx/SSendMethod sendMethod ON DELETE SET NULL

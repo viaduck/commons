@@ -1,0 +1,3 @@
+ID_25519_PUB,   /**< public combined sign/encrypt ED25519/X25519 key */
+ID_25519_PRV,   /**< private combined sign/encrypt ED25519/X25519 key */
+AESGCM_256      /**< 32 byte AES key */

@@ -1,0 +1,11 @@
+import enum/key/KeyExchangeState.the
+
+std::string name
+
+foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
+foreign sqx/SKeyInfo symmetricKey1 ON DELETE SET NULL
+foreign sqx/SKeyInfo symmetricKey2 ON DELETE SET NULL
+foreign sqx/SIdentity target ON DELETE SET NULL
+foreign sqx/SIdentity self ON DELETE SET NULL
+
+Buffer symHint  # hinting key for messages to/from this conversation
