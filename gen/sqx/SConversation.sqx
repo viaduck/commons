@@ -8,4 +8,5 @@ foreign sqx/SKeyInfo symmetricKey2 ON DELETE SET NULL
 foreign sqx/SIdentity target ON DELETE SET NULL
 foreign sqx/SIdentity self ON DELETE SET NULL
 
-Buffer symHint  # hinting key for messages to/from this conversation
+Buffer symHint  # hinting key for symmetric key messages in this conversation
+Buffer pubHint  # hinting key for public key messages from/to target

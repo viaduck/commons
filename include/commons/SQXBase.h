@@ -20,6 +20,8 @@
 #ifndef COMMONS_SQXBASE_H
 #define COMMONS_SQXBASE_H
 
+#include <cryptosqlite/cryptosqlite.h>
+#include <sqlite_modern_cpp/cryptosqlite.h>
 #include <commons/util/Except.h>
 
 class SQXBase {
