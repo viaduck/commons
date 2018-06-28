@@ -1,7 +1,8 @@
 std::string name     # identity name
 uint64_t    seq      # (transmit or receive) sequence number
 
-foreign sqx/KeyInfo key ON DELETE SET NULL
+foreign sqx/SKeyInfo key ON DELETE SET NULL
 Buffer      keyHint  # hinting key for messages to/from this identity
 
 String      hash     # public key hash
+foreign sqx/SSendMethod sendMethod ON DELETE SET NULL
