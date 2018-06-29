@@ -149,10 +149,11 @@ class ElemType(Enum):
 
 # a sqx element for foreign key
 class SQXElemFK(CogBase):
-    def __init__(self, name, path, constraints):
+    def __init__(self, name, path, constraints, recursive):
         self.path = path
         self.constraints = constraints
         self.name = name
+        self.recursive = recursive
 
         self.sqx_type = ElemType.Foreign
         self.type = SQXForeignType(basename(self.path))
@@ -178,10 +179,11 @@ class SQXDef(DefBase, CogBase):
     def __init__(self, filename):
         DefBase.__init__(self, filename)
 
-        # add elements
-        self.parse()
         # root variables
         self.name = splitext(basename(filename))[0]
+
+        # add elements
+        self.parse()
 
     def parse_line(self, line):
         e_def = enum_import(line)
@@ -196,8 +198,9 @@ class SQXDef(DefBase, CogBase):
             fk_path = match.group('path').strip()
             fk_name = match.group('name').strip()
             fk_constraints = match.group('constraints').strip()
+            fk_recursive = basename(fk_path) == self.name
 
-            return [SQXElemFK(fk_name, fk_path, fk_constraints)]
+            return [SQXElemFK(fk_name, fk_path, fk_constraints, fk_recursive)]
 
         match = line_matcher.match(line)
         if match is not None:

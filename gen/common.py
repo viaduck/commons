@@ -65,6 +65,8 @@ class DefBase:
         # placeholder
         self.elements = []
         self.includes = []
+        # save filename
+        self.filename = filename
 
     def parse(self):
         # sub elements, allow parse_line to add multiple elements per parsed line

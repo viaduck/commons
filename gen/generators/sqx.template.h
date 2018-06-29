@@ -38,7 +38,7 @@
 [[[cog
     # foreign includes
     for elem in s_def.elements:
-        if elem.sqx_type == ElemType.Foreign:
+        if elem.sqx_type == ElemType.Foreign and not elem.recursive:
             elem.outl('#include "{path}.h"')
 
     # imported includes
@@ -135,7 +135,7 @@ public:
         [[[cog
             # create foreign sub tables first
             for elem in s_def.elements:
-                if elem.sqx_type == ElemType.Foreign:
+                if elem.sqx_type == ElemType.Foreign and not elem.recursive:
                     elem.outl("{type.cpp_t}::createTable(db);")
 
             # build CREATE statement
