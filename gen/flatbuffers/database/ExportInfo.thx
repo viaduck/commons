@@ -1,6 +1,6 @@
 import enum/message/SendMethodType.the
 
-bytes           pHintOnce
+bytes           pubHintShare
 bytes           pubkey
 SendMethodType  methodType # method used to reach postbox
 bytes           address    # address of postbox method
