@@ -1,5 +1,3 @@
-import enum/key/KeyExchangeState.the
-
 std::string name
 
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL

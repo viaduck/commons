@@ -1,4 +1,0 @@
-NONE,       /**< no key exchanged (yet) */
-SENT,       /**< key was sent */
-CONFIRMED,  /** response was received */
-REROLL      /** key is scheduled to be rerolled */
