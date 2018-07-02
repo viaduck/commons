@@ -1,0 +1,2 @@
+string name     # optional name of the conversation
+bytes  pubHint  # hint for the new conversation

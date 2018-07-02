@@ -1,6 +1,7 @@
 std::string name     # identity name
 String      hash     # public key hash
 uint64_t    seq      # (transmit or receive) sequence number
+uint64_t    lastID   # last message downloaded from server
 
 foreign sqx/SKeyInfo key ON DELETE SET NULL
 foreign sqx/SSendMethod sendMethod ON DELETE SET NULL
