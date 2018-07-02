@@ -1,4 +1,7 @@
-std::string name
+import enum/database/ConversationType.the
+
+std::string      name
+ConversationType type
 
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
 foreign sqx/SKeyInfo symmetricKey1 ON DELETE SET NULL

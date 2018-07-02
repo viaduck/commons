@@ -1,0 +1,3 @@
+CONTACT,    /**< contact conversation (pubkey only) */
+SINGLE,     /**< single conversation (pubkey / symkey) */
+GROUP       /**< group conversation (pubkey / symkey) */

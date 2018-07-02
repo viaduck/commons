@@ -1,2 +1,5 @@
-string name     # optional name of the conversation
-bytes  pubHint  # hint for the new conversation
+import enum/database/ConversationType.the
+
+string              name        # optional name of the conversation
+ConversationType    type        # type of the new conversation
+bytes               pubHint     # hint for the new conversation
