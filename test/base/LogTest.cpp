@@ -86,3 +86,14 @@ TEST_F(LogTest, EnableDisable) {
     EXPECT_NE("[LogLevel::LEVEL_DEBUG] Test 123\n", mLogger->toString(LogLevel::LEVEL_DEBUG));
     EXPECT_EQ("[LogLevel::LEVEL_ERROR] 1337 456\n", mLogger->toString(LogLevel::LEVEL_ERROR));
 }
+
+TEST_F(LogTest, DefaultLogger) {
+    // just log to stdout for manual overview
+    Log::get().unregisterLogger(mLogger);
+
+    auto loggers = Log::get().loggers();
+    EXPECT_EQ(1u, loggers.size());
+    EXPECT_EQ(&Log::get().defaultLogger(), loggers.front());
+
+    Log::dbg << "Test test 123";
+}

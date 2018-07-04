@@ -20,52 +20,12 @@
 #ifndef COMMONS_LOG_H
 #define COMMONS_LOG_H
 
-#include <enum/logger/LogLevel.h>
+#include <commons/log/ILogger.h>
+#include <commons/log/impl/StdoutLogger.h>
 
 #include <vector>
 #include <ostream>
 #include <mutex>
-
-/**
- * Interface a Logger has to implement.
- * For every log stream (a chain of << calls) wantsLog(LogLevel) is called. If it returns true, logged values will be
- * passed to ILogger implementation.
- */
-class ILogger {
-public:
-    /**
-     * Virtual destructor
-     */
-    virtual ~ILogger() {};
-
-    /**
-     * Opens the output stream. This enables logging.
-     * @return Whether opening succeeded.
-     */
-    virtual bool open() = 0;
-
-    /**
-     * Closes the output stream. No logging is possible after calling this function until the ILogger is opened again.
-     */
-    virtual void close() = 0;
-
-    /**
-     * @return Whether the ILogger is ready for logging.
-     */
-    virtual bool isOpen() = 0;
-
-    /**
-     * @return Underlying writable std::ostream stream.
-     */
-    virtual std::ostream &stream() = 0;
-
-    /**
-     * @param level LogLevel
-     * @return Whether ILogger implementation wants to log stream started by this log level.
-     */
-    virtual bool wantsLog(LogLevel level) = 0;
-
-};
 
 /**
  * General purpose logging class. ILoggers can be registered to direct different log levels to different outputs.
@@ -140,9 +100,9 @@ class Log {
 
             std::vector<ILogger *> enabledLoggers;
             if (mLog.isEnabled() && mEnabled) {
-                enabledLoggers.reserve(mLog.mLoggers.size());
+                enabledLoggers.reserve(mLog.loggers().size());
 
-                for (ILogger *logger: mLog.mLoggers) {
+                for (ILogger *logger: mLog.loggers()) {
                     // only log if logger wants this level
                     if (logger->wantsLog(Level)) {
                         // add to list of enabled loggers
@@ -240,6 +200,20 @@ public:
     }
 
     /**
+     * @return Currently registered loggers. Returns at least the default logger (see Log::defaultLogger())
+     */
+    std::vector<ILogger *> loggers() {
+        if (mLoggers.empty())
+            return {&mDefaultLogger};
+        return mLoggers;
+    }
+
+    StdoutLogger &defaultLogger() {
+        return mDefaultLogger;
+    }
+
+
+    /**
      * Trace log level
      */
     static LogStream<LogLevel::LEVEL_TRACE> trac;
@@ -272,6 +246,8 @@ protected:
     std::vector<ILogger *> mLoggers;
 
     bool mEnabled = true;
+    StdoutLogger mDefaultLogger;
+
     static Log mInstance;
 
     template <LogLevel Level>

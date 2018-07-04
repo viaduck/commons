@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2018 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,33 +17,11 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMONS_STDOUTLOGGER_H
-#define COMMONS_STDOUTLOGGER_H
+#include <commons/log/impl/StdoutLogger.h>
+#include <commons/util/Time.h>
 
-#include <iomanip>
 
-#include <commons/log/ILogger.h>
-
-/**
- * This ILogger implementation logs all log levels to stdout.
- */
-class StdoutLogger : public ILogger {
-public:
-    bool open() override {
-        return true;
-    }
-
-    void close() override {}
-
-    bool isOpen() override {
-        return true;
-    }
-
-    std::ostream &stream() override {
-        return std::cout;
-    }
-
-    bool wantsLog(LogLevel level) override;
-};
-
-#endif //COMMONS_STDOUTLOGGER_H
+bool StdoutLogger::wantsLog(LogLevel level) {
+    std::cout << Time::nowLocal().formatFull("%Y-%m-%dT%H:%M:%S%z") << " [" << level << "] ";
+    return true;
+}
