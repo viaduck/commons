@@ -1,4 +1,4 @@
 Buffer symHintShare
 Buffer pubHintShare
-foreign sqx/SKeyInfo ephemeralKey1 ON DELETE SET NULL
-foreign sqx/SKeyInfo ephemeralKey2 ON DELETE SET NULL
+Buffer ephKey1
+Buffer ephKey2

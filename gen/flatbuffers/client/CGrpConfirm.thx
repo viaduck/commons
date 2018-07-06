@@ -1,5 +1,0 @@
-bytes     inviteToken
-bytes     hash
-bytes     symKey1
-bytes     symKey2
-bytes     symHint

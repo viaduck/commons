@@ -1,4 +1,0 @@
-import enum/key/KeyType.the
-
-Buffer  keyData  # binary key data
-KeyType keyType  # type of this key

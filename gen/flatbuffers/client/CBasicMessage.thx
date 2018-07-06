@@ -14,4 +14,3 @@ bytes       nonce       # 10 random bytes
 # actual content
 string      payloadType
 bytes       payload
-
