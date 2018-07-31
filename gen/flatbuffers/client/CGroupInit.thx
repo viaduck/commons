@@ -1,7 +1,5 @@
 import enum/message/SendMethodType.the
 
-string targetName
-bytes targetPubkey
 SendMethodType targetMethodType
 string targetAddress
 
