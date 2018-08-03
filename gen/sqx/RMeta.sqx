@@ -1,0 +1,2 @@
+foreign sqx/SConversation meta ON DELETE CASCADE
+foreign sqx/SConversation original ON DELETE CASCADE
