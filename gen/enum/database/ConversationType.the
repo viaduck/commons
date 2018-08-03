@@ -1,4 +1,4 @@
 CONTACT,    /**< contact conversation (pubkey only) */
 SINGLE,     /**< single conversation (pubkey / symkey) */
-SINGLE_META,/**< single conversation for meta messages (pubkey / symkey) */
+INVITE,     /**< single conversation for group invite */
 GROUP       /**< group conversation (pubkey / symkey) */
