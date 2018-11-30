@@ -1,4 +1,3 @@
-CONTACT,    /**< contact conversation (pubkey only) */
-SINGLE,     /**< single conversation (pubkey / symkey) */
-INVITE,     /**< single conversation for group invite */
-GROUP       /**< group conversation (pubkey / symkey) */
+SINGLE,    /**< contact single conversation (pubkey / symkey) */
+INVITE,    /**< single conversation for group invite */
+GROUP      /**< group conversation (pubkey / symkey) */
