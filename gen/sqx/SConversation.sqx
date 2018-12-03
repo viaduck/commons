@@ -5,8 +5,6 @@ ConversationType type
 uint64_t         tx_seq
 
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
-foreign sqx/SIdentity target ON DELETE SET NULL
-foreign sqx/SIdentity self ON DELETE SET NULL
 
 Buffer symKey1  # symmetric key 1
 Buffer symKey2  # symmetric key 2
