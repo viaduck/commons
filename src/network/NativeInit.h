@@ -65,7 +65,8 @@ public:
     }
 
     ~NativeInit() {
-        L_expect(WSACleanup());
+        // ignore return value
+        WSACleanup();
     }
 
     // adapted from https://stackoverflow.com/a/40046425/207861
