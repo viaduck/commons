@@ -4,7 +4,6 @@ import enum/database/IdentityType.the
 std::string  name     # identity name
 IdentityType type     # identity type
 String       hash     # public key hash
-uint64_t     rx_seq   # expected sequence number
 uint64_t     lastID   # last message downloaded from server
 Buffer       pubKey   # public key
 Buffer       prvKey   # private key
