@@ -5,7 +5,7 @@
 # required for message processing
 bytes       senderHash  # hash of the sender to check signature against
 uint64_t    seq         # sequence number of this message
-uint64_t[]  confirmed   # confirmed sequence numbers
+bytes       confirmed   # confirmed sequence numbers (in binary [hash|seq] format)
 
 # required for security
 int64_t     timestamp   # sender timestamp
