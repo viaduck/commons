@@ -49,7 +49,7 @@ class Log {
              * @param enabledLoggers
              */
             LogStreamValue(LogStream &parent, std::vector<ILogger*> enabledLoggers) : mParent(parent),
-                                                                                      mEnabledLoggers(enabledLoggers) { }
+                                                                                      mEnabledLoggers(std::move(enabledLoggers)) { }
             /**
              * Appends a std::endl to the log entry on destruction.
              */
@@ -59,8 +59,9 @@ class Log {
                         if (logger->isOpen())
                             logger->stream() << std::endl;
                     }
+
+                    mParent.mLog.mLogLock.unlock();
                 }
-                mParent.mLogLock.unlock();
             }
 
             /**
@@ -96,12 +97,12 @@ class Log {
          */
         template<typename T>
         LogStreamValue operator<<(const T &t) {
-            mLogLock.lock();
-
             std::vector<ILogger *> enabledLoggers;
-            if (mLog.isEnabled() && mEnabled) {
-                enabledLoggers.reserve(mLog.loggers().size());
 
+            if (mLog.isEnabled() && mEnabled) {
+                mLog.mLogLock.lock();
+
+                enabledLoggers.reserve(mLog.loggers().size());
                 for (ILogger *logger: mLog.loggers()) {
                     // only log if logger wants this level
                     if (logger->wantsLog(Level)) {
@@ -141,7 +142,6 @@ class Log {
 
         Log &mLog;
         bool mEnabled = true;
-        std::mutex mLogLock;
 
         friend class Log;
     };
@@ -247,6 +247,7 @@ protected:
 
     bool mEnabled = true;
     StdoutLogger mDefaultLogger;
+    std::mutex mLogLock;
 
     static Log mInstance;
 
