@@ -1,3 +1,5 @@
+type uint8_t
+
 OWN,        /**< identity was created */
 CONTACT,    /**< identity was added (in person) */
 REFERRED,   /**< identity was added (through contact) */

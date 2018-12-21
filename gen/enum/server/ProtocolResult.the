@@ -1,3 +1,5 @@
+type uint8_t
+
 OK,
 VERSION_ERROR,
 PAYLOAD_LENGTH,

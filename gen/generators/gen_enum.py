@@ -18,29 +18,23 @@
 
 import re
 from os.path import basename, splitext
-from common import CogBase, DefBase, read_definition, suggested_type
+from common import CogBase, DefBase, read_definition, suggested_type, comment_pattern, type_bits
 
 # matches
 # "enum_value"
 # "enum_value, comment"
-line_matcher = re.compile(r"(?P<value>[a-zA-Z0-9_]*)\s*,?(?P<comment>[^#]+)?\s*(?:#.*)?")
+line_matcher = re.compile(r"(?P<value>[a-zA-Z0-9_]*)\s*,?(?P<comment>[^#]+)?" + comment_pattern)
+# matches "type <type>"
+type_matcher = re.compile(r"type (?P<type>[a-z0-9_]+)" + comment_pattern)
 # matches "import enum/path/to/EnumName.the"
 import_matcher = re.compile(r"^import\s(?P<path>enum.+)$")
 
 
 # a single enum element
 class EnumElem(CogBase):
-    def __init__(self, line):
-        # match
-        m = line_matcher.match(line)
-
-        # extract
-        self.value = m.group('value').strip()
-        self.comment = m.group('comment')
-
-        # check required fields
-        if len(self.value) == 0:
-            raise Exception("Parsing error in line: " + line)
+    def __init__(self, value, comment):
+        self.value = value
+        self.comment = comment
 
         # strip optional field
         self.comment = "" if self.comment is None else self.comment.strip()
@@ -50,6 +44,7 @@ class EnumElem(CogBase):
 class EnumDef(DefBase, CogBase):
     def __init__(self, filename):
         DefBase.__init__(self, filename)
+        self.type = None
 
         # add invalid enum value
         self.body.append("INVALID_ENUM_VALUE,// invalid enum values are mapped to this")
@@ -58,8 +53,13 @@ class EnumDef(DefBase, CogBase):
 
         # name enum after basename of the file
         self.name = splitext(basename(filename))[0]
-        # use smallest type that can fit all elements
-        self.type = suggested_type(len(self.elements))
+        # smallest type that can fit all elements
+        self.s_type = suggested_type(len(self.elements))
+        # use suggested if none given
+        self.type = self.s_type if self.type is None else self.type
+        # ensure given type is not smaller than suggested
+        if type_bits(self.type) < type_bits(self.s_type):
+            raise Exception("Given type too small " + self.type + ", required " + self.s_type)
         # include path for enum imports
         self.import_path = splitext(filename)[0] + ".h"
 
@@ -67,8 +67,24 @@ class EnumDef(DefBase, CogBase):
         self.invalid_val = self.elements[-1].value
 
     def parse_line(self, line):
-        # enum definitions only have enum lines
-        return [EnumElem(line)]
+        line_match = line_matcher.match(line)
+        type_match = type_matcher.match(line)
+
+        if type_match is not None:
+            self.type = type_match.group('type').strip()
+            return []
+        elif line_match is not None:
+            value = line_match.group('value').strip()
+            comment = line_match.group('comment')
+
+            # check required fields, strip optional fields
+            if len(value) == 0:
+                raise Exception("Parsing error in line: " + line)
+
+            comment = "" if comment is None else comment.strip()
+            return [EnumElem(value, comment)]
+
+        raise Exception("parse error on line: " + line)
 
 
 def enum_import(line):
