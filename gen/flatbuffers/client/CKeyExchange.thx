@@ -1,4 +1,4 @@
-bytes pubkey1
-bytes pubkey2
-bytes sHintShare
-bytes pHintShare
+bytes(32) pubkey1
+bytes(32) pubkey2
+bytes(32) sHintShare
+bytes(32) pHintShare

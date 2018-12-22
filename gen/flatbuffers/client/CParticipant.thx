@@ -1,2 +1,2 @@
-string name
-bytes pubKey
+string    name
+bytes(64) pubKey

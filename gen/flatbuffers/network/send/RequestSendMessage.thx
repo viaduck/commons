@@ -1,2 +1,2 @@
-bytes phash
-bytes content
+bytes(20) phash
+bytes     content

@@ -24,7 +24,7 @@ from generators.gen_enum import enum_import
 from generators.gen_bit import bit_import
 
 # matches non-array "type name"
-matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)\s+(?P<name>\w*)" + comment_pattern)
+matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)(?P<size>\([\d]+\))?\s+(?P<name>\w*)" + comment_pattern)
 
 # types of enums
 enum_types = {}
@@ -87,9 +87,10 @@ for t_name, t_type in dict(flatbuffers_type).items():
 
 
 class FlatbuffersType(CogBase):
-    def __init__(self, elem_type, elem_name):
+    def __init__(self, elem_type, elem_name, elem_size = 0):
         self.type = flatbuffers_type[elem_type] if elem_type is not None else None
         self.name = elem_name
+        self.size = elem_size
 
         # for wrapped types
         self.wrap_type = None
@@ -180,6 +181,7 @@ class FlatbuffersDef(DefBase, CogBase):
             is_depr = match.group('depr') is not None
             elem_type = match.group('type').strip()
             elem_name = match.group('name').strip()
+            elem_size = 0 if match.group('size') is None else int(match.group('size')[1:-1])
 
             # handle enum or bitfield types
             if elem_type in enum_types:
@@ -187,7 +189,7 @@ class FlatbuffersDef(DefBase, CogBase):
             elif elem_type in bit_types:
                 result = FlatbuffersBitType(elem_type, elem_name, bit_types[elem_type])
             else:
-                result = FlatbuffersType(elem_type, elem_name)
+                result = FlatbuffersType(elem_type, elem_name, elem_size)
 
             # add to fbs with deprecation info
             self.fbs.append(result.fbs_line(is_depr))

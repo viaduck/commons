@@ -125,6 +125,10 @@ public:
                 elem.outl("inline void {name}(const BufferRangeConst &v) {{\n"
                           "    _{name}.write(v, 0);\n"
                           "}}")
+                if elem.size > 0:
+                    elem.outl("inline uint32_t {name}_size() {{\n"
+                              "    return {size}u;\n"
+                              "}}")
 
             # modifier
             if elem.type.is_ref:
@@ -191,6 +195,16 @@ public:
 
             for elem in f_def.elements:
                 elem.outl(elem.type.unpack + ";")
+
+            f_def.outl("")
+
+            # size check
+            for elem in f_def.elements:
+                if elem.size > 0:
+                    elem.outl("if ({name}().size() != {size}) {{\n"
+                              "    missing = 0;\n"
+                              "    return false;\n"
+                              "}}")
         ]]]
         [[[end]]]
         return true;

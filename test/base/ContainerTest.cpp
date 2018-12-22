@@ -57,6 +57,7 @@ TEST_F(ContainerTest, Serialize) {
     msg.this_is_a_cool_property(123);
     msg.bufVar().append("abc", 3);
     msg.bufVar2().append("defgh", 5);
+    msg.bufFixed().append("12345678901", 11);
     msg.some_vector({1, 2, 3, 4});
 
     Buffer out;
