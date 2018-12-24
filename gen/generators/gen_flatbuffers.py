@@ -25,6 +25,8 @@ from generators.gen_bit import bit_import
 
 # matches non-array "type name"
 matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)(?P<size>\([\d]+\))?\s+(?P<name>\w*)" + comment_pattern)
+# matches "max_size <bytes>"
+size_matcher = re.compile(r"max_size (?P<max_size>\d*)" + comment_pattern)
 
 # types of enums
 enum_types = {}
@@ -141,6 +143,7 @@ class FlatbuffersBitType(FlatbuffersType):
 class FlatbuffersDef(DefBase, CogBase):
     def __init__(self, filename, outfile):
         DefBase.__init__(self, filename)
+        self.max_size = 0
 
         # name fbs table after basename of the file
         self.name = splitext(basename(filename))[0]
@@ -177,7 +180,11 @@ class FlatbuffersDef(DefBase, CogBase):
             return []
 
         match = matcher.match(line)
-        if match is not None:
+        size_match = size_matcher.match(line)
+        if size_match is not None:
+            self.max_size = int(size_match.group('max_size').strip())
+            return []
+        elif match is not None:
             is_depr = match.group('depr') is not None
             elem_type = match.group('type').strip()
             elem_name = match.group('name').strip()

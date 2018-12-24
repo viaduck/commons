@@ -1,2 +1,4 @@
+max_size 5000
+
 bytes(20) phash
 bytes     content

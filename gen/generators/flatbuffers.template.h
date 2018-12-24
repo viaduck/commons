@@ -47,6 +47,7 @@
     f_def.outl("")
     f_def.out("{doxygen}")
     f_def.outl("class {name} : public Serializable {{")
+    f_def.outl("    const static uint32_t MAX_SIZE = {max_size};")
 ]]]
 [[[end]]]
 public:
@@ -178,9 +179,15 @@ public:
             return false;
         }
 
-        // check size
         uint32_t full_size = 4 + flatbuffers::GetPrefixedSize(static_cast<const uint8_t*>(in.const_data()));
-        if (in.size() < full_size) {
+
+        // if MAX_SIZE set, do not attempt to even obtain more than MAX_SIZE bytes
+        if (MAX_SIZE > 0 && full_size > MAX_SIZE) {
+            missing = 0;
+            return false;
+        }
+        // tell caller to retry with the missing bytes
+        else if (in.size() < full_size) {
             missing = full_size - in.size();
             return false;
         }
