@@ -26,30 +26,76 @@
 #include "ContainerTest.h"
 #include "custom_assert.h"
 
+void generate(sometest &test) {
+    test.version(0xBEEFDEAD);
+    test.first(0xfe);
+    test.second(0xDEAD);
+    test.buf().write("\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", 10, 0);
+    test.third(0x171);
+    test.this_is_a_cool_property(0x1337);
+}
+
+void verify(sometest &test) {
+    ASSERT_EQ(0xBEEFDEAD, test.version());
+    ASSERT_EQ(0xfe, test.first());
+    ASSERT_EQ(0xDEAD, test.second());
+    ASSERT_EQ(10, test.buf().size());
+    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", test.buf().const_data(), 10);
+    ASSERT_EQ(0x171, test.third());
+    ASSERT_EQ(0x1337, test.this_is_a_cool_property());
+}
+
 TEST_F(ContainerTest, SimpleWrite) {
     sometest c, d;
-
-    c.version(0xBEEFDEAD);
-    EXPECT_EQ(0xBEEFDEAD, c.version());
-    c.first(0xfe);
-    EXPECT_EQ(0xfe, c.first());
-    c.second(0xDEAD);
-    EXPECT_EQ(0xDEAD, c.second());
-    c.buf().write("\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", 10, 0);
-    EXPECT_EQ(10, c.buf().size());
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", c.buf().const_data(), 10);
+    generate(c);
+    verify(c);
 
     // serialize and deserialize
     Buffer test;
     c.serialize(test);
     ASSERT_TRUE(d.deserialize(test));
+    verify(d);
+}
 
-    // test deserialized buffer
-    EXPECT_EQ(0xBEEFDEAD, d.version());
-    EXPECT_EQ(0xfe, d.first());
-    EXPECT_EQ(0xDEAD, d.second());
-    EXPECT_EQ(10, d.buf().size());
-    EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", d.buf().const_data(), 10);
+TEST_F(ContainerTest, Malformed) {
+    sometest test;
+    generate(test);
+
+    Buffer out;
+    test.serialize(out);
+
+    // manipulate size indicator to be bigger than actual buffer
+    uint32_t size1 = flatbuffers::GetPrefixedSize(static_cast<const uint8_t *>(out.const_data())) + 5;
+    out.write(&size1, sizeof(uint32_t), 0);
+    ASSERT_FALSE(test.deserialize(out));
+    verify(test);
+
+    // append garbage to buffer, now size indicator fits buffer
+    out.append("asdfg", 5);
+    ASSERT_TRUE(test.deserialize(out));
+    verify(test);
+
+    // garbage in vtable
+    out.write("asdfg", 5, 4);
+    ASSERT_FALSE(test.deserialize(out));
+    verify(test);
+
+    // serialize valid buffer bigger than max_size
+    out.clear();
+    for (uint32_t i = 0; i < 200; i++)
+        test.buf().append("asdfghjkll", 10);
+    test.serialize(out);
+
+    // buffer bigger than max_size should not deserialize
+    ASSERT_GT(test.buf().size(), 2000);
+    ASSERT_FALSE(test.deserialize(out));
+
+    // serialize zero byte buffer with valid size indicator and vtable offset
+    Buffer out2(0);
+    uint32_t size2 = 0;
+    out2.write(&size2, sizeof(uint32_t), 0);
+    out2.write(&size2, sizeof(uint32_t), 4);
+    ASSERT_TRUE(test.deserialize(out2));
 }
 
 TEST_F(ContainerTest, Serialize) {

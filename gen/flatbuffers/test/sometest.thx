@@ -1,4 +1,5 @@
 # This is a line comment
+max_size    2000
 uint32_t    version         # this is an inline comment
 uint8_t     first
 uint16_t    second

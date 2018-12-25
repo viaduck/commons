@@ -26,7 +26,7 @@ from generators.gen_bit import bit_import
 # matches non-array "type name"
 matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)(?P<size>\([\d]+\))?\s+(?P<name>\w*)" + comment_pattern)
 # matches "max_size <bytes>"
-size_matcher = re.compile(r"max_size (?P<max_size>\d*)" + comment_pattern)
+size_matcher = re.compile(r"max_size\s+(?P<max_size>\d*)" + comment_pattern)
 
 # types of enums
 enum_types = {}

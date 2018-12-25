@@ -24,7 +24,7 @@ from common import CogBase, DefBase, suggested_type, bits_type, comment_pattern,
 # "squeeze_name(bits)"
 line_matcher = re.compile(r"(?P<name>[a-zA-Z0-9_]*)\s?\((?P<size>\d+)\)" + comment_pattern)
 # matches "type <type>"
-type_matcher = re.compile(r"type (?P<type>[a-z0-9_]*)" + comment_pattern)
+type_matcher = re.compile(r"type\s+(?P<type>[a-z0-9_]*)" + comment_pattern)
 # matches "import bit/path/to/BitfieldName.btx"
 import_matcher = re.compile(r"^import\s(?P<path>bit.+)$")
 
