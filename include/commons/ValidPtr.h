@@ -21,116 +21,115 @@
 #define COMMONS_VALIDPTR_H
 
 #include <mutex>
-#include <vector>
+#include <set>
 #include <algorithm>
 
-#define _LOCK_SCOPE(x) std::lock_guard<std::mutex> _hopefullyUnusedVariableName_(x);
-
-class ValidObject;
+#define LOCK_SCOPE(x) std::lock_guard<std::mutex> _scope_lock_(x);
 
 class ValidObjectListener {
 public:
-    virtual void onDestroy(ValidObject *) = 0;
+    virtual ~ValidObjectListener() = default;
+    virtual void onDestroy() = 0;
 };
 
 template <typename T>
 class ValidPtr : public ValidObjectListener {
 public:
-    ValidPtr(T* instance) : mInstance(instance) {
-        instance->subscribeValid(this);
-    }
-
-    ~ValidPtr() {
-        _LOCK_SCOPE(busMutex);
-        if (mInstance && valid)
-            mInstance->unsubscribeValid(this);
+    /**
+     * Construct a pointer with lifetime monitoring
+     *
+     * @param instance ValidObject to be monitored
+     */
+    explicit ValidPtr(T* instance) : mInstance(instance) {
+        instance->addListener(this);
     }
 
     /**
-     * called by encapsulated class to notify of destruction
+     * Destruct the pointer. Releases the object
      */
-    void onDestroy(ValidObject *) override {
-        _LOCK_SCOPE(busMutex);
-        valid = false;
+    ~ValidPtr() override {
+        if (mInstance && mValid)
+            mInstance->removeListener(this);
+    }
+
+    /**
+     * Called by monitored object on destruction.
+     */
+    void onDestroy() override {
+        // prevent destruction while object is being used
+        LOCK_SCOPE(mUseMutex);
+
+        mValid = false;
+    }
+
+    /**
+     * Use this lock to access the object. The object will not be destroyed while the lock is held.
+     *
+     * @return Unique lock ensuring the objects validity for the lock lifetime
+     */
+    inline std::unique_lock<std::mutex> lockUse() {
+        return std::unique_lock<std::mutex>(mUseMutex);
+    }
+
+    // use while locked only
+
+    bool valid() const {
+        return mValid;
     }
 
     inline T* get() {
         return mInstance;
     }
 
-    /**
-     * throw caller under bus if he calls on invalid ptr
-     */
     inline T* operator->() {
-        if (valid)
-            return mInstance;
-        else
-            throw std::invalid_argument("Attempt to dereference an invalid pointer");
-    }
-
-    /**
-     * @return indicator whether object is valid
-     * Note: use with lock only
-     */
-    inline bool operator()() {
-        return valid;
-    }
-
-    /**
-     * To minimize risk of race condition between usage of () operator and -> operator we need the caller to lock
-     * this mutex in order to be able to work on the object.
-     *
-     * @return a unique lock ensuring the objects validity for the locks lifetime
-     */
-    inline std::unique_lock<std::mutex> getLock() {
-        return std::unique_lock<std::mutex>(busMutex);
+        return mInstance;
     }
 
 private:
-    // members for objects and validity
+    // monitored object
     T* mInstance;
-    bool valid = true;
-
-    // mutex for not throwing other ppl under bus
-    std::mutex busMutex;
+    // whether object is still valid
+    bool mValid = true;
+    // mutex for object use
+    std::mutex mUseMutex;
 };
 
+/**
+ * Object with lifetime monitoring
+ */
 class ValidObject {
 public:
     virtual ~ValidObject() {
-        notifyDestroy();
+        LOCK_SCOPE(mMutex);
+
+        // notify all listeners of destruction
+        for (auto &listener : mListeners)
+            listener->onDestroy();
     }
 
     /**
-     * Subscribes a ValidPtr to this object's validness
-     * @param p ValidPtr to subscribe
+     * Sets a listener to this object's lifetime events
      */
-    void subscribeValid(ValidObjectListener *p) {
-        _LOCK_SCOPE(_mmtxs);
-        _mptrs.push_back(p);
+    void addListener(ValidObjectListener *p) {
+        LOCK_SCOPE(mMutex);
+
+        mListeners.insert(p);
     }
 
     /**
-     * Unsubscribes a ValidPtr from this object's validness
-     * @param p ValidPtr to unsubscribe
+     * Removes a listener
      */
-    void unsubscribeValid(ValidObjectListener *p) {
-        _LOCK_SCOPE(_mmtxs);
-        // remove/erase idiom
-        _mptrs.erase(std::remove(_mptrs.begin(), _mptrs.end(), p), _mptrs.end());
+    void removeListener(ValidObjectListener *p) {
+        LOCK_SCOPE(mMutex);
+
+        mListeners.erase(p);
     }
 
 protected:
-    void notifyDestroy() {
-        _LOCK_SCOPE(_mmtxs);
-        for (auto p : _mptrs)
-            p->onDestroy(this);
-
-        _mptrs.clear();
-    }
-
-    std::vector<ValidObjectListener*> _mptrs;
-    std::mutex                        _mmtxs;
+    // list of listeners: insert is O(log(n)), erase O(1)
+    std::set<ValidObjectListener*> mListeners;
+    // ensures list of listeners is not modified while being used
+    std::mutex mMutex;
 };
 
 #endif //COMMONS_VALIDPTR_H

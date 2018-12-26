@@ -34,9 +34,9 @@ TEST_F(ValidPtrTest, basicTest) {
     ASSERT_TRUE(test->IamValid);
 
     ValidPtr<TestImplementation> ptr(test);
-    ASSERT_TRUE(ptr());
+    ASSERT_TRUE(ptr.valid());
     delete test;
-    ASSERT_FALSE(ptr());
+    ASSERT_FALSE(ptr.valid());
 }
 
 TEST_F(ValidPtrTest, complexTest) {
@@ -48,11 +48,11 @@ TEST_F(ValidPtrTest, complexTest) {
         ValidPtr<TestImplementation> ptr2(test);
         ValidPtr<TestImplementation> ptr3(test);
         ValidPtr<TestImplementation> ptr4(test);
-        ASSERT_TRUE(ptr());
-        ASSERT_TRUE(ptr2());
-        ASSERT_TRUE(ptr3());
-        ASSERT_TRUE(ptr4());
+        ASSERT_TRUE(ptr.valid());
+        ASSERT_TRUE(ptr2.valid());
+        ASSERT_TRUE(ptr3.valid());
+        ASSERT_TRUE(ptr4.valid());
     }
     delete test;
-    ASSERT_FALSE(ptr());
+    ASSERT_FALSE(ptr.valid());
 }
