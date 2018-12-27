@@ -90,12 +90,11 @@ TEST_F(ContainerTest, Malformed) {
     ASSERT_GT(test.buf().size(), 2000);
     ASSERT_FALSE(test.deserialize(out));
 
-    // serialize zero byte buffer with valid size indicator and vtable offset
+    // serialize zero byte buffer
     Buffer out2(0);
-    uint32_t size2 = 0;
-    out2.write(&size2, sizeof(uint32_t), 0);
-    out2.write(&size2, sizeof(uint32_t), 4);
-    ASSERT_TRUE(test.deserialize(out2));
+    uint32_t size = 0;
+    out2.write(&size, sizeof(uint32_t), 0);
+    ASSERT_FALSE(test.deserialize(out2));
 }
 
 TEST_F(ContainerTest, Serialize) {

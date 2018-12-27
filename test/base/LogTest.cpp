@@ -30,15 +30,15 @@ TEST_F(LogTest, Simple) {
 }
 
 TEST_F(LogTest, StdOut) {
-    auto stdoutLogger = new StdoutLogger;
+    StdoutLogger stdoutLogger;
 
     // just log to stdout for manual overview
     Log::get().unregisterLogger(mLogger);
-    Log::get().registerLogger(stdoutLogger);
+    Log::get().registerLogger(&stdoutLogger);
     Log::dbg << "Test test 123";
 
     // enable mLogger again
-    Log::get().unregisterLogger(stdoutLogger);
+    Log::get().unregisterLogger(&stdoutLogger);
     Log::get().registerLogger(mLogger);
 }
 

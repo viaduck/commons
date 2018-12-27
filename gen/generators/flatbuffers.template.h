@@ -169,19 +169,28 @@ public:
         out.object().write(fbb.GetBufferPointer(), fbb.GetSize(), out.offset());
     }
 
+    bool deserialize(const BufferRangeConst &in) {
+        uint32_t unused;
+        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), unused);
+    }
+
     bool deserialize(const Buffer &in) {
         uint32_t unused;
-        return deserialize(in, unused);
+        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), unused);
     }
 
     bool deserialize(const Buffer &in, uint32_t &missing) {
-        // check if buffer has size indicator and vtable offset
-        if (in.size() < 8) {
-            missing = 8 - in.size();
+        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), missing);
+    }
+
+    bool deserialize(const uint8_t *in, uint32_t size, uint32_t &missing) {
+        // check if buffer has size indicator
+        if (size < 4) {
+            missing = 4 - size;
             return false;
         }
 
-        uint32_t full_size = 4 + flatbuffers::GetPrefixedSize(static_cast<const uint8_t*>(in.const_data()));
+        uint32_t full_size = 4 + flatbuffers::GetPrefixedSize(in);
 
         // size check
         [[[cog
@@ -192,19 +201,19 @@ public:
                             "}}")
         ]]]
         [[[end]]]
-        if (in.size() < full_size) {
+        if (size < full_size) {
             // tell caller to retry with the missing bytes
-            missing = full_size - in.size();
+            missing = full_size - size;
             return false;
         }
 
         [[[cog
-            f_def.outl("auto ptr = flatbuffers::GetSizePrefixedRoot<internal::{name}>(in.const_data());\n"
-                       "flatbuffers::Verifier v(static_cast<const uint8_t*>(in.const_data()), in.size());\n"
-                       "if (!ptr->Verify(v)) {{\n"
+            f_def.outl("flatbuffers::Verifier v(in, size);\n"
+                       "if (!internal::VerifySizePrefixed{name}Buffer(v)) {{\n"
                        "    missing = 0;\n"
                        "    return false;\n"
-                       "}}\n")
+                       "}}\n\n"
+                       "auto ptr = flatbuffers::GetSizePrefixedRoot<internal::{name}>(in);")
 
             for elem in f_def.elements:
                 elem.outl(elem.type.unpack + ";")
