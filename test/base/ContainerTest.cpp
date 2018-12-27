@@ -39,10 +39,10 @@ void verify(sometest &test) {
     ASSERT_EQ(0xBEEFDEAD, test.version());
     ASSERT_EQ(0xfe, test.first());
     ASSERT_EQ(0xDEAD, test.second());
-    ASSERT_EQ(10, test.buf().size());
+    ASSERT_EQ(10u, test.buf().size());
     EXPECT_ARRAY_EQ(const uint8_t, "\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB\xAB", test.buf().const_data(), 10);
     ASSERT_EQ(0x171, test.third());
-    ASSERT_EQ(0x1337, test.this_is_a_cool_property());
+    ASSERT_EQ(0x1337u, test.this_is_a_cool_property());
 }
 
 TEST_F(ContainerTest, SimpleWrite) {
@@ -87,7 +87,7 @@ TEST_F(ContainerTest, Malformed) {
     test.serialize(out);
 
     // buffer bigger than max_size should not deserialize
-    ASSERT_GT(test.buf().size(), 2000);
+    ASSERT_GT(test.buf().size(), 2000u);
     ASSERT_FALSE(test.deserialize(out));
 
     // serialize zero byte buffer
@@ -109,16 +109,16 @@ TEST_F(ContainerTest, Serialize) {
     msg.serialize(out);
     ASSERT_TRUE(omsg.deserialize(out));
 
-    EXPECT_EQ(123, omsg.this_is_a_cool_property());
-    EXPECT_EQ(3, omsg.bufVar().size());
+    EXPECT_EQ(123u, omsg.this_is_a_cool_property());
+    EXPECT_EQ(3u, omsg.bufVar().size());
     EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);
-    EXPECT_EQ(5, omsg.bufVar2().size());
+    EXPECT_EQ(5u, omsg.bufVar2().size());
     EXPECT_ARRAY_EQ(const uint8_t, "defgh", omsg.bufVar2().const_data(), 5);
-    EXPECT_EQ(4, omsg.some_vector().size());
-    EXPECT_EQ(1, omsg.some_vector()[0]);
-    EXPECT_EQ(2, omsg.some_vector()[1]);
-    EXPECT_EQ(3, omsg.some_vector()[2]);
-    EXPECT_EQ(4, omsg.some_vector()[3]);
+    EXPECT_EQ(4u, omsg.some_vector().size());
+    EXPECT_EQ(1u, omsg.some_vector()[0]);
+    EXPECT_EQ(2u, omsg.some_vector()[1]);
+    EXPECT_EQ(3u, omsg.some_vector()[2]);
+    EXPECT_EQ(4u, omsg.some_vector()[3]);
 }
 
 TEST_F(ContainerTest, Evolve) {
@@ -134,13 +134,13 @@ TEST_F(ContainerTest, Evolve) {
     ASSERT_TRUE(future.deserialize(test));
 
     // check the leftover fields
-    EXPECT_EQ(123, future.first());
-    EXPECT_EQ(45, future.second());
-    EXPECT_EQ(4, future.fourth().size());
+    EXPECT_EQ(123u, future.first());
+    EXPECT_EQ(45u, future.second());
+    EXPECT_EQ(4u, future.fourth().size());
     EXPECT_ARRAY_EQ(const uint8_t, "asdf", future.fourth().const_data(), 4);
-    EXPECT_EQ(901, future.fifth());
+    EXPECT_EQ(901u, future.fifth());
     EXPECT_EQ(TestEnum::VALUE_1, future.newEnum());
-    EXPECT_EQ(0, future.newFieldValue());
+    EXPECT_EQ(0u, future.newFieldValue());
 }
 
 TEST_F(ContainerTest, Bit) {
