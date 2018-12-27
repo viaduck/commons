@@ -1,1 +1,1 @@
-string phash
+bytes(20) phash
