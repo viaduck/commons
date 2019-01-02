@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,22 +20,23 @@
 #ifndef COMMONS_CERTIFICATESTORAGE_H
 #define COMMONS_CERTIFICATESTORAGE_H
 
-#include <secure_memory/Buffer.h>
-#include <openssl/evp.h>
-#include <openssl/rsa.h>
 #include <atomic>
 #include <mutex>
 #include <unordered_map>
-#include <openssl/ssl.h>
+
+#include <openssl/rsa.h>
+
+#include <commons/util/Except.h>
+#include <secure_memory/Buffer.h>
+
+DEFINE_ERROR(cert, base_error);
 
 /**
  * Storage for certificate verification management
  */
-class CertificateStorage {
+class CertStore {
 public:
     using RSA_ref = std::unique_ptr<RSA, decltype(&RSA_free)>;
-    using BIO_ref = std::unique_ptr<BIO, decltype(&BIO_free)>;
-    using EVP_PKEY_ref = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 
     /**
      * Operational mode
@@ -51,10 +52,6 @@ public:
      */
     struct PublicKey {
         /**
-         * Unique id in CertificateStorage
-         */
-        uint16_t id;
-        /**
          * Operational mode for this key
          */
         Mode mode;
@@ -66,102 +63,84 @@ public:
         /**
          * Creates an empty PublicKey with nullptr data
          */
-        PublicKey() : id(0), mode(Mode::UNDECIDED), data(nullptr, &RSA_free) { }
+        PublicKey() : mode(Mode::UNDECIDED), data(nullptr, &RSA_free) { }
 
         /**
          * Creates an PublicKey with supplied data
-         * @param id Unique id
          * @param mode Operational mode
          * @param data Key data as OpenSSL structure
          */
-        PublicKey(uint16_t id, Mode mode, RSA_ref &data) : id(id), mode(mode), data(std::move(data)) { }
+        PublicKey(Mode mode, RSA_ref &data) : mode(mode), data(std::move(data)) { }
 
         /**
          * Move constructor to support map insertion operations
          * @param other Other public key, data is set to nullptr
          */
-        PublicKey(PublicKey &&other) : id(other.id), mode(other.mode), data(std::move(other.data)) { }
-    };
-
-    /**
-     * Result codes for various operations
-     */
-    enum class Result {
-        SUCCESS,            /**< Successful operation **/
-        INVALID_FORMAT,     /**< Supplied key/certificate/.. has wrong format **/
-        NOT_FOUND,          /**< Supplied key/certificate/.. was not found format **/
-        INTERNAL,           /**< Internal OpenSSL failure **/
+        PublicKey(PublicKey &&other) noexcept : mode(other.mode), data(std::move(other.data)) { }
     };
 
     /**
      * @return Singleton application-wide instance
      */
-    static CertificateStorage &getInstance() {
+    static CertStore &getInstance() {
         return mInstance;
     }
 
     /**
-     * @return OpenSSL data index for user supplied data to verification callback function
+     * Creates an empty CertificateStorage
      */
-    static int getOpenSSLDataIndex() {
-        if (mOpensslDataIndex == -1)
-            mOpensslDataIndex = SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
-        return mOpensslDataIndex;
-    }
-
-    /**
-     * Creats an empty CertificateStorage
-     */
-    CertificateStorage() { }
+    explicit CertStore() = default;
 
     /**
      * Adds a public key to certificate storage
+     *
      * @param key Buffer containing PEM encoded public key
      * @param mode Operational mode for this key
-     * @param id Assigned ID
-     * @return Any of Result::SUCCESS, Result::INVALID_FORMAT, Result::INTERNAL
+     * @return Assigned ID for the key
      */
-    Result addPublicKey(const Buffer &key, uint16_t &id, Mode mode = Mode::ALLOW);
+    uint16_t addKey(const Buffer &key, Mode mode = Mode::ALLOW);
 
     /**
      * Changes the operational mode of a key
+     *
      * @param id Key's ID
-     * @param newMode New operational mode
-     * @return Any of Result::SUCCESS, Result::NOT_FOUND, Result::INTERNAL
+     * @param mode New operational mode
      */
-    Result setMode(uint16_t id, Mode newMode);
+    void setMode(uint16_t id, Mode mode);
 
     /**
      * Gets the operational mode of a key
+     *
      * @param id Key's ID
-     * @param mode Operational mode
-     * @return Any of Result::SUCCESS, Result::NOT_FOUND, Result::INTERNAL
+     * @return Key's operational mode
      */
-    Result getMode(uint16_t id, Mode &mode);
+    Mode getMode(uint16_t id);
 
     /**
-     * Removes a key from the storage
+     * Removes a public key from the storage
+     *
      * @param id Key's ID
-     * @return Any of Result::SUCCESS, Result::NOT_FOUND, Result::INTERNAL
      */
-    Result removePublicKey(uint16_t id);
-
+    void removeKey(uint16_t id);
 
     /**
      * Checks a key against the storage
+     *
+     * @param pre Pre verification
      * @param key Public key to check
-     * @param defaultMode If undecided (key in storage) use this Mode
-     * @return Operational mode of key
+     * @return True if verification succeeded
      */
-    Mode check(const EVP_PKEY *key, Mode defaultMode = Mode::DENY);
+    bool verify(bool pre, const EVP_PKEY *key) const;
 
 protected:
-    static CertificateStorage mInstance;
-    static int mOpensslDataIndex;
+    static CertStore mInstance;
 
+    // lock for the public key map
+    std::mutex mLock;
+    // public key map
     std::unordered_map<uint16_t, PublicKey> mPublicKeys;
-    uint16_t mNewPublicKeyId = 0;
-    std::mutex mLockKeys;
+    // next id
+    uint16_t mNextID = 1;
 };
 
 #endif //COMMONS_CERTIFICATESTORAGE_H

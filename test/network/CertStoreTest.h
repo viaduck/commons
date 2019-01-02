@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,16 +17,16 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "network/SSLContext.h"
+#ifndef COMMONS_CERTIFICATESTORAGETEST_H
+#define COMMONS_CERTIFICATESTORAGETEST_H
 
-thread_local SSLContext SSLContext::mInstance;
+#include <gtest/gtest.h>
+#include <network/ssl/CertStore.h>
 
-void SSLContext::saveSession(const Connection &connection, SSL_SESSION *session) {
-    mSessions.emplace(ConnectionInfo(connection), SSL_SESSION_ref(session, &SSL_SESSION_free));
-}
+class CertStoreTest : public ::testing::Test {
+protected:
+    CertStore mStore;
+};
 
-SSL_SESSION *SSLContext::getSession(const Connection &connection) {
-    auto elem = mSessions.find(ConnectionInfo(connection));
 
-    return elem == mSessions.end() ? nullptr : (*elem).second.get();
-}
+#endif //COMMONS_CERTIFICATESTORAGETEST_H

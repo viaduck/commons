@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,26 +17,26 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NativeWrapper.h"
+#include "Native.h"
 
-int ::NativeWrapper::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
+int ::Native::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
                                  struct addrinfo **__pai) {
     return ::getaddrinfo(__name, __service, __req, __pai);
 }
 
-void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
+void ::Native::freeaddrinfo(struct addrinfo *__ai) {
     return ::freeaddrinfo(__ai);
 }
 
-int ::NativeWrapper::socket(int __domain, int __type, int __protocol) {
+int ::Native::socket(int __domain, int __type, int __protocol) {
     return ::socket(__domain, __type, __protocol);
 }
 
-int ::NativeWrapper::shutdown(int __fd, int how) {
+int ::Native::shutdown(int __fd, int how) {
     return ::shutdown(__fd, how);
 }
 
-int ::NativeWrapper::close(int __fd) {
+int ::Native::close(int __fd) {
 #if defined(__WIN32)
     return ::closesocket(__fd);
 #else
@@ -44,23 +44,23 @@ int ::NativeWrapper::close(int __fd) {
 #endif
 }
 
-int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
+int ::Native::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
     return ::getsockopt(sockfd, level, optname, optval, optlen);
 }
 
-int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
+int ::Native::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
     return ::connect(__fd, __addr, __len);
 }
 
-int ::NativeWrapper::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
+int ::Native::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
     return ::select(ndfs, _read, _write, _except, timeout);
 }
 
-ssize_t (::NativeWrapper::recv(int socket, void *buffer, size_t length)) {
+ssize_t (::Native::recv(int socket, void *buffer, size_t length)) {
     return ::recv(socket, static_cast<char*>(buffer), length, 0);
 }
 
-ssize_t (::NativeWrapper::send(int socket, const void *buffer, size_t length)) {
+ssize_t (::Native::send(int socket, const void *buffer, size_t length)) {
     return ::send(socket, static_cast<const char*>(buffer), length, 0);
 }
 

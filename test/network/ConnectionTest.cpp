@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -28,12 +28,13 @@
 
 #include <network/Connection.h>
 #include <secure_memory/String.h>
-#include <network/SSLContext.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
 // private include
-#include "../src/network/NativeWrapper.h"
+#include "../src/network/native/Native.h"
+#include "../../src/network/Resolve.h"
+#include "../../src/network/socket/SSLSocket.h"
 
 // mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
@@ -56,55 +57,56 @@ struct NativeMock {
 
 static std::unordered_map<std::string, NativeMock> mocks;
 
-int ::NativeWrapper::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
+int ::Native::getaddrinfo(const char *__name, const char *__service, const struct addrinfo *__req,
                                  struct addrinfo **__pai) {
     return mocks[currentTestName()].getaddrinfo(__name, __service, __req, __pai);
 }
 
-int ::NativeWrapper::socket(int __domain, int __type, int __protocol) {
+int ::Native::socket(int __domain, int __type, int __protocol) {
     return mocks[currentTestName()].socket(__domain, __type, __protocol);
 }
 
-int ::NativeWrapper::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
+int ::Native::connect(int __fd, const sockaddr *__addr, socklen_t __len) {
     return mocks[currentTestName()].connect(__fd, __addr, __len);
 }
 
-int ::NativeWrapper::shutdown(int __fd, int how) {
+int ::Native::shutdown(int __fd, int how) {
     return mocks[currentTestName()].shutdown(__fd, how);
 }
 
-int ::NativeWrapper::close(int __fd) {
+int ::Native::close(int __fd) {
     return mocks[currentTestName()].close(__fd);
 }
 
-ssize_t (::NativeWrapper::recv(int /*socket*/, void */*buffer*/, size_t /*length*/)) {
+ssize_t (::Native::recv(int /*socket*/, void */*buffer*/, size_t /*length*/)) {
     return 0;           // unused for now
 }
 
-ssize_t (::NativeWrapper::send(int /*socket*/, const void */*buffer*/, size_t /*length*/)) {
+ssize_t (::Native::send(int /*socket*/, const void */*buffer*/, size_t /*length*/)) {
     return 0;           // unused for now
 }
 
-void ::NativeWrapper::freeaddrinfo(struct addrinfo *__ai) {
+void ::Native::freeaddrinfo(struct addrinfo *__ai) {
     return mocks[currentTestName()].freeaddrinfo(__ai);
 }
 
-int ::NativeWrapper::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
+int ::Native::getsockopt(int sockfd, int level, int optname, char *optval, socklen_t *optlen) {
     return mocks[currentTestName()].getsockopt(sockfd, level, optname, optval, optlen);
 }
 
-int ::NativeWrapper::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
+int ::Native::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout) {
     return mocks[currentTestName()].select(ndfs, _read, _write, _except, timeout);
 }
 
 TEST_F(ConnectionTest, noHost) {
+    // host does not exist
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **) {
         return EAI_NONAME;
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
-    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
+    ASSERT_THROW(conn.connect(), resolve_error);
+    ASSERT_FALSE(conn.connected());
 }
 
 TEST_F(ConnectionTest, hostButNoAddresses) {
@@ -116,35 +118,8 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
-    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
-}
-
-TEST_F(ConnectionTest, dnsCollision) {
-    mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **outAddr) {
-        // define addrinfo used for resolve mock
-        struct addrinfo *addr = new addrinfo;
-        memset(addr, 0, sizeof(addrinfo));
-
-        addr->ai_family = AF_INET;
-        addr->ai_socktype = SOCK_STREAM;
-        addr->ai_protocol = IPPROTO_TCP;
-        struct sockaddr_in *saddr = new sockaddr_in;
-        ::inet_pton(AF_INET, "127.0.53.53", &(saddr->sin_addr));
-        addr->ai_addr = (sockaddr*)saddr;
-
-        *outAddr = addr;
-        return 0;
-    };
-
-    mocks[currentTestName()].freeaddrinfo = [] (struct addrinfo *__ai) {
-        delete __ai->ai_addr;
-        delete __ai;
-    };
-
-    Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_RESOLVE, conn.connect());
-    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
+    ASSERT_THROW(conn.connect(), resolve_error);
+    ASSERT_FALSE(conn.connected());
 }
 
 TEST_F(ConnectionTest, invalidSocket) {
@@ -178,8 +153,8 @@ TEST_F(ConnectionTest, invalidSocket) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::ERROR_CONNECT, conn.connect());
-    ASSERT_EQ(Connection::Status::UNKNOWN, conn.status());
+    ASSERT_THROW(conn.connect(), socket_error);
+    ASSERT_FALSE(conn.connected());
 }
 
 TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
@@ -231,11 +206,10 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
-    ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
+    ASSERT_NO_THROW(conn.connect());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_EQ(IPProtocol::IPv4, conn.protocol());
 }
-
 
 TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const struct addrinfo *, struct addrinfo ** outAddr) {
@@ -332,13 +306,13 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
+    ASSERT_NO_THROW(conn.connect());
     // do not execute the assert in close if connect was already successful because a successful socket will be closed
     // there too
     checkClose = false;
 
-    ASSERT_EQ(Connection::Protocol::IPv4, conn.protocol());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_EQ(IPProtocol::IPv4, conn.protocol());
 }
 
 void mockReal() {
@@ -363,10 +337,9 @@ TEST_F(ConnectionTest, realSSL) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
-    ASSERT_TRUE(conn.isSSL());
-    conn.close();
+    ASSERT_NO_THROW(conn.connect());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_TRUE(conn.info().ssl());
 }
 
 TEST_F(ConnectionTest, realNoSSL) {
@@ -375,10 +348,9 @@ TEST_F(ConnectionTest, realNoSSL) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 80, false);
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
-    ASSERT_FALSE(conn.isSSL());
-    conn.close();
+    ASSERT_NO_THROW(conn.connect());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_FALSE(conn.info().ssl());
 }
 
 TEST_F(ConnectionTest, sessionResumption) {
@@ -387,23 +359,22 @@ TEST_F(ConnectionTest, sessionResumption) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn.connect());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn.status());
-    ASSERT_TRUE(conn.isSSL());
-    conn.close();       // this saves SSL session
-
-    uint16_t resumptionCount = SSLContext::getInstance().sessionsResumed();
+    ASSERT_NO_THROW(conn.connect());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_TRUE(conn.info().ssl());
+    // this saves SSL session
+    conn.disconnect();
 
     // following connections should use stored ssl sessions
-    Connection conn2("viaduck.org", 443, true, true, "/etc/ssl/certs");
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn2.connect());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn2.status());
-    ASSERT_EQ(resumptionCount+1, SSLContext::getInstance().sessionsResumed());
-    ASSERT_TRUE(conn2.isSSL());
-    conn2.close();
+    Connection conn2("viaduck.org", 443);
+    ASSERT_NO_THROW(conn2.connect());
+    ASSERT_TRUE(conn2.connected());
+    ASSERT_TRUE(conn2.info().ssl());
+    ASSERT_TRUE(((SSLSocket*)conn2.socket())->isReused());
+    conn2.disconnect();
 
-    ASSERT_EQ(Connection::ConnectResult::SUCCESS, conn2.connect());
-    ASSERT_EQ(Connection::Status::CONNECTED, conn2.status());
-    ASSERT_EQ(resumptionCount+2, SSLContext::getInstance().sessionsResumed());
-    ASSERT_TRUE(conn2.isSSL());
+    ASSERT_NO_THROW(conn2.connect());
+    ASSERT_TRUE(conn2.connected());
+    ASSERT_TRUE(conn2.info().ssl());
+    ASSERT_TRUE(((SSLSocket*)conn2.socket())->isReused());
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,100 +17,72 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMONS_SSLSESSION_H
-#define COMMONS_SSLSESSION_H
+#ifndef COMMONS_CONNECTIONINFO_H
+#define COMMONS_CONNECTIONINFO_H
 
-#include <string>
+#include <network/ssl/CertStore.h>
 
-#include <openssl/ssl.h>
-#include <network/Connection.h>
-
-/**
- * Storage class to store connection details: host and port
- */
 class ConnectionInfo {
 public:
-    /**
-     * Constructs a ConnectionInfo with the given connection details
-     * @param host Hostname
-     * @param port Port
-     */
-    ConnectionInfo(const std::string &host, uint16_t port) : mHost(host), mPort(port) { }
+    ConnectionInfo(std::string host, uint16_t port, bool ssl = true, bool sslVerify = true, std::string certPath = "",
+                   CertStore &certStore = CertStore::getInstance(), uint32_t timeoutC = 0, uint32_t timeoutIO = 0) :
+                        mHost(std::move(host)), mPort(port),
+                        mSSL(ssl), mSSLVerify(sslVerify),
+                        mCertPath(std::move(certPath)), mCertStore(certStore),
+                        mTimeoutConnect(timeoutC), mTimeoutIO(timeoutIO) {
 
-    /**
-     * Constructs a ConnectionInfo from an existing Connection object
-     * @param connection Existing Connection instance, host and port are copied
-     */
-    ConnectionInfo(const Connection &connection) : mHost(connection.host()), mPort(connection.port()) { }
-
-    /**
-     * Comparison operator needed for std::unordered_map
-     * @param rhs Other object
-     * @return True if both host and port are equal, false if not
-     */
-    bool operator==(const ConnectionInfo &rhs) const {
-        return mHost == rhs.mHost && mPort == rhs.mPort;
     }
 
-    /**
-     * Comparison operator needed for std::unordered_map
-     * @param rhs Other object
-     * @return True if any of host or port differs, false if not
-     */
-    bool operator!=(const ConnectionInfo &rhs) const {
-        return !(rhs == *this);
-    }
-
-    /**
-     * @return Hostname
-     */
     const std::string &host() const {
         return mHost;
     }
 
-    /**
-     * @return Port
-     */
     uint16_t port() const {
         return mPort;
     }
 
-protected:
+    uint32_t timeoutConnect() const {
+        return mTimeoutConnect;
+    }
+
+    uint32_t timeoutIO() const {
+        return mTimeoutIO;
+    }
+
+    bool ssl() const {
+        return mSSL;
+    }
+
+    bool sslVerify() const {
+        return mSSLVerify;
+    }
+
+    const std::string &certPath() const {
+        return mCertPath;
+    }
+
+    const CertStore &certStore() const {
+        return mCertStore;
+    }
+
+    size_t hash() const {
+        return (std::hash<std::string>()(mHost) + 0x9e3779b9) ^ std::hash<uint16_t>()(mPort);
+    }
+
+private:
+    // basic
     std::string mHost;
     uint16_t mPort;
+
+    // ssl stuff
+    bool mSSL;
+    bool mSSLVerify;
+    std::string mCertPath;
+    CertStore &mCertStore;
+
+    // timeouts
+    uint32_t mTimeoutConnect;
+    uint32_t mTimeoutIO;
 };
 
-namespace std {
-
-    /**
-     * Implement hash function for SSLSession class (so that SSLSession is usable in a hash map)
-     */
-    template<>
-    struct hash<ConnectionInfo> {
-        /**
-        * Helper method for std::hash<> specializations to combine a proper hash value
-        * @tparam T Type of value to hash
-        * @param seed Current hash value, will be updated
-        * @param v Value to hash
-        */
-        template <class T>
-        inline void hash_combine(std::size_t& seed, const T& v) const
-        {
-            std::hash<T> hasher;
-            seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-        }
-
-        std::size_t operator()(const ConnectionInfo &k) const {
-            using std::size_t;
-            using std::hash;
-            using std::string;
-
-            size_t current = 0;
-            hash_combine(current, hash<string>()(k.host()));
-            hash_combine(current, hash<uint16_t>()(k.port()));
-            return current;
-        }
-    };
-}
-
-#endif //COMMONS_SSLSESSION_H
+#endif //COMMONS_CONNECTIONINFO_H

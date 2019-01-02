@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *

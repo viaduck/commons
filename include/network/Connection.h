@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,204 +20,123 @@
 #ifndef COMMONS_CONNECTION_H
 #define COMMONS_CONNECTION_H
 
-#include <cstdint>
-#include <string>
-
-#include <openssl/ssl.h>
-
 #include <secure_memory/Buffer.h>
-#include <network/CertificateStorage.h>
+#include <commons/util/Except.h>
 
-/* On Windows, socket descriptor is not an int but a #define for something else. Other OS do not know these #defines */
-#ifndef WIN32
-    #define SOCKET int
-#endif
+#include <network/ConnectionInfo.h>
+#include <network/socket/ISocket.h>
+
+DEFINE_ERROR(connection, base_error);
 
 /**
  * Platform independent TCP/SSL client
  */
 class Connection {
+    using Socket_ref = std::unique_ptr<ISocket>;
 public:
-    /**
-     * Connection result codes
-     */
-    enum class ConnectResult {
-        UNKNOWN,                    /**< Unknown result **/
-        ERROR_INTERNAL,             /**< Internal OpenSSL error **/
-        ERROR_RESOLVE,              /**< Error resolving hostname **/
-        ERROR_CONNECT,              /**< Error connecting to host **/
-        ERROR_SSL_GENERAL,          /**< General SSL failure (e.g. protocol, ..) **/
-        ERROR_SSL_VERIFY,           /**< Error verifying host certificate **/
-        SUCCESS,                    /**< Successful connect **/
-        ERROR_INVALID_CERTPATH      /**< Invalid system certificate path **/
-    };
+    explicit Connection(ConnectionInfo connectionInfo) : mInfo(std::move(connectionInfo)) {}
 
-    /**
-     * Connection state
-     */
-    enum class Status {
-        CONNECTED,                  /**< Connected to host **/
-        UNCONNECTED,                /**< Not connected to host **/
-        UNKNOWN                     /**< No connection established yet **/
-    };
-
-    /**
-     * Network layer protocol
-     */
-    enum class Protocol {
-        UNSET,                      /**< Not yet connected **/
-        IPv4,                       /**< Internet protocol 4 **/
-        IPv6                        /**< Internet protocol 6 **/
-    };
-
-    /**
-     * Creates a connection object with the specified target. Does not connect yet.
-     * @param host Hostname or IP (both 4 and 6 are supported) to connect to
-     * @param port TCP port
-     * @param ssl Whether to use SSL or not
-     * @param verifyEnable Whether to verify the SSL certificate or not. Ignored if ssl is false
-     * @param certPath Path to system certificates directory. If left empty, no system certificates are used.
-     * @param certStore CertificateStorage that holds allowed/denied certificates. Default: application-wide singleton
-     * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
-     */
-    Connection(std::string host, uint16_t port, bool ssl = true, bool verifyEnable = true, std::string certPath = "",
-               CertificateStorage &certStore = CertificateStorage::getInstance(), uint32_t timeout = 0);
-
-    /**
-     * Creates a connection object with the specified target. Does not connect yet.
-     * @param host Hostname or IP (both 4 and 6 are supported) to connect to
-     * @param port TCP port
-     * @param ssl Whether to use SSL or not
-     * @param verifyEnable Whether to verify the SSL certificate or not. Ignored if ssl is false
-     * @param timeout Connect, receive and send timeout in milliseconds. 0 keeps OS default
-     */
-    Connection(std::string host, uint16_t port, bool ssl, bool verifyEnable, uint32_t timeout) :
-            Connection(host, port, ssl, verifyEnable, "", CertificateStorage::getInstance(), timeout) { }
-
-    /**
-     * Closes the connection and frees up allocated resources.
-     */
-    ~Connection();
+    Connection(const std::string &host, uint16_t port, bool ssl = true) : Connection(ConnectionInfo(host, port, ssl)) {}
 
     /**
      * Establish a connection
-     * @return Connection status
      */
-    ConnectResult connect();
+    void connect();
 
     /**
-     * Closes the connection (if connected)
-     * @return Whether the connection was closed (true) or there is no active connection (false)
+     * Closes the connection if connected
      */
-    bool close();
+    void disconnect();
 
     /**
-     * @return Current connection status
-     */
-    Status status() const {
-        return mStatus;
+    * @return Current connection status
+    */
+    bool connected() const {
+        return !!mSocket;
     }
 
     /**
-     * @return Used IP protocol for connection
+     * @return IP protocol used for connection
      */
-    Protocol protocol() const {
-        return mProtocol;
+    IPProtocol protocol() const {
+        if (connected())
+            return mSocket->protocol();
+        else
+            return IPProtocol::INVALID_ENUM_VALUE;
     }
 
     /**
-     * @return Hostname
+     * @return Connection information
      */
-    const std::string &host() const {
-        return mHost;
+    const ConnectionInfo &info() const {
+        return mInfo;
     }
 
     /**
-     * @return Port
+     * @return Underlying socket. Only valid while connected
      */
-    uint16_t port() const {
-        return mPort;
+    const ISocket *socket() const {
+        return mSocket.get();
     }
 
     /**
-     * @return Whether connection is using SSL
-     */
-    bool isSSL() const {
-        return mUsesSSL;
-    }
-
-    /**
-     * Read exactly size bytes from remote into the buffer. Blocks while waiting
+     * Read exactly size bytes from connection into buffer. Blocks while waiting
+     *
      * @param buffer Buffer receiving the read data
      * @param size Exact count of bytes to read
-     * @return True if exactly bytes have been read, false if not
+     * @return True if exactly size bytes have been read
      */
     bool read(Buffer &buffer, uint32_t size);
 
     /**
-     * Write from buffer to remote
-     * @param buffer Buffer to send to remote
-     * @return Success (true) or not (false)
+     * Write buffer to connection
+     *
+     * @param buffer Buffer to write
+     * @return True on success
      */
     bool write(const Buffer &buffer);
 
     /**
-     * Write a protocol generated class to the request stream
-     * @param pclass the class to write, needs to have T::serialize(const Buffer&)
+     * Write a protocol generated class to the connection
      *
+     * @param pgen the class to write, needs to have T::serialize(const Buffer&)
      * @return True on success
      */
     template<typename T>
-    bool writeProtoClass(const T &pclass) {
+    bool writeProtoClass(const T &pgen) {
         Buffer outBuf;
-        pclass.serialize(outBuf);
+        pgen.serialize(outBuf);
         return write(outBuf);
     }
 
     /**
-     * Reads a protocol generated class from request stream
-     * @param pclass the protocol generated class to be filled from buffer, needs to have T::deserialize(const Buffer&, uint32_t &missing)
+     * Reads a protocol generated class from the connection
      *
+     * @param pgen the protocol generated class to be read from connection,
+     * must have T::deserialize(const Buffer&, uint32_t &missing)
      * @return True on success
      */
     template<typename T>
-    bool readProtoClass(T &pclass) {
+    bool readProtoClass(T &pgen) {
         Buffer inBuf;
         uint32_t missing = 0;
         // try to deserialize, read missing bytes
-        while(!pclass.deserialize(inBuf, missing)) {
-            if(missing == 0) // no bytes missing, but class cannot be deserialized => error
+        while (!pgen.deserialize(inBuf, missing)) {
+            if (missing == 0) // no bytes missing, but class cannot be deserialized => error
                 return false;
 
-            if(!read(inBuf, missing))
+            if (!read(inBuf, missing))
                 return false;
         }
         return true;
     }
 
 protected:
-    /**
-     * Initializes the SSL connection
-     * @return Result
-     */
-    ConnectResult initSsl();
-    /**
-     * Initializes certificate verification routines
-     */
-    bool initVerification();
+    // constant connection information
+    ConnectionInfo mInfo;
 
-    std::string mHost;
-    uint16_t mPort;
-    uint32_t mTimeout;
-    bool mUsesSSL, mVerifyEnable;
-    std::string mCertPath;
-    CertificateStorage &mCertStore;
-    Protocol mProtocol = Protocol::UNSET;
-    Status mStatus = Status::UNKNOWN;
-
-    //
-    SOCKET mSocket;
-    SSL *mSSL;
+    // current socket
+    Socket_ref mSocket;
 };
 
 #endif //COMMONS_CONNECTION_H

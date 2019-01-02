@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2019 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,10 +17,8 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMONS_NATIVEINIT_H
-#define COMMONS_NATIVEINIT_H
-
-#include <commons/util/Except.h>
+#ifndef COMMONS_NATIVE_H
+#define COMMONS_NATIVE_H
 
 /* network includes */
 #ifdef WIN32
@@ -36,25 +34,31 @@
     #include <fcntl.h>
     #include <dirent.h>
     #include <cerrno>
-    #define INVALID_SOCKET  (SOCKET)(~0)
-    #define SOCKET_ERROR            (-1)
+    #define SOCKET int
+    #define INVALID_SOCKET  (~0)
+    #define SOCKET_ERROR    (-1)
     #define NW__SHUT_RDWR SHUT_RDWR
 #endif
 
-#include <memory>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+#include <commons/util/Except.h>
+
+#define _BEGIN_NATIVE_NAMESPACE namespace Native {
+#define _END_NATIVE_NAMESPACE }
 
 DEFINE_ERROR(native_init, base_error);
+
+_BEGIN_NATIVE_NAMESPACE
 
 /**
  * Platform one-time init
  */
-class NativeInit {
+class Init {
     using X509_ref = std::unique_ptr<X509, decltype(&X509_free)>;
 public:
 #ifdef WIN32
-    NativeInit() {
+    Init() {
         // windows socket startup
         WSADATA w;
         L_assert(WSAStartup(MAKEWORD(2,2), &w) == 0, native_init_error);
@@ -64,7 +68,7 @@ public:
         populateStore("ROOT", mRootStore);
     }
 
-    ~NativeInit() {
+    ~Init() {
         // ignore return value
         WSACleanup();
     }
@@ -105,7 +109,8 @@ protected:
     X509_STORE *mRootStore = nullptr;
 
 #else
-    NativeInit() {
+
+    Init() {
         // paths taken from https://serverfault.com/a/722646
         const char *checkDirs[] = {
         #ifdef __ANDROID__
@@ -128,7 +133,7 @@ protected:
             Log::warn << "Default certificate path could not be found";
     }
 
-    ~NativeInit() = default;
+    ~Init() = default;
 
     bool isValid(const char *dirPath) {
         using dir_ref = std::unique_ptr<DIR, decltype(&closeDir)>;
@@ -157,4 +162,31 @@ protected:
 #endif
 };
 
-#endif //COMMONS_NATIVEINIT_H
+// Declare all native functions in the Native namespace
+
+int getaddrinfo (const char * __name, const char * __service,
+                 const struct addrinfo * __req, struct addrinfo ** __pai);
+
+void freeaddrinfo(struct addrinfo *__ai);
+
+int socket(int __domain, int __type, int __protocol);
+
+int shutdown(int __fd, int how);
+
+int close(int __fd);
+
+int getsockopt(int __fd, int level, int optname, char *optval, socklen_t *optlen);
+
+int connect(int __fd, const sockaddr *__addr, socklen_t __len);
+
+int select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout);
+
+ssize_t recv(int __fd, void *buffer, size_t length);
+
+ssize_t send(int __fd, const void *buffer, size_t length);
+
+static Init gInit;
+
+_END_NATIVE_NAMESPACE
+
+#endif //COMMONS_NATIVE_H

@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 The ViaDuck Project
+# Copyright (C) 2015-2019 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -17,7 +17,7 @@
 
 # remove the native wrapper that will be mocked in tests
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-list(REMOVE_ITEM COMMONS_NETWORK_FILES ${PARENT_DIR}/src/network/NativeWrapper.cpp)
+list(REMOVE_ITEM COMMONS_NETWORK_FILES ${PARENT_DIR}/src/network/native/Native.cpp)
 
 # find system gtest
 include(FindOrBuildGTest)
