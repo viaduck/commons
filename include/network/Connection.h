@@ -44,6 +44,13 @@ public:
     void connect();
 
     /**
+     * Tries to establish a connection
+     *
+     * @return True on success
+     */
+    bool tryConnect();
+
+    /**
      * Closes the connection if connected
      */
     void disconnect();
@@ -59,10 +66,7 @@ public:
      * @return IP protocol used for connection
      */
     IPProtocol protocol() const {
-        if (connected())
-            return mSocket->protocol();
-        else
-            return IPProtocol::INVALID_ENUM_VALUE;
+        return connected() ? mSocket->protocol() : IPProtocol::INVALID_ENUM_VALUE;
     }
 
     /**

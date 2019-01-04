@@ -92,6 +92,32 @@ public:
         return Native::send(mSocket, data, size);
     }
 
+    /**
+     * Sets the non-blocking state.
+     *
+     * @param value True for non-blocking, false for blocking
+     */
+    void setNonBlocking(bool value) {
+#ifdef WIN32
+        u_long mode = value ? 1 : 0;
+        ioctlsocket(mSocket, FIONBIO, &mode);
+#else
+        int flags = fcntl(mSocket, F_GETFL, NULL);
+        if (value)
+            flags |= O_NONBLOCK;
+        else
+            flags &= ~O_NONBLOCK;
+        fcntl(mSocket, F_SETFL, flags);
+#endif
+    }
+
+    /**
+     * @return Underlying socket
+     */
+    SOCKET fd() const {
+        return mSocket;
+    }
+
 protected:
     /**
      * Sets the send and receive timeouts.
@@ -110,25 +136,6 @@ protected:
 
         setsockopt(mSocket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
         setsockopt(mSocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
-    }
-
-    /**
-     * Sets the non-blocking state.
-     *
-     * @param value True for non-blocking, false for blocking
-     */
-    void setNonBlocking(bool value) {
-#ifdef WIN32
-        u_long mode = value ? 1 : 0;
-        ioctlsocket(mSocket, FIONBIO, &mode);
-#else
-        int flags = fcntl(mSocket, F_GETFL, NULL);
-        if (value)
-            flags |= O_NONBLOCK;
-        else
-            flags &= ~O_NONBLOCK;
-        fcntl(mSocket, F_SETFL, flags);
-#endif
     }
 
     void setProtocol(int ai_family) {

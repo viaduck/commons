@@ -14,7 +14,7 @@ class SSLSocket : public TCPSocket {
 public:
     explicit SSLSocket(const ConnectionInfo &info) : TCPSocket(info), mSSL(nullptr, &SSL_free) {}
 
-    ~SSLSocket() {
+    ~SSLSocket() override {
         // store session for resumption
         SSLContext::getInstance().saveSession(mInfo, SSL_get1_session(mSSL.get()));
         // gracefully shut down ssl
@@ -79,7 +79,6 @@ protected:
 
         // try to connect
         int ret = SSL_connect(mSSL.get());
-
         if (ret != 1 && SSL_get_error(mSSL.get(), ret) == SSL_ERROR_SSL &&
                 ERR_GET_LIB(ERR_peek_last_error()) == ERR_LIB_SSL &&
                 ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_CERTIFICATE_VERIFY_FAILED)

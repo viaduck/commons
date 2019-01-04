@@ -24,7 +24,6 @@
 #include <network/Connection.h>
 #include <network/ConnectionInfo.h>
 
-
 // global one-time network init on a per-platform basis
 Native::Init gInit;
 // thread specific SSL context
@@ -45,6 +44,16 @@ void Connection::connect() {
     }
 
     throw connection_error("No connectable address could be resolved");
+}
+
+bool Connection::tryConnect() {
+    try {
+        connect();
+        return true;
+    }
+    catch (const socket_error &) { }
+    catch (const connection_error &) { }
+    return false;
 }
 
 bool Connection::read(Buffer &buffer, uint32_t size) {
