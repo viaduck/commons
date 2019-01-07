@@ -29,9 +29,11 @@ public:
     explicit TCPSocket(const ConnectionInfo &info) : ISocket(info) { }
 
     ~TCPSocket() override {
-        // this will gracefully shut down the connection
-        Native::shutdown(mSocket, NW__SHUT_RDWR);
-        Native::close(mSocket);
+        if (mSocket != INVALID_SOCKET) {
+            // this will gracefully shut down the connection
+            Native::shutdown(mSocket, NW__SHUT_RDWR);
+            Native::close(mSocket);
+        }
     }
 
     bool connect(addrinfo *addr) override {
@@ -52,7 +54,7 @@ public:
 #ifdef WIN32
         if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
 #else
-        if (res == -1 && errno == EINPROGRESS) {
+        if (res == SOCKET_ERROR && errno == EINPROGRESS) {
 #endif
             // create a set of sockets for select, add only our socket
             fd_set set;

@@ -32,7 +32,6 @@ DEFINE_ERROR(connection, base_error);
  * Platform independent TCP/SSL client
  */
 class Connection {
-    using Socket_ref = std::unique_ptr<ISocket>;
 public:
     explicit Connection(ConnectionInfo connectionInfo) : mInfo(std::move(connectionInfo)) {}
 
@@ -79,7 +78,7 @@ public:
     /**
      * @return Underlying socket. Only valid while connected
      */
-    const ISocket *socket() const {
+    ISocket *socket() {
         return mSocket.get();
     }
 
@@ -136,6 +135,8 @@ public:
     }
 
 protected:
+    using Socket_ref = std::unique_ptr<ISocket>;
+
     // constant connection information
     ConnectionInfo mInfo;
 

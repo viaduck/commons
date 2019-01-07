@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2019 The ViaDuck Project
+ *
+ * This file is part of Commons.
+ *
+ * Commons is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Commons is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef COMMONS_SSLSOCKET_H
 #define COMMONS_SSLSOCKET_H
 
@@ -15,10 +34,12 @@ public:
     explicit SSLSocket(const ConnectionInfo &info) : TCPSocket(info), mSSL(nullptr, &SSL_free) {}
 
     ~SSLSocket() override {
-        // store session for resumption
-        SSLContext::getInstance().saveSession(mInfo, SSL_get1_session(mSSL.get()));
-        // gracefully shut down ssl
-        SSL_shutdown(mSSL.get());
+        if (mSSL) {
+            // store session for resumption
+            SSLContext::getInstance().saveSession(mInfo, SSL_get1_session(mSSL.get()));
+            // gracefully shut down ssl
+            SSL_shutdown(mSSL.get());
+        }
     }
 
     bool isReused() const {

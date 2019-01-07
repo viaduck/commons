@@ -26,7 +26,7 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
-#include <network/Connection.h>
+#include <network/PushConnection.h>
 #include <secure_memory/String.h>
 #include "custom_assert.h"
 #include "ConnectionTest.h"
@@ -35,6 +35,7 @@
 #include "../src/network/native/Native.h"
 #include "../../src/network/Resolve.h"
 #include "../../src/network/socket/SSLSocket.h"
+#include "../../src/network/socket/NotifySocket.h"
 
 // mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
@@ -50,6 +51,8 @@ struct NativeMock {
     MAKE_MOCK_FUNCTION(connect, int, int, const sockaddr*, socklen_t) { return 0; };
     MAKE_MOCK_FUNCTION(shutdown, int, int, int) { return 0; };
     MAKE_MOCK_FUNCTION(close, int, int) { return 0; };
+    MAKE_MOCK_FUNCTION(recv, ssize_t, int, void*, size_t) { return 0; };
+    MAKE_MOCK_FUNCTION(send, ssize_t, int, const void*, size_t) { return 0; };
     MAKE_MOCK_FUNCTION(freeaddrinfo, void, addrinfo*) { return 0; };
     MAKE_MOCK_FUNCTION(getsockopt, int, int, int, int, char*, socklen_t*) { return 0; };
     MAKE_MOCK_FUNCTION(select, int, int, fd_set*, fd_set*, fd_set*, timeval*) { return 0; };
@@ -78,12 +81,12 @@ int ::Native::close(int __fd) {
     return mocks[currentTestName()].close(__fd);
 }
 
-ssize_t (::Native::recv(int /*socket*/, void */*buffer*/, size_t /*length*/)) {
-    return 0;           // unused for now
+ssize_t (::Native::recv(int __fd, void *buffer, size_t length)) {
+    return mocks[currentTestName()].recv(__fd, buffer, length);
 }
 
-ssize_t (::Native::send(int /*socket*/, const void */*buffer*/, size_t /*length*/)) {
-    return 0;           // unused for now
+ssize_t (::Native::send(int __fd, const void *buffer, size_t length)) {
+    return mocks[currentTestName()].send(__fd, buffer, length);
 }
 
 void ::Native::freeaddrinfo(struct addrinfo *__ai) {
@@ -319,6 +322,8 @@ void mockReal() {
     mocks[currentTestName()].getaddrinfo = &::getaddrinfo;
     mocks[currentTestName()].socket = &::socket;
     mocks[currentTestName()].connect = &::connect;
+    mocks[currentTestName()].recv = [] (int _fd, void*b, size_t l) { return ::recv(_fd, static_cast<char*>(b), l, 0); };
+    mocks[currentTestName()].send = [] (int _fd, const void*b, size_t l) { return ::send(_fd, static_cast<const char*>(b), l, 0); };
     mocks[currentTestName()].freeaddrinfo = &::freeaddrinfo;
     mocks[currentTestName()].select = &::select;
     mocks[currentTestName()].getsockopt = &::getsockopt;
@@ -377,4 +382,32 @@ TEST_F(ConnectionTest, sessionResumption) {
     ASSERT_TRUE(conn2.connected());
     ASSERT_TRUE(conn2.info().ssl());
     ASSERT_TRUE(((SSLSocket*)conn2.socket())->isReused());
+}
+
+TEST_F(ConnectionTest, notify) {
+    // switch to real native calls
+    mockReal();
+
+    NotifySocket notify(ConnectionInfo("", 0));
+    ASSERT_TRUE(notify.connect(nullptr));
+    ASSERT_NO_THROW(notify.notify());
+    ASSERT_NO_THROW(notify.clear());
+}
+
+TEST_F(ConnectionTest, pushConnection) {
+    // switch to real native calls
+    mockReal();
+
+    PushConnection conn(ConnectionInfo("viaduck.org", 443));
+    ASSERT_NO_THROW(conn.connect());
+    ASSERT_TRUE(conn.connected());
+    ASSERT_TRUE(conn.info().ssl());
+
+    // send one notify
+    conn.notify();
+    // should not wait since we have a notify
+    bool readable, notify;
+    ASSERT_TRUE(conn.waitReadable(readable, notify));
+    ASSERT_TRUE(notify);
+    ASSERT_NO_THROW(conn.clear());
 }

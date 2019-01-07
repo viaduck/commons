@@ -22,7 +22,6 @@
 #include "Resolve.h"
 
 #include <network/Connection.h>
-#include <network/ConnectionInfo.h>
 
 // global one-time network init on a per-platform basis
 Native::Init gInit;
