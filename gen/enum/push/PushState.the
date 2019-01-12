@@ -1,0 +1,4 @@
+type uint8_t
+
+Connecting, /**< disconnected, trying to establish a connection */
+Connected /**< currently connected */
