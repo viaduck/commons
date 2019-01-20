@@ -4,6 +4,7 @@ std::string      name
 ConversationType type
 
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
+uint32_t keyExchangeSeq  # current key exchange number
 
 Buffer symKey1  # symmetric key 1
 Buffer symKey2  # symmetric key 2
