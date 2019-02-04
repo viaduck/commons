@@ -36,15 +36,15 @@ public:
         // glob pattern
         std::string pattern = path + "*" + ext;
 
-        WIN32_FIND_DATA find_data;
-        HANDLE find_result = FindFirstFile(pattern.c_str(), &find_data);
+        WIN32_FIND_DATAA find_data;
+        HANDLE find_result = FindFirstFileA(pattern.c_str(), &find_data);
 
         // error occured, maybe we did not find any file
         if (find_result == INVALID_HANDLE_VALUE)
             return files;
 
         do files.emplace_back(path + find_data.cFileName);
-        while (FindNextFile(find_result, &find_data));
+        while (FindNextFileA(find_result, &find_data));
 
         FindClose(find_result);
 
