@@ -28,9 +28,9 @@ else()
 
     # detect host system
     if (CMAKE_HOST_WIN32)
-        set(GEN_FLATBUFFER_ARCH win32)
+        set(GEN_FLATBUFFER_ARCH x86_64-windows)
     elseif (CMAKE_HOST_APPLE)
-        set(GEN_FLATBUFFER_ARCH osx-x86_64)
+        set(GEN_FLATBUFFER_ARCH x86_64-osx)
     elseif (CMAKE_HOST_UNIX)
         set(GEN_FLATBUFFER_ARCH x86_64-linux)
     endif()
