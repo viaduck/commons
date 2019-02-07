@@ -28,6 +28,7 @@ class SQXBase {
 public:
     DEFINE_ERROR(load, base_error);
 
+    virtual ~SQXBase() = default;
     virtual sqlite::cryptosqlite_database *db() = 0;
 
 protected:

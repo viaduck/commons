@@ -93,7 +93,6 @@ private:
         b_def.outl("{type} mField;")
     ]]]
     [[[end]]]
-    bool mAllocated = false;
 
 [[[cog
     b_def.outl("}};")
