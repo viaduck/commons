@@ -7,5 +7,5 @@ int64_t     timestamp           # unix time in milliseconds (compose time for ou
 int64_t     senderTimestamp     # unix time in milliseconds (alleged time of sender compose)
 
 Buffer      content             # binary message content
-std::string contentType         # content type of binary message
+std::string type                # type of binary message
 
