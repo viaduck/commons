@@ -3,6 +3,7 @@ import enum/database/ConversationType.the
 std::string      name
 ConversationType type
 
+foreign sqx/SConversation linked ON DELETE SET NULL
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
 uint32_t keyExchangeSeq  # current key exchange number
 
