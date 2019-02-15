@@ -1,6 +1,6 @@
 foreign sqx/SMessage attachment ON DELETE CASCADE
 foreign sqx/SConversation conversation ON DELETE CASCADE
-foreign sqx/SIdentity sender ON DELETE SET NULL
+foreign sqx/RParticipant sender ON DELETE SET NULL
 foreign sqx/SPending pending ON DELETE SET NULL
 
 int64_t     timestamp           # unix time in milliseconds (compose time for our messages, process time for others)
