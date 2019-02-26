@@ -82,6 +82,15 @@ public:
         return elem == mSessions.end() ? nullptr : elem->second.get();
     }
 
+    /**
+     * Removes a session from session cache
+     *
+     * @param info Associated connection information
+     */
+    void removeSession(const ConnectionInfo &info) {
+        mSessions.erase(info.hash());
+    }
+
 protected:
     /**
      * Constructor used internally to create singleton instance.
@@ -91,6 +100,8 @@ protected:
         SSL_CTX_set_mode(get(), SSL_MODE_AUTO_RETRY);
         // data index used to pass custom data to ssl verify
         mDataIndex = SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
+        // set session caching mode to cache client sessions
+        SSL_CTX_set_session_cache_mode(get(), SSL_SESS_CACHE_CLIENT);
     }
 
     // thread specific singleton

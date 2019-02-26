@@ -35,10 +35,11 @@ public:
 
     ~SSLSocket() override {
         if (mSSL) {
-            // store session for resumption
-            SSLContext::getInstance().saveSession(mInfo, SSL_get1_session(mSSL.get()));
             // gracefully shut down ssl
-            SSL_shutdown(mSSL.get());
+            if (SSL_shutdown(mSSL.get()) == 0) {
+                // shutdown not yet finished, require SSL_read for bidirectional shutdown
+                read(nullptr, 0);
+            }
         }
     }
 
@@ -75,6 +76,17 @@ protected:
         return 0;
     }
 
+    static int saveSession(SSL *ssl, SSL_SESSION *session) {
+        SSLContext &ctx = SSLContext::getInstance();
+        auto *instance = static_cast<SSLSocket*>(SSL_get_ex_data(ssl, ctx.dataIndex()));
+
+        // store session for resumption
+        ctx.saveSession(instance->mInfo, session);
+
+        // do not remove session
+        return 1;
+    }
+
     bool initSSL() {
         // load thread specific ssl context
         SSLContext &ctx = SSLContext::getInstance();
@@ -83,6 +95,9 @@ protected:
         // create ssl object for this socket
         mSSL.reset(SSL_new(ctx.get()));
         L_assert(mSSL, ssl_socket_error);
+
+        // register session resumption callbacks
+        SSL_CTX_sess_set_new_cb(ctx.get(), saveSession);
 
         // set verification function
         SSL_CTX_set_verify(ctx.get(), SSL_VERIFY_PEER, verify_ssl_cert);
@@ -106,6 +121,10 @@ protected:
             throw ssl_verification_error("Certificate verification failed");
         else if (ret != 1)
             throw ssl_socket_error("SSL connection failed");
+
+        // TLSv1.3: recommended to that each SSL_SESSION object only used once
+        if (SSL_version(mSSL.get()) == TLS1_3_VERSION)
+            ctx.removeSession(mInfo);
 
         // only for chaining in connect
         return true;
