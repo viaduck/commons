@@ -91,16 +91,14 @@ protected:
         // load thread specific ssl context
         SSLContext &ctx = SSLContext::getInstance();
         ctx.load(mInfo.certPath());
+        // register session resumption callbacks
+        SSL_CTX_sess_set_new_cb(ctx.get(), saveSession);
+        // set verification function
+        SSL_CTX_set_verify(ctx.get(), SSL_VERIFY_PEER, verify_ssl_cert);
 
         // create ssl object for this socket
         mSSL.reset(SSL_new(ctx.get()));
         L_assert(mSSL, ssl_socket_error);
-
-        // register session resumption callbacks
-        SSL_CTX_sess_set_new_cb(ctx.get(), saveSession);
-
-        // set verification function
-        SSL_CTX_set_verify(ctx.get(), SSL_VERIFY_PEER, verify_ssl_cert);
         // set hostname for verification
         L_assert(SSL_set_tlsext_host_name(mSSL.get(), mInfo.host().c_str()) == 1, ssl_socket_error);
         // store this pointer to access later
