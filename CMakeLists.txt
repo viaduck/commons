@@ -67,6 +67,9 @@ else()
     if (NOT TARGET ssl)
         add_subdirectory(external/openssl-cmake)
     endif()
+    if (SYSTEM_OPENSSL)
+        add_definitions(-DSYSTEM_OPENSSL)
+    endif()
 
     # build
     add_library(Commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})

@@ -120,9 +120,11 @@ protected:
         else if (ret != 1)
             throw ssl_socket_error("SSL connection failed");
 
-        // TLSv1.3: recommended to that each SSL_SESSION object only used once
+#ifdef TLS1_3_VERSION
+        // TLSv1.3: recommends that each SSL_SESSION object only used once
         if (SSL_version(mSSL.get()) == TLS1_3_VERSION)
             ctx.removeSession(mInfo);
+#endif
 
         // only for chaining in connect
         return true;

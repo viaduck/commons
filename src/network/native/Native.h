@@ -131,6 +131,8 @@ protected:
 
         if (mVerifyLocation.empty())
             Log::warn << "Default certificate path could not be found";
+
+        OPENSSL_init_ssl(0, nullptr);
     }
 
     ~Init() = default;
