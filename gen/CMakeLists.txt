@@ -34,10 +34,14 @@ else()
     elseif (CMAKE_HOST_UNIX)
         set(GEN_FLATBUFFER_ARCH x86_64-linux)
     endif()
+    
+    if (NOT FLATC_VERSION)
+        set(FLATC_VERSION "1.10.0")
+    endif()
 
     # only download if needed
     if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz)
-        set(PREBUILT_URL https://mirror.viaduck.org/prebuilts/flatbuffers/${GEN_FLATBUFFER_ARCH}.tar.gz)
+        set(PREBUILT_URL https://builds.viaduck.org/prebuilts/flatbuffers/${FLATC_VERSION}/${GEN_FLATBUFFER_ARCH}.tar.gz)
         file(DOWNLOAD ${PREBUILT_URL} ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz SHOW_PROGRESS)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar x ${CMAKE_CURRENT_BINARY_DIR}/flatc.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif()
