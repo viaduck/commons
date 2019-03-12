@@ -32,23 +32,34 @@ public:
     /**
      * Virtual destructor
      */
-    virtual ~ILogger() {};
+    virtual ~ILogger() = default;
 
     /**
      * Opens the output stream. This enables logging.
      * @return Whether opening succeeded.
      */
-    virtual bool open() = 0;
+    virtual bool open() {
+        return true;
+    }
 
     /**
      * Closes the output stream. No logging is possible after calling this function until the ILogger is opened again.
      */
-    virtual void close() = 0;
+    virtual void close() { }
 
     /**
      * @return Whether the ILogger is ready for logging.
      */
-    virtual bool isOpen() = 0;
+    virtual bool isOpen() {
+        return true;
+    }
+
+    /**
+     * Flushes the stream at end of log operation
+     */
+    virtual void flush() {
+        stream() << std::endl;
+    }
 
     /**
      * @return Underlying writable std::ostream stream.
@@ -59,7 +70,9 @@ public:
      * @param level LogLevel
      * @return Whether ILogger implementation wants to log stream started by this log level.
      */
-    virtual bool wantsLog(LogLevel level) = 0;
+    virtual bool wantsLog(LogLevel level) {
+        return true;
+    }
 };
 
 #endif //COMMONS_ILOGGER_H

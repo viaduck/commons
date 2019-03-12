@@ -29,16 +29,6 @@
  */
 class StdoutLogger : public ILogger {
 public:
-    bool open() override {
-        return true;
-    }
-
-    void close() override {}
-
-    bool isOpen() override {
-        return true;
-    }
-
     std::ostream &stream() override {
         return std::cout;
     }

@@ -40,17 +40,6 @@ public:
         DEBUG = 7,
         INVALID = -1,
     };
-
-    bool open() override {
-        return true;
-    }
-
-    void close() override {}
-
-    bool isOpen() override {
-        return true;
-    }
-
     std::ostream &stream() override {
         return std::cout;
     }

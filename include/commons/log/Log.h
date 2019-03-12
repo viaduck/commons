@@ -57,7 +57,7 @@ class Log {
                 if (mParent.mLog.isEnabled() && mParent.isEnabled()) {
                     for (ILogger *logger: mEnabledLoggers) {
                         if (logger->isOpen())
-                            logger->stream() << std::endl;
+                            logger->flush();
                     }
 
                     mParent.mLog.mLogLock.unlock();

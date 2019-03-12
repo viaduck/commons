@@ -32,6 +32,10 @@ public:
     static std::vector<std::string> find(std::string path, const std::string &ext) {
         std::vector<std::string> files;
 
+        // append trailing / if missing
+        if (!path.empty() && path.back() != '/')
+            path += '/';
+
 #ifdef WIN32
         // glob pattern
         std::string pattern = path + "*" + ext;
