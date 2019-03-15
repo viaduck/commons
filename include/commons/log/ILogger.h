@@ -70,7 +70,7 @@ public:
      * @param level LogLevel
      * @return Whether ILogger implementation wants to log stream started by this log level.
      */
-    virtual bool wantsLog(LogLevel level) {
+    virtual bool wantsLog(LogLevel) {
         return true;
     }
 };
