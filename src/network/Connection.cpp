@@ -50,8 +50,12 @@ bool Connection::tryConnect() {
         connect();
         return true;
     }
-    catch (const socket_error &) { }
-    catch (const connection_error &) { }
+    catch (const socket_error &e) {
+        Log::dbg << "Socket error occurred: " << e.what();
+    }
+    catch (const connection_error &e) {
+        Log::dbg << "Connection error occurred: " << e.what();
+    }
     return false;
 }
 
