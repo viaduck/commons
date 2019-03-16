@@ -43,6 +43,7 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <commons/util/Except.h>
+#include <commons/util/File.h>
 
 #define _BEGIN_NATIVE_NAMESPACE namespace Native {
 #define _END_NATIVE_NAMESPACE }
@@ -98,6 +99,39 @@ public:
         // Windows has no certs without the root store
         L_expect(mRootStore);
 
+        if (mRootStore) {
+            // ensure our store does not get freed on ctx store replace
+            X509_STORE_up_ref(mRootStore);
+            SSL_CTX_set_cert_store(ctx, mRootStore);
+        }
+    }
+
+protected:
+    X509_STORE *mRootStore = nullptr;
+
+#elif defined(__ANDROID__)
+    Init() {
+        // on Android, load all certificates in system location explicitly
+        L_expect(mRootStore = X509_STORE_new());
+
+        X509_LOOKUP *lookup = nullptr;
+        L_expect(lookup = X509_STORE_add_lookup(mRootStore, X509_LOOKUP_file()));
+
+        // manually add all system certificates as files to OpenSSL
+        // TODO user certs
+        for (const auto &file : File::find("/system/etc/security/cacerts", "")) {
+            L_expect(X509_load_cert_file(lookup, file.c_str(), X509_FILETYPE_PEM) == 1);
+        }
+
+        OPENSSL_init_ssl(0, nullptr);
+    }
+
+    ~Init() {
+        if (mRootStore)
+            X509_STORE_free(mRootStore);
+    }
+
+    void defaultStore(SSL_CTX *ctx) {
         if (mRootStore) {
             // ensure our store does not get freed on ctx store replace
             X509_STORE_up_ref(mRootStore);
