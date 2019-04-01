@@ -50,6 +50,9 @@ bool Connection::tryConnect() {
         connect();
         return true;
     }
+    catch (const resolve_error &e) {
+        Log::dbg << "Resolve error occurred: " << e.what();
+    }
     catch (const socket_error &e) {
         Log::dbg << "Socket error occurred: " << e.what();
     }
