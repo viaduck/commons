@@ -2,6 +2,7 @@ import enum/database/ConversationType.the
 
 std::string      name
 ConversationType type
+bool             mute
 
 foreign sqx/SConversation linked ON DELETE SET NULL
 foreign sqx/SKeyExchange keyExchange ON DELETE SET NULL
