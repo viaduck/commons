@@ -23,27 +23,26 @@
 
 #include <network/PushConnection.h>
 
-bool PushConnection::waitReadable(bool &readable, bool &notify) {
-    // can only wait on established connection
-    if (!connected())
-        return false;
+bool PushConnection::wait(bool &readable, bool &notify) {
+    // create a set of sockets for select, add our socket and the notify
+    fd_set set;
+    FD_ZERO(&set);
 
-    // only tcp+ waiting is supported
-    auto tcp_sock = dynamic_cast<TCPSocket*>(socket());
-    L_assert(tcp_sock, async_connection_error);
+    // connection socket, notify socket
+    SOCKET sfd = INVALID_SOCKET, nfd;
+
+    // obtain connection socket, only tcp+ waiting supported
+    if (connected()) {
+        auto tcp_sock = dynamic_cast<TCPSocket *>(socket());
+        L_assert(tcp_sock, async_connection_error);
+        sfd = tcp_sock->fd();
+        FD_SET(sfd, &set);
+    }
 
     // obtain notify socket
     auto notify_sock = dynamic_cast<NotifySocket*>(mNotify.get());
     L_assert(notify_sock, async_connection_error);
-
-    // extract sockets
-    auto sfd = tcp_sock->fd();
-    auto nfd = notify_sock->fd();
-
-    // create a set of sockets for select, add our socket and the notify
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(sfd, &set);
+    nfd = notify_sock->fd();
     FD_SET(nfd, &set);
 
 #ifdef WIN32
@@ -108,13 +107,13 @@ void PushConnection::notify() {
         notify_sock->notify();
 }
 
-void PushConnection::clear() {
+void PushConnection::clearNotify() {
     auto notify_sock = dynamic_cast<NotifySocket*>(mNotify.get());
     if (notify_sock)
         notify_sock->clear();
 }
 
-void PushConnection::clearAll() {
+void PushConnection::connectNotify() {
     // create platform specific notify socket
     mNotify = std::make_unique<NotifySocket>(mInfo);
     mNotify->connect(nullptr);

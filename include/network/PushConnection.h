@@ -31,7 +31,7 @@ class PushConnection : Connection {
 public:
     explicit PushConnection(const ConnectionInfo &info) : Connection(info) {
         // create notify socket
-        clearAll();
+        connectNotify();
     }
 
     /**
@@ -40,25 +40,21 @@ public:
     void notify();
 
     /**
-     * Clears one notify from the queue. Don't attempt to clear more notifies than available.
+     * Clears one notify from the queue. Never try to clear more notifies than are available.
      */
-    void clear();
-
-    /**
-     * Drops all pending notifies
-     */
-    void clearAll();
+    void clearNotify();
 
     /**
      * Block indefinitely until raw data is available or a notify is triggered.
-     * If raw data remains in the socket or a notify was not cleared, waitReadable will return immediately.
+     * If raw data remains in the socket or a notify was not cleared, wait will return immediately.
+     * If a connection is not established, only notify will be waited on.
      * Note: EOF is also reported as readable
      *
      * @param readable True if data is available
      * @param notify True if notify was triggered
      * @return False on error
      */
-    bool waitReadable(bool &readable, bool &notify);
+    bool wait(bool &readable, bool &notify);
 
     /**
      * Reads from the socket and returns immediately.
@@ -108,6 +104,8 @@ public:
     using Connection::writeProtoClass;
 
 protected:
+    void connectNotify();
+
     // special socket used for thread-safe wake up of waitReadable()
     Socket_ref mNotify;
 };

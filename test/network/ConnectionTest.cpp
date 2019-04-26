@@ -407,7 +407,7 @@ TEST_F(ConnectionTest, pushConnection) {
     conn.notify();
     // should not wait since we have a notify
     bool readable, notify;
-    ASSERT_TRUE(conn.waitReadable(readable, notify));
+    ASSERT_TRUE(conn.wait(readable, notify));
     ASSERT_TRUE(notify);
-    ASSERT_NO_THROW(conn.clear());
+    ASSERT_NO_THROW(conn.clearNotify());
 }
