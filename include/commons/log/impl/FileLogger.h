@@ -30,7 +30,7 @@
 class FileLogger : public ILogger {
 public:
     FileLogger(const std::string &filename) {
-        mFile.open(filename, std::fstream::out | std::fstream::app);
+        mFile.open(filename, std::ios_base::app);
     }
 
     std::ostream &stream() override {
@@ -40,7 +40,7 @@ public:
     bool wantsLog(LogLevel level) override;
 
 protected:
-    std::fstream mFile;
+    std::ofstream mFile;
 };
 
 #endif //COMMONS_FILELOGGER_H
