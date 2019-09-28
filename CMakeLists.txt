@@ -46,15 +46,12 @@ file(GLOB_RECURSE COMMONS_BASE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*
 file(GLOB_RECURSE COMMONS_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/*.h)
 file(GLOB_RECURSE COMMONS_NETWORK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/network/*.cpp)
 file(GLOB_RECURSE COMMONS_NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/network/*.h)
-file(GLOB_RECURSE COMMONS_CURVE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/*.cpp)
-file(GLOB_RECURSE COMMONS_CURVE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/curve25519/*.h)
 
 # convenience
 set(COMMONS_BASIC_FILES ${COMMONS_BASE_SOURCES} ${COMMONS_BASE_HEADERS})
 set(COMMONS_NETWORK_FILES ${COMMONS_NETWORK_SOURCES} ${COMMONS_NETWORK_HEADERS})
-set(COMMONS_CURVE_FILES ${COMMONS_CURVE_SOURCES} ${COMMONS_CURVE_HEADERS})
 
-# this variable allows turning off all network, ssl, and curve dependencies
+# this variable allows turning off all network and ssl dependencies
 if (COMMONS_BASE_ONLY)
 
     # create the library using only base files
@@ -73,20 +70,16 @@ else()
 
     # build
     add_library(Commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})
-    add_library(curve25519 STATIC ${COMMONS_CURVE_FILES})
 
     # link to everything but the basics
-    target_link_libraries(curve25519 ssl crypto)
-    target_link_libraries(Commons ssl crypto curve25519)
+    target_link_libraries(Commons PUBLIC ssl crypto)
 
     # ntoh related stuff on windows needs winsock
     if (WIN32)
-        target_link_libraries(Commons ws2_32 crypt32)
+        target_link_libraries(Commons PUBLIC ws2_32 crypt32)
+    elseif(NOT ANDROID)
+        target_link_libraries(Commons PUBLIC pthread dl)
     endif()
-
-    # export all includes but the basics
-    target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/curve25519/)
-    target_include_directories(curve25519 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
     # doxygen
     include(Doxygen)
@@ -100,7 +93,7 @@ add_subdirectory(test)
 
 # link to base dependencies in any case
 # and force a rebuild of Commons if one of the spec files changes
-target_link_libraries(Commons SecureMemory Commons_gen)
+target_link_libraries(Commons PUBLIC SecureMemory Commons_gen)
 
 # export the basic includes and compile options in any case
 target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

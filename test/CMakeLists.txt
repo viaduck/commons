@@ -27,12 +27,9 @@ if (GTEST_FOUND)
     file(GLOB_RECURSE TEST_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/base/*.h)
     file(GLOB_RECURSE TEST_NETWORK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp)
     file(GLOB_RECURSE TEST_NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
-    file(GLOB_RECURSE TEST_CURVE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/*.cpp)
-    file(GLOB_RECURSE TEST_CURVE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/curve25519/*.h)
 
     set(TEST_BASE_FILES ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
     set(TEST_NETWORK_FILES ${TEST_NETWORK_SOURCES} ${TEST_NETWORK_HEADERS})
-    set(TEST_CURVE_FILES ${TEST_CURVE_SOURCES} ${TEST_CURVE_HEADERS})
 
     ### coverage
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage -fexceptions")
@@ -46,15 +43,10 @@ if (GTEST_FOUND)
     if (COMMONS_BASE_ONLY)
         add_executable(Commons_Test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
     else()
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/curve25519/ed25519_tests.txt ${CMAKE_CURRENT_BINARY_DIR}/ed25519_tests.txt COPYONLY)
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/curve25519/ed25519_tests.txt ${CMAKE_BINARY_DIR}/ed25519_tests.txt COPYONLY)
-        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${COMMONS_CURVE_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES} ${TEST_CURVE_FILES})
+        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
     endif()
 
     target_link_libraries(Commons_Test ${GTEST_BOTH_LIBRARIES} Commons Commons_gen)
-    if (NOT ANDROID)
-        target_link_libraries(Commons_Test pthread)
-    endif()
 
     ## code coverage
     include(CodeCoverage)
