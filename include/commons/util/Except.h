@@ -42,13 +42,19 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error)
 #define __VD_LINE__ STRINGIZE(__LINE__)
 
 // asserts a condition, throws err on fail
-#define L_assert(condition, error)    \
+#define L_assert_internal(condition, error, loglevel)    \
     do {                              \
         if (!(condition)) {           \
-            Log::err << "Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__;  \
+            Log::loglevel << "Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__;  \
             throw error("Assert failed: \"" #condition "\" in " __FILE__ ":" __VD_LINE__); \
         }                             \
     } while(false)
+
+#define L_assert(condition, error) \
+    L_assert_internal(condition, error, dbg)
+
+#define L_assert_low(condition, error) \
+    L_assert_internal(condition, error, trac)
 
 #define L_assert_eq(e, a, error)      \
     do {                              \
