@@ -1,0 +1,4 @@
+type uint8_t
+
+ED25519,
+ED448
