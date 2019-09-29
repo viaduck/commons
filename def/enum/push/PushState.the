@@ -1,5 +1,0 @@
-type uint8_t
-
-Disconnected, /**< disconnected */
-Connecting,   /**< disconnected, trying to establish a connection */
-Connected     /**< currently connected */

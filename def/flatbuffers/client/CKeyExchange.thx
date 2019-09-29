@@ -1,5 +1,0 @@
-bytes(32) pubkey1
-bytes(32) pubkey2
-bytes(32) sHintShare
-bytes(32) pHintShare
-uint32_t  seq

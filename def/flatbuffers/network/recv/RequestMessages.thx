@@ -1,3 +1,0 @@
-bytes(20)   phash
-uint8_t     maxMessageCount
-uint64_t    lastMessage

@@ -1,2 +1,0 @@
-foreign sqx/SIdentity target ON DELETE CASCADE
-Buffer         content     # binary content

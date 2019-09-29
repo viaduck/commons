@@ -1,5 +1,0 @@
-type uint8_t
-
-SINGLE,    /**< contact single conversation (pubkey / symkey) */
-INVITE,    /**< single conversation for group invite */
-GROUP      /**< group conversation (pubkey / symkey) */

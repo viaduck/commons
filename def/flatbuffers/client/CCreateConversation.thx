@@ -1,6 +1,0 @@
-import enum/database/ConversationType.the
-
-string              name        # optional name of the conversation
-ConversationType    type        # type of the new conversation
-bytes(32)           symHint     # symmetric hint for the new conversation
-bytes(32)           pubHint     # public hint for the new conversation

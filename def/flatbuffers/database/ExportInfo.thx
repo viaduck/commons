@@ -1,6 +1,0 @@
-import enum/message/SendMethodType.the
-
-bytes(32)       pubHintShare
-bytes           pubkey
-SendMethodType  methodType # method used to reach postbox
-string          address    # address of postbox method

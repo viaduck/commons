@@ -1,7 +1,0 @@
-import enum/message/SendMethodType.the
-
-SendMethodType targetMethodType
-string targetAddress
-
-bytes(32) symKey1
-bytes(32) symKey2

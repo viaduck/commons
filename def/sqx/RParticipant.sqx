@@ -1,9 +1,0 @@
-# conversation side
-foreign sqx/SConversation conversation ON DELETE CASCADE
-
-# identity side
-foreign sqx/SIdentity identity ON DELETE CASCADE
-
-# current tx and rx sequence number for this participant in this conversation
-uint64_t tx_seq
-uint64_t rx_seq
