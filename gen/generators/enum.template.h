@@ -20,7 +20,7 @@
 [[[cog
     import cog
     from gen_enum import EnumDef
-    e_def = EnumDef(def_file)
+    e_def = EnumDef(def_base_dir, def_file)
 
     e_def.outl("/*** AUTOMATICALLY GENERATED FILE - DO NOT EDIT! ***/")
     e_def.outl("#ifndef {name}_H")

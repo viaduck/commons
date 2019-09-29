@@ -141,8 +141,8 @@ class FlatbuffersBitType(FlatbuffersType):
 
 # all flatbuffers definitions
 class FlatbuffersDef(DefBase, CogBase):
-    def __init__(self, filename, outfile):
-        DefBase.__init__(self, filename)
+    def __init__(self, base_dir, filename, outfile):
+        DefBase.__init__(self, base_dir, filename)
         self.max_size = 0
 
         # name fbs table after basename of the file
@@ -165,8 +165,8 @@ class FlatbuffersDef(DefBase, CogBase):
             f.write("\n".join(self.fbs))
 
     def parse_line(self, line):
-        e_def = enum_import(line)
-        b_def = bit_import(line)
+        e_def = enum_import(self.base_dir, line)
+        b_def = bit_import(self.base_dir, line)
         if e_def is not None:
             # add enum as a custom type
             enum_types.update({e_def.name: e_def})

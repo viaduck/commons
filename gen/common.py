@@ -17,6 +17,8 @@
 # along with Commons.  If not, see <http://www.gnu.org/licenses/>.
 
 import math
+import os
+
 import cog
 from collections import OrderedDict
 
@@ -57,14 +59,16 @@ class CogBase:
 
 
 class DefBase:
-    def __init__(self, filename):
+    def __init__(self, base_dir, filename):
         # split input
-        self.initial, self.body = read_definition(filename)
+        self.initial, self.body = read_definition(os.path.join(base_dir, filename))
         # reassemble doxygen comment
         self.doxygen = "".join(self.initial)
         # placeholder
         self.elements = []
         self.includes = []
+        # save base dir of definition files
+        self.base_dir = base_dir
         # save filename
         self.filename = filename
 

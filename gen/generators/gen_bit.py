@@ -40,8 +40,8 @@ class BitElem(CogBase):
 
 # all enum definitions
 class BitDef(DefBase, CogBase):
-    def __init__(self, filename):
-        DefBase.__init__(self, filename)
+    def __init__(self, base_dir, filename):
+        DefBase.__init__(self, base_dir, filename)
         self.type = None
 
         # create elements
@@ -86,7 +86,7 @@ class BitDef(DefBase, CogBase):
         raise Exception("parse error on line: " + line)
 
 
-def bit_import(line):
+def bit_import(base_dir, line):
     # match import
     m = import_matcher.match(line)
     if m is None:
@@ -96,4 +96,4 @@ def bit_import(line):
     path = m.group('path').strip()
 
     # return BitDef from path
-    return BitDef(path)
+    return BitDef(base_dir, path)

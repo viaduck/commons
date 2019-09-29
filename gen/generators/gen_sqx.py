@@ -176,8 +176,8 @@ class SQXElem(CogBase):
 
 # all sqx definitions
 class SQXDef(DefBase, CogBase):
-    def __init__(self, filename):
-        DefBase.__init__(self, filename)
+    def __init__(self, base_dir, filename):
+        DefBase.__init__(self, base_dir, filename)
 
         # root variables
         self.name = splitext(basename(filename))[0]
@@ -186,7 +186,7 @@ class SQXDef(DefBase, CogBase):
         self.parse()
 
     def parse_line(self, line):
-        e_def = enum_import(line)
+        e_def = enum_import(self.base_dir, line)
         if e_def is not None:
             # add enum as a custom type
             SQLiteTypes.update({e_def.name: SQXEnumType(e_def.name, e_def.type)})

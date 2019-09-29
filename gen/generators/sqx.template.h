@@ -20,7 +20,7 @@
 [[[cog
     import cog
     from gen_sqx import SQXDef, ElemType
-    s_def = SQXDef(def_file)
+    s_def = SQXDef(def_base_dir, def_file)
 
     s_def.outl("/*** AUTOMATICALLY GENERATED FILE - DO NOT EDIT! ***/")
     s_def.outl("#ifndef {name}_H")

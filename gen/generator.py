@@ -28,7 +28,7 @@ rel_template = "generators/{generator}.template.h"
 rel_generator = "generators/gen_{generator}.py"
 
 
-def generate(infile, template, outfile):
+def generate(def_base_dir, infile, template, outfile):
     # assemble cogapp arguments
     shell_args = [
         # quote to avoid platform issues
@@ -37,6 +37,8 @@ def generate(infile, template, outfile):
         "-m cogapp",
         # delete [[[cog]]] lines from outfile
         "-d",
+        # pass "def_base_dir" global variable to cog script
+        "-D def_base_dir=" + def_base_dir,
         # pass "def_file" global variable to cog script
         "-D def_file=" + infile,
         # pass "out_file" global variable to cog script
@@ -85,16 +87,16 @@ def list_files(gen_dir, out_dir):
         # definitions of this generator
         gen_def_dir = os.path.join(gen_dir, gen_rel)
         # template file of this generator
-        gen_template = os.path.join(gen_dir, gen_rel_template)
+        gen_template = os.path.abspath(os.path.join(os.path.dirname(__file__), gen_rel_template))
         # python file of this generator
-        gen_generator = os.path.join(gen_dir, gen_rel_generator)
+        gen_generator = os.path.abspath(os.path.join(os.path.dirname(__file__), gen_rel_generator))
         # outputs of this generator
         gen_out_dir = os.path.join(out_dir, gen_rel)
 
         # walk all definitions
         for dir_path, _, files in os.walk(gen_def_dir):
             for file in files:
-                def_file = os.path.join(dir_path, file)
+                def_file = os.path.abspath(os.path.join(dir_path, file))
                 def_file_base, ext = os.path.splitext(def_file)
                 if ext in allowed_exts:
                     # make def path relative to def dir
@@ -146,7 +148,7 @@ if __name__ == "__main__":
     elif _verb == "generate":
         # actually generate the files
         for f in file_list:
-            generate(f['src'], f['template'], f['out'])
+            generate(_gen_dir, f['src'], f['template'], f['out'])
 
             # optionally generate fbs
             if "fbs" in f:

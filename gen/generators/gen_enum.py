@@ -42,8 +42,8 @@ class EnumElem(CogBase):
 
 # all enum definitions
 class EnumDef(DefBase, CogBase):
-    def __init__(self, filename):
-        DefBase.__init__(self, filename)
+    def __init__(self, base_dir, filename):
+        DefBase.__init__(self, base_dir, filename)
         self.type = None
 
         # add invalid enum value
@@ -87,7 +87,7 @@ class EnumDef(DefBase, CogBase):
         raise Exception("parse error on line: " + line)
 
 
-def enum_import(line):
+def enum_import(base_dir, line):
     # match import
     m = import_matcher.match(line)
     if m is None:
@@ -97,4 +97,4 @@ def enum_import(line):
     path = m.group('path').strip()
 
     # return EnumDef from path
-    return EnumDef(path)
+    return EnumDef(base_dir, path)

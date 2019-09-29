@@ -20,7 +20,7 @@
 [[[cog
     import cog
     from gen_flatbuffers import FlatbuffersDef
-    f_def = FlatbuffersDef(def_file, out_file)
+    f_def = FlatbuffersDef(def_base_dir, def_file, out_file)
 
     f_def.outl("/*** AUTOMATICALLY GENERATED FILE - DO NOT EDIT! ***/")
     f_def.outl("#ifndef {name}_H")

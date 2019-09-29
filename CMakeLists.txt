@@ -41,6 +41,9 @@ add_subdirectory(external/flatbuffers)
 # auto generated files
 add_subdirectory(gen)
 
+# create gen target
+gen_add(Commons ${CMAKE_CURRENT_SOURCE_DIR}/def/)
+
 # collect files
 file(GLOB_RECURSE COMMONS_BASE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
 file(GLOB_RECURSE COMMONS_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/commons/*.h)

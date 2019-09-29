@@ -20,7 +20,7 @@
 [[[cog
     import cog
     from gen_bit import BitDef
-    b_def = BitDef(def_file)
+    b_def = BitDef(def_base_dir, def_file)
 
     b_def.outl("/*** AUTOMATICALLY GENERATED FILE - DO NOT EDIT! ***/")
     b_def.outl("#ifndef {name}_H")
