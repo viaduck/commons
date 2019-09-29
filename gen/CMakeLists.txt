@@ -66,7 +66,7 @@ function(gen_add TARGET DEF_DIR)
 
     # fake target for linking and source files
     add_library(${TARGET}_gen INTERFACE)
-    add_dependencies(${TARGET}_gen Commons_gen_files)
+    add_dependencies(${TARGET}_gen ${TARGET}_gen_files)
 
     # include autogen headers
     target_include_directories(${TARGET}_gen INTERFACE ${GEN_INCLUDES} ${GEN_DIR}/../external/flatbuffers/include)
