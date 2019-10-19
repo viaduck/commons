@@ -61,10 +61,11 @@ public:
             FD_ZERO(&set);
             FD_SET(mSocket, &set);
 
-            // timeout in microseconds // TODO: is sec mandatory if usec > 1s?
-            timeval tv = {.tv_sec = 0, .tv_usec = 1000 * static_cast<int32_t>(mInfo.timeoutConnect())};
+            // timeout in microseconds
+            auto toc = static_cast<int32_t>(mInfo.timeoutConnect());
+            timeval tv = {.tv_sec = toc / 1000, .tv_usec = 1000 * (toc % 1000)};
             // timeout -> pass NULL to block
-            timeval *ptv = mInfo.timeoutConnect() > 0 ? &tv : nullptr;
+            timeval *ptv = toc > 0 ? &tv : nullptr;
 
             // waits for socket to complete connect (become writeable)
             if (Native::select(mSocket + 1, nullptr, &set, nullptr, ptv) > 0) {
@@ -133,7 +134,8 @@ protected:
 #ifdef WIN32
         DWORD tv = t;
 #else
-        timeval tv = { .tv_sec = 0, .tv_usec = 1000 * static_cast<int32_t>(t) };
+        auto toc = static_cast<int32_t>(t);
+        timeval tv = { .tv_sec = toc / 1000, .tv_usec = 1000 * (toc % 1000) };
 #endif
 
         setsockopt(mSocket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
