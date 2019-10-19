@@ -37,10 +37,12 @@ public:
 
     Connection(const std::string &host, uint16_t port, bool ssl = true) : Connection(ConnectionInfo(host, port, ssl)) {}
 
+    virtual ~Connection() = default;
+
     /**
      * Establish a connection
      */
-    void connect();
+    virtual void connect();
 
     /**
      * Tries to establish a connection
@@ -52,7 +54,7 @@ public:
     /**
      * Closes the connection if connected
      */
-    void disconnect();
+    virtual void disconnect();
 
     /**
     * @return Current connection status
@@ -89,7 +91,7 @@ public:
      * @param size Exact count of bytes to read
      * @return True if exactly size bytes have been read
      */
-    bool read(Buffer &buffer, uint32_t size);
+    virtual bool read(Buffer &buffer, uint32_t size);
 
     /**
      * Write buffer to connection
@@ -97,7 +99,7 @@ public:
      * @param buffer Buffer to write
      * @return True on success
      */
-    bool write(const Buffer &buffer);
+    virtual bool write(const Buffer &buffer);
 
     /**
      * Write a protocol generated class to the connection
