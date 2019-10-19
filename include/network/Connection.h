@@ -23,8 +23,7 @@
 #include <secure_memory/Buffer.h>
 #include <commons/util/Except.h>
 
-#include <network/ConnectionInfo.h>
-#include <network/socket/ISocket.h>
+#include <network/socket/ISocketFactory.h>
 
 DEFINE_ERROR(connection, base_error);
 
@@ -33,7 +32,7 @@ DEFINE_ERROR(connection, base_error);
  */
 class Connection {
 public:
-    explicit Connection(ConnectionInfo connectionInfo) : mInfo(std::move(connectionInfo)) {}
+    explicit Connection(ConnectionInfo connectionInfo);
 
     Connection(const std::string &host, uint16_t port, bool ssl = true) : Connection(ConnectionInfo(host, port, ssl)) {}
 
@@ -80,6 +79,15 @@ public:
      */
     ISocket *socket() {
         return mSocket.get();
+    }
+
+    /**
+     * Set the socket factory
+     * @tparam T Socket factory
+     */
+    template<typename T>
+    void setFactory() {
+        mSocketFactory = std::make_unique<T>();
     }
 
     /**
@@ -136,11 +144,13 @@ public:
 
 protected:
     using Socket_ref = std::unique_ptr<ISocket>;
+    using SocketFactory_ref = std::unique_ptr<ISocketFactory>;
 
     // constant connection information
     ConnectionInfo mInfo;
 
     // current socket
+    SocketFactory_ref mSocketFactory;
     Socket_ref mSocket;
 };
 

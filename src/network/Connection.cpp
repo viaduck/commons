@@ -18,7 +18,7 @@
  */
 
 #include "native/Native.h"
-#include "socket/SSLSocket.h"
+#include "socket/DefaultSocketFactory.h"
 #include "Resolve.h"
 
 #include <network/Connection.h>
@@ -28,13 +28,18 @@ Native::Init gInit;
 // thread specific SSL context
 thread_local SSLContext SSLContext::mInstance;
 
+Connection::Connection(ConnectionInfo connectionInfo) :
+        mInfo(std::move(connectionInfo)), mSocketFactory(new DefaultSocketFactory()) {
+
+}
+
 void Connection::connect() {
     // resolve hostname
     Resolve resolve(mInfo.host(), mInfo.port());
 
     // try to connect to each
     for (addrinfo *it; resolve.next(it); ) {
-        Socket_ref socket(mInfo.ssl() ? new SSLSocket(mInfo) : new TCPSocket(mInfo));
+        Socket_ref socket(mSocketFactory->create(mInfo));
 
         if (socket->connect(it)) {
             mSocket = std::move(socket);
