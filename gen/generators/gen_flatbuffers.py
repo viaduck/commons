@@ -143,7 +143,7 @@ class FlatbuffersBitType(FlatbuffersType):
 class FlatbuffersDef(DefBase, CogBase):
     def __init__(self, base_dir, filename, outfile):
         DefBase.__init__(self, base_dir, filename)
-        self.max_size = 0
+        self.max_size = 500
 
         # name fbs table after basename of the file
         self.name = splitext(basename(filename))[0]
