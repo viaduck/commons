@@ -7,3 +7,6 @@
 [submodule "external/flatbuffers"]
 	path = external/flatbuffers
 	url = https://github.com/google/flatbuffers.git
+[submodule "external/concurrentqueue"]
+	path = external/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git

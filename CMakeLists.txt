@@ -98,6 +98,9 @@ add_subdirectory(test)
 # and force a rebuild of Commons if one of the spec files changes
 target_link_libraries(Commons PUBLIC SecureMemory Commons_gen)
 
+# export threading dependency because it is used in the header
+target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/concurrentqueue/)
+
 # export the basic includes and compile options in any case
 target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 target_compile_options(Commons PUBLIC -Wall -Wextra)
