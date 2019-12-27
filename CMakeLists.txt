@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 The ViaDuck Project
+# Copyright (C) 2015-2019 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -23,6 +23,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory
 
 # python used to auto generate files
 find_package(PythonInterp 3.4 REQUIRED)
+# platform specific thread library
+find_package(Threads REQUIRED)
 
 # enable and require c++14 support
 set(CMAKE_CXX_STANDARD 14)
@@ -81,7 +83,7 @@ else()
     if (WIN32)
         target_link_libraries(Commons PUBLIC ws2_32 crypt32)
     elseif(NOT ANDROID)
-        target_link_libraries(Commons PUBLIC pthread dl)
+        target_link_libraries(Commons PUBLIC Threads::Threads dl)
     endif()
 
     # doxygen
