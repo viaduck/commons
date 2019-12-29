@@ -30,7 +30,6 @@ public:
 
     virtual ~IQueueWorker() {
         stopThread();
-        delete mQueue;
     }
 
     void startThread() {
@@ -53,7 +52,7 @@ protected:
 
         T *value;
         while (mQueue->pop_wait(value)) {
-            doWork(*value);
+            doWork(value);
             delete value;
         }
 
@@ -62,10 +61,10 @@ protected:
 
     virtual void initThread() { }
     virtual void releaseThread() { }
-    virtual void doWork(T &value) = 0;
+    virtual void doWork(const T *value) = 0;
 
     std::thread mThread;
-    IMessageQueue<T> *mQueue;
+    std::unique_ptr<IMessageQueue<T>> mQueue;
 };
 
 #endif //COMMONS_QUEUEWORKER_H
