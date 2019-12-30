@@ -99,8 +99,8 @@ class impl##TestWorker : public IQueueWorker<TestMessage> { \
 public: \
     impl##TestWorker() : IQueueWorker(new impl##MessageQueue<TestMessage>()) { } \
 protected: \
-    void doWork(TestMessage &value) override { \
-        ASSERT_EQ(mCounter++, value.testVal); \
+    void doWork(const TestMessage *value) override { \
+        ASSERT_EQ(mCounter++, value->testVal); \
     } \
     int mCounter = 0; \
 };
