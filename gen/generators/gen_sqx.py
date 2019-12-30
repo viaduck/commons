@@ -55,6 +55,17 @@ class SQXValueType(CogBase):
         self.setter = ['basic']
 
 
+class SQXCastValueType(SQXValueType):
+    def __init__(self, cpp_t, cast_t, sql_t=None, sql_ref_t=None):
+        super().__init__(cpp_t, sql_t, sql_ref_t)
+        # type of cast to perform between cpp_t and sql_ref_t
+        self.cast_t = cast_t
+        # cast load to cpp_t
+        self.load = '{member_name} = {type.cast_t}<{type.cpp_t} &>({name});'
+        # cast store to cpp_cast_t
+        self.store = '{type.cast_t}<{type.sql_ref_t} &>({member_name})'
+
+
 class SQXReferenceType(SQXValueType):
     def __init__(self, cpp_t, sql_t, sql_ref_t=None):
         super().__init__(cpp_t, sql_t, sql_ref_t)
@@ -130,7 +141,8 @@ SQLiteTypes = {
     'uint8_t': SQXValueType('uint8_t'),
     'uint16_t': SQXValueType('uint16_t'),
     'uint32_t': SQXValueType('uint32_t'),
-    'uint64_t': SQXValueType('uint64_t'),
+    # SQLite does not support uint64_t, emulate it using int64_t
+    'uint64_t': SQXCastValueType('uint64_t', 'reinterpret_cast', sql_ref_t='int64_t'),
     'int8_t': SQXValueType('int8_t'),
     'int16_t': SQXValueType('int16_t'),
     'int32_t': SQXValueType('int32_t'),
