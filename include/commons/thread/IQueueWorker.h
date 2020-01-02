@@ -20,37 +20,64 @@
 #define COMMONS_QUEUEWORKER_H
 
 #include <commons/thread/IMessageQueue.h>
-
 #include <thread>
 
-template <typename T>
+/**
+ * Threaded worker with message queue
+ *
+ * @tparam W Type of messages in the queue (work)
+ */
+template <typename W>
 class IQueueWorker {
 public:
-    explicit IQueueWorker(IMessageQueue<T> *queue) : mQueue(queue) { }
+    /**
+     * Constructs new QueueWorker
+     *
+     * @tparam Q Type of message queue implementation
+     */
+    template <template<class> class Q>
+    explicit IQueueWorker(Q<W> *queue) : mQueue(queue) { }
 
+    /**
+     * Stops thread if still running
+     */
     virtual ~IQueueWorker() {
         stopThread();
     }
 
+    /**
+     * Starts the worker thread
+     */
     void startThread() {
         mThread = std::thread(&IQueueWorker::threadEntry, this);
     }
 
+    /**
+     * Aborts the queue and waits for thread to quit
+     */
     void stopThread() {
         if (!mQueue->abort())
             mThread.join();
     }
 
-    void enqueue(T *work) {
+    /**
+     * Enqueues work into queue
+     *
+     * @param work Work to process in thread. Takes pointer ownership
+     */
+    void enqueue(W *work) {
         mQueue->push(work);
     }
 
 protected:
+    /**
+     * Internal thread entry-point
+     */
     void threadEntry() {
         // some impls require per-thread init
         initThread();
 
-        T *value;
+        W *value;
         while (mQueue->pop_wait(value)) {
             doWork(value);
             delete value;
@@ -59,12 +86,17 @@ protected:
         releaseThread();
     }
 
+    // optional per-thread platform initialization
     virtual void initThread() { }
+    // optional per-thread platform cleanup
     virtual void releaseThread() { }
-    virtual void doWork(const T *value) = 0;
+    // mandatory work processing
+    virtual void doWork(const W *value) = 0;
 
+    // internal work thread
     std::thread mThread;
-    std::unique_ptr<IMessageQueue<T>> mQueue;
+    // internal work queue
+    std::unique_ptr<IMessageQueue<W>> mQueue;
 };
 
 #endif //COMMONS_QUEUEWORKER_H

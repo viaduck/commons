@@ -35,6 +35,7 @@ class LockFreeMessageQueue : public IMessageQueue<M> {
 public:
     ~LockFreeMessageQueue() {
         M *value;
+        // delete remaining
         while (mQueue.try_dequeue(value))
             delete value;
     }
@@ -65,6 +66,7 @@ public:
     }
 
     bool abort() override {
+        // already aborted
         if (mAborted.load())
             return true;
 

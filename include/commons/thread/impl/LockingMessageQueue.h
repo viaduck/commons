@@ -26,11 +26,18 @@
 #include <queue>
 #include <condition_variable>
 
+/**
+ * Lock based message queue implementation of the IMessageQueue interface.
+ * Note: handles any number of consumers and producers
+ *
+ * @tparam M Message type
+ */
 template <typename M>
 class LockingMessageQueue : public IMessageQueue<M> {
 public:
     ~LockingMessageQueue() {
         std::unique_lock<std::mutex> lock(mMutex);
+        // delete remaining
         while (!mQueue.empty()) {
             delete mQueue.front();
             mQueue.pop();
@@ -58,6 +65,7 @@ public:
         std::unique_lock<std::mutex> lock(mMutex);
 
         bool aborted = false;
+        // wait while queue empty and not aborted
         while (mQueue.empty() && !(aborted = mAborted.load()))
             mCond.wait(lock);
 
@@ -70,12 +78,14 @@ public:
     }
 
     bool abort() override {
-        std::unique_lock<std::mutex> lock(mMutex);
-
+        // already aborted
         if (mAborted.load())
             return true;
 
+        std::unique_lock<std::mutex> lock(mMutex);
+        // set aborted flag
         mAborted.store(true);
+        // wake up pop_wait
         mCond.notify_one();
         return false;
     }
@@ -83,8 +93,8 @@ public:
 protected:
     std::mutex mMutex;
     std::queue<M*> mQueue;
-    std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);
     std::condition_variable mCond;
+    std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);
 };
 
 #endif //COMMONS_LOCKINGMESSAGEQUEUE_H
