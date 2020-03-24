@@ -46,7 +46,7 @@ if (GTEST_FOUND)
         add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
     endif()
 
-    target_link_libraries(Commons_Test ${GTEST_BOTH_LIBRARIES} Commons Commons_gen)
+    target_link_libraries(Commons_Test Commons Commons_gen ${GTEST_BOTH_LIBRARIES})
 
     ## code coverage
     include(CodeCoverage)
