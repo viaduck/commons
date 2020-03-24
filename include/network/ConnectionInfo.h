@@ -24,6 +24,18 @@
 
 class ConnectionInfo {
 public:
+    /**
+     * Constructs a ConnectionInfo
+     *
+     * @param host IP address or hostname
+     * @param port Port number
+     * @param ssl Whether to use SSL
+     * @param sslVerify Whether to verify SSL hostname
+     * @param certPath Path to system certificates. Leave empty for default system path.
+     * @param certStore Custom certificate store
+     * @param timeoutC Connect timeout in milliseconds. Default indefinite.
+     * @param timeoutIO IO timout in milliseconds. Default indefinite.
+     */
     ConnectionInfo(std::string host, uint16_t port, bool ssl = true, bool sslVerify = true, std::string certPath = "",
                    CertStore &certStore = CertStore::getInstance(), uint32_t timeoutC = 0, uint32_t timeoutIO = 0) :
                         mHost(std::move(host)), mPort(port),
