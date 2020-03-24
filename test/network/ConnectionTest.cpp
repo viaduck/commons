@@ -367,7 +367,7 @@ TEST_F(ConnectionTest, sessionResumption) {
     ASSERT_NO_THROW(conn.connect());
     ASSERT_TRUE(conn.connected());
     ASSERT_TRUE(conn.info().ssl());
-    // this saves SSL session
+    // this saves SSL session in TLS 1.3
     conn.disconnect();
 
     // following connections should use stored ssl sessions

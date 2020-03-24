@@ -122,7 +122,7 @@ protected:
 
 #ifdef TLS1_3_VERSION
         // TLSv1.3: recommends that each SSL_SESSION object only used once
-        if (SSL_version(mSSL.get()) == TLS1_3_VERSION)
+        if (session && SSL_version(mSSL.get()) == TLS1_3_VERSION)
             ctx.removeSession(mInfo, session);
 #endif
 

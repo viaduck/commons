@@ -116,7 +116,7 @@ protected:
     // ssl data index for custom data
     int mDataIndex;
     // saved sessions for resumption
-    std::unordered_map<size_t, SSL_SESSION_ref> mSessions;
+    std::unordered_multimap<size_t, SSL_SESSION_ref> mSessions;
 };
 
 #endif //COMMONS_SSLCONTEXT_H
