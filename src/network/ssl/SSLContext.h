@@ -87,8 +87,12 @@ public:
      *
      * @param info Associated connection information
      */
-    void removeSession(const ConnectionInfo &info) {
-        mSessions.erase(info.hash());
+    void removeSession(const ConnectionInfo &info, SSL_SESSION *session) {
+        auto range = mSessions.equal_range(info.hash());
+        auto it = std::find_if(range.first, range.second, [&] (const auto &it) { return it.second.get() == session; });
+
+        if (it != range.second)
+            mSessions.erase(it);
     }
 
 protected:
