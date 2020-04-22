@@ -56,7 +56,7 @@ public:
      * Aborts the queue and waits for thread to quit
      */
     void stopThread() {
-        if (!mQueue->abort())
+        if (!mQueue->abort() && mThread.joinable())
             mThread.join();
     }
 
