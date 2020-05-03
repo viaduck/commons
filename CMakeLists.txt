@@ -30,6 +30,10 @@ find_package(Threads REQUIRED)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# options
+option(COMMONS_BASE_ONLY "Skip compiling network code" OFF)
+option(COMMONS_USE_LOCK_FREE_QUEUE "Enable lock-free instead of locking message queues" OFF)
+
 # externals
 add_subdirectory(external/securememory)
 
@@ -106,3 +110,4 @@ target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/c
 # export the basic includes and compile options in any case
 target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 target_compile_options(Commons PUBLIC -Wall -Wextra)
+target_compile_definitions(Commons PUBLIC -DCOMMONS_USE_LOCK_FREE_QUEUE=$<BOOL:${COMMONS_USE_LOCK_FREE_QUEUE}>)
