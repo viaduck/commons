@@ -1,0 +1,5 @@
+.
+gen/*
+include/*
+src/*
+test/*
