@@ -7,6 +7,7 @@ variables:
 
 stages:
     - build
+    - lint
     - test
     - coverage
     - documentation
@@ -22,6 +23,11 @@ build:linux:x86_64:full:
         expire_in: 2h                   # do not pollute disk
         paths:
         - build/
+
+lint:linux:x86_64:full:
+    stage: lint
+    script:
+        - vd-lint Commons $PWD
 
 test:linux:x86_64:full:
     stage: test
