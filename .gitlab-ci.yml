@@ -22,20 +22,25 @@ build:linux:x86_64:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build/
+            - build/
 
 lint:linux:x86_64:full:
     stage: lint
     script:
         - vd-lint Commons $PWD
+    needs:
+        - job: build:linux:x86_64:full
+          artifacts: false
 
 test:linux:x86_64:full:
+    variables:
+          GIT_STRATEGY: none
     stage: test
     script:
         - cd build
         - test/Commons_Test             # runs gtest target
-    dependencies:
-    - build:linux:x86_64:full
+    needs:
+        - build:linux:x86_64:full
 
 build:linux:x86_64:full:system-openssl:
     stage: build
@@ -47,15 +52,17 @@ build:linux:x86_64:full:system-openssl:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build/
+            - build/
 
 test:linux:x86_64:full:system-openssl:
+    variables:
+          GIT_STRATEGY: none
     stage: test
     script:
         - cd build
         - test/Commons_Test             # runs gtest target
-    dependencies:
-    - build:linux:x86_64:full:system-openssl
+    needs:
+        - build:linux:x86_64:full:system-openssl
 
 build:linux:x86_64:base-only:
     stage: build
@@ -67,7 +74,7 @@ build:linux:x86_64:base-only:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build/
+            - build/
 
 test:linux:x86_64:base-only:
     variables:
@@ -76,8 +83,8 @@ test:linux:x86_64:base-only:
     script:
         - cd build
         - test/Commons_Test             # runs gtest target
-    dependencies:
-    - build:linux:x86_64:base-only
+    needs:
+        - build:linux:x86_64:base-only
 
 coverage:linux:x86_64:
     stage: coverage
@@ -87,9 +94,9 @@ coverage:linux:x86_64:
         - ninja Commons_Coverage        # generate code coverage
     artifacts:
         paths:
-        - build/test/coverage/         # coverage data
-    dependencies:
-    - build:linux:x86_64:full
+            - build/test/coverage/         # coverage data
+    needs:
+        - build:linux:x86_64:full
 
 documentation:linux:x86_64:
     stage: documentation
@@ -98,9 +105,9 @@ documentation:linux:x86_64:
         - ninja Commons_doc             # generate doxygen code documentation
     artifacts:
         paths:
-        - build/doc/html/                # doxygen documentation
-    dependencies:
-    - build:linux:x86_64:full
+            - build/doc/html/                # doxygen documentation
+    needs:
+        - build:linux:x86_64:full
 
 build:windows:x86_64:full:
     image: viaduck/ci:mingw
@@ -116,7 +123,7 @@ build:windows:x86_64:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build-windows-x86_64/
+            - build-windows-x86_64/
 
 build:windows:x86_64:base-only:
     image: viaduck/ci:mingw
@@ -136,10 +143,10 @@ test:windows:x86_64:full:
     script:
         - cd build-windows-x86_64
         - test\Commons_Test.exe             # runs gtest target
-    dependencies:
-    - build:windows:x86_64:full
+    needs:
+        - build:windows:x86_64:full
     tags:
-    - windows
+        - windows
 
 build:android:arm64-v8a:full:
     image: viaduck/ci:android
@@ -152,7 +159,7 @@ build:android:arm64-v8a:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build-android-arm64-v8a/
+            - build-android-arm64-v8a/
 
 build:android:armeabi-v7a:full:
     image: viaduck/ci:android
@@ -165,7 +172,7 @@ build:android:armeabi-v7a:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build-android-armeabi-v7a/
+            - build-android-armeabi-v7a/
 
 build:android:x86:full:
     image: viaduck/ci:android
@@ -178,7 +185,7 @@ build:android:x86:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build-android-x86/
+            - build-android-x86/
 
 build:android:x86_64:full:
     image: viaduck/ci:android
@@ -191,4 +198,4 @@ build:android:x86_64:full:
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
-        - build-android-x86_64/
+            - build-android-x86_64/
