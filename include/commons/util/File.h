@@ -31,7 +31,7 @@
 
 class File {
 public:
-    static std::vector<std::string> find(std::string path, const std::string &ext) {
+    static std::vector<std::string> find(std::string path, const std::string &ext, const std::string &prefix = "") {
         std::vector<std::string> files;
 
         // append trailing / if missing
@@ -40,7 +40,7 @@ public:
 
 #ifdef WIN32
         // glob pattern
-        std::string pattern = path + "*" + ext;
+        std::string pattern = path + prefix + "*" + ext;
 
         WIN32_FIND_DATAA find_data;
         HANDLE find_result = FindFirstFileA(pattern.c_str(), &find_data);
@@ -64,7 +64,7 @@ public:
         while (dir && (ent = readdir(dir))) {
             std::string filename = ent->d_name;
 
-            if (filename.size() >= ext.size() && filename.compare(filename.size() - ext.size(), ext.size(), ext) == 0)
+            if (startsWith(filename, prefix) && endsWith(filename, ext))
                 files.emplace_back(path + filename);
         }
 
@@ -72,6 +72,15 @@ public:
 #endif
 
         return files;
+    }
+
+protected:
+    static bool endsWith(const std::string &str, const std::string &p) {
+        return str.size() > p.size() && str.compare(str.size() - p.size(), p.size(), p) == 0;
+    }
+
+    static bool startsWith(const std::string &str, const std::string &p) {
+        return str.size() > p.size() && str.compare(0, p.size(), p) == 0;
     }
 };
 

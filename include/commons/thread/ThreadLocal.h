@@ -31,6 +31,15 @@ public:
     ThreadLocal() : mFactory() { }
     explicit ThreadLocal(const factory_t &factory) : mFactory(factory)  { }
 
+    ~ThreadLocal() {
+        std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+        mMap.clear();
+    }
+
+    void setFactory(const factory_t &value) {
+        mFactory = value;
+    }
+
     T &load() {
         auto tid = std::this_thread::get_id();
         std::shared_lock<std::shared_timed_mutex> lock(mMutex);
