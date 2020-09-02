@@ -39,10 +39,12 @@ public:
     explicit IQueueWorker(Q<W> *queue) : mQueue(queue) { }
 
     /**
-     * Stops thread if still running
+     * Destructs a worker
      */
     virtual ~IQueueWorker() {
-        stopThread();
+        /* Intentionally cause exception if stopThread has not been called before destructor */
+        if (mThread.joinable())
+            mQueue->abort();
     }
 
     /**
