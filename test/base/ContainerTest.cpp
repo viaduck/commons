@@ -45,6 +45,15 @@ void verify(sometest &test) {
     ASSERT_EQ(0x1337u, test.this_is_a_cool_property());
 }
 
+void verify_reset(sometest &test) {
+    ASSERT_EQ(0u, test.version());
+    ASSERT_EQ(0u, test.first());
+    ASSERT_EQ(0u, test.second());
+    ASSERT_EQ(0u, test.buf().size());
+    ASSERT_EQ(0u, test.third());
+    ASSERT_EQ(0u, test.this_is_a_cool_property());
+}
+
 TEST_F(ContainerTest, SimpleWrite) {
     sometest c, d;
     generate(c);
@@ -68,7 +77,7 @@ TEST_F(ContainerTest, Malformed) {
     uint32_t size1 = flatbuffers::GetPrefixedSize(static_cast<const uint8_t *>(out.const_data())) + 5;
     out.write(&size1, sizeof(uint32_t), 0);
     ASSERT_FALSE(test.deserialize(out));
-    verify(test);
+    verify_reset(test);
 
     // append garbage to buffer, now size indicator fits buffer
     out.append("asdfg", 5);
@@ -78,7 +87,7 @@ TEST_F(ContainerTest, Malformed) {
     // garbage in vtable
     out.write("asdfg", 5, 4);
     ASSERT_FALSE(test.deserialize(out));
-    verify(test);
+    verify_reset(test);
 
     // serialize valid buffer bigger than max_size
     out.clear();
@@ -87,14 +96,16 @@ TEST_F(ContainerTest, Malformed) {
     test.serialize(out);
 
     // buffer bigger than max_size should not deserialize
-    ASSERT_GT(test.buf().size(), 2000u);
+    ASSERT_GE(test.buf().size(), 2000u);
     ASSERT_FALSE(test.deserialize(out));
+    verify_reset(test);
 
     // serialize zero byte buffer
     Buffer out2(0);
     uint32_t size = 0;
     out2.write(&size, sizeof(uint32_t), 0);
     ASSERT_FALSE(test.deserialize(out2));
+    verify_reset(test);
 }
 
 TEST_F(ContainerTest, Serialize) {

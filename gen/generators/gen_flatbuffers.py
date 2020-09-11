@@ -35,7 +35,7 @@ bit_types = {}
 
 
 class FlatbuffersTypeDef:
-    def __init__(self, t_name, f_type, default="0", m_type=None, r_type=None, pack=None, unpack=None):
+    def __init__(self, t_name, f_type, default="0", m_type=None, r_type=None, pack=None, unpack=None, reset=None):
         # usual types
         self.type_name = t_name
         self.fbs_type = f_type
@@ -50,6 +50,7 @@ class FlatbuffersTypeDef:
         # (un)pack
         self.pack = "_{name}" if pack is None else pack
         self.unpack = "_{name} = ptr->{name}()" if unpack is None else unpack
+        self.reset = ("_{name} = " + default) if reset is None else reset
 
 
 def flatbuffers_vector_type(type_name):
@@ -59,7 +60,8 @@ def flatbuffers_vector_type(type_name):
         "std::vector<"+type_name+">",
         "std::vector<"+type_name+"> &",
         "_{name}.size() > 0 ? fbb.CreateVector(_{name}) : 0",
-        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back(i)"
+        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back(i)",
+        "_{name}.clear()"
     )
 
 
@@ -67,11 +69,11 @@ flatbuffers_type = {
     "bytes": FlatbuffersTypeDef(
         "bytes", "[ubyte]", "", "Buffer", "Buffer &",
         "_{name}.size() > 0 ? fbb.CreateVector(static_cast<const uint8_t*>(_{name}.const_data()), _{name}.size()) : 0",
-        "if (ptr->{name}()) _{name}.write(ptr->{name}()->Data(), ptr->{name}()->Length(), 0)"),
+        "if (ptr->{name}()) _{name}.write(ptr->{name}()->Data(), ptr->{name}()->Length(), 0)", "_{name}.clear()"),
     "string": FlatbuffersTypeDef(
         "string", "string", "", "std::string", "std::string &",
         "_{name}.empty() ? 0 : fbb.CreateString(_{name})",
-        "if (ptr->{name}()) _{name} = ptr->{name}()->str()"),
+        "if (ptr->{name}()) _{name} = ptr->{name}()->str()", "_{name}.clear()"),
     "bool": FlatbuffersTypeDef("bool", "bool", "false"),
     "int8_t": FlatbuffersTypeDef("int8_t", "int8"),
     "uint8_t": FlatbuffersTypeDef("uint8_t", "uint8"),

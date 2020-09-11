@@ -169,6 +169,14 @@ public:
         out.object().write(fbb.GetBufferPointer(), fbb.GetSize(), out.offset());
     }
 
+    void clear() {
+        [[[cog
+            for elem in f_def.elements:
+                elem.outl(elem.type.reset + ";")
+        ]]]
+        [[[end]]]
+    }
+
     bool deserialize(const BufferRangeConst &in) {
         uint32_t unused;
         return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), unused);
@@ -184,6 +192,9 @@ public:
     }
 
     bool deserialize(const uint8_t *in, uint32_t size, uint32_t &missing) {
+        // invalidate data before deserialization to avoid confusion
+        clear();
+
         // check if buffer has size indicator
         if (size < 4) {
             missing = 4 - size;
