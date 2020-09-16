@@ -84,7 +84,7 @@ public:
     // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
     template<typename Column, typename... Columns>
     static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
-        return Column::ID() + MakeConstexprString("=?");
+        return Column::ID() + MakeConstexprString("=? ");
     }
     // variadic template recursion anchor
     static constexpr auto build_update_stmt() {
