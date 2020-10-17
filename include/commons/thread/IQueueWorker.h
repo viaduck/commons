@@ -39,6 +39,11 @@ public:
     explicit IQueueWorker(Q<W> *queue) : mQueue(queue) { }
 
     /**
+     * Move constructor
+     */
+    IQueueWorker(IQueueWorker<W> &&) noexcept = default;
+
+    /**
      * Destructs a worker
      */
     virtual ~IQueueWorker() {
