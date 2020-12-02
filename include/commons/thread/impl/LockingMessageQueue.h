@@ -63,8 +63,8 @@ public:
 
     bool pop_wait(M *&value) override {
         std::unique_lock<std::mutex> lock(mMutex);
+        bool aborted = mAborted.load();
 
-        bool aborted = false;
         // wait while queue empty and not aborted
         while (mQueue.empty() && !(aborted = mAborted.load()))
             mCond.wait(lock);
