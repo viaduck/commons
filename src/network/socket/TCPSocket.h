@@ -51,10 +51,15 @@ public:
         // connect and return immediately
         int res = Native::connect(mSocket, addr->ai_addr, addr->ai_addrlen);
 
+        if (res == 0) {
+            // connect success, make socket blocking again
+            setNonBlocking(false);
+            return true;
+        }
 #ifdef WIN32
-        if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
+        else if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
 #else
-        if (res == SOCKET_ERROR && errno == EINPROGRESS) {
+        else if (res == SOCKET_ERROR && errno == EINPROGRESS) {
 #endif
             // create a set of sockets for select, add only our socket
             fd_set set;
@@ -74,9 +79,7 @@ public:
                 int error;
                 socklen_t len = sizeof(error);
                 if (Native::getsockopt(mSocket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) == 0 && error == 0) {
-                    // connect success
-
-                    // make socket blocking again
+                    // connect success, make socket blocking again
                     setNonBlocking(false);
                     return true;
                 }
