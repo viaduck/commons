@@ -77,6 +77,10 @@ public:
         return false;
     }
 
+    size_t sizeApprox() const override {
+        return mQueue.size_approx();
+    }
+
 protected:
     BlockingConcurrentQueue<M*> mQueue;
     std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);

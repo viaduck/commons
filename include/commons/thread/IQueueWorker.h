@@ -76,6 +76,15 @@ public:
         mQueue->push(work);
     }
 
+    /**
+     * Approximates the size of the queue
+     *
+     * @return Approximate queue size
+     */
+    size_t sizeApprox() {
+        return mQueue->sizeApprox();
+    }
+
 protected:
     /**
      * Internal thread entry-point

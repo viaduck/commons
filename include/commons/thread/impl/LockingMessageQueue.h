@@ -90,8 +90,13 @@ public:
         return false;
     }
 
+    size_t sizeApprox() const {
+        std::unique_lock<std::mutex> lock(mMutex);
+        return mQueue.size();
+    }
+
 protected:
-    std::mutex mMutex;
+    mutable std::mutex mMutex;
     std::queue<M*> mQueue;
     std::condition_variable mCond;
     std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);

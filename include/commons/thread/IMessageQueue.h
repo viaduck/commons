@@ -59,6 +59,13 @@ public:
      */
     virtual bool abort() = 0;
 
+    /**
+     * Estimates the size of the queue
+     *
+     * @return Approximate number of queue entries
+     */
+    virtual size_t sizeApprox() const = 0;
+
 };
 
 #endif //COMMONS_IMESSAGEQUEUE_H
