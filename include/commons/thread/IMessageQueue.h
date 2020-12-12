@@ -19,6 +19,8 @@
 #ifndef COMMONS_IMESSAGEQUEUE_H
 #define COMMONS_IMESSAGEQUEUE_H
 
+#include <cstddef>
+
 /**
  * General interface for the message queue with aborts
  *
