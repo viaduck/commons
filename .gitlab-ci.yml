@@ -174,19 +174,6 @@ build:android:armeabi-v7a:full:
         paths:
             - build-android-armeabi-v7a/
 
-build:android:x86:full:
-    image: viaduck/ci:android
-    stage: build
-    script:
-        - mkdir build-android-x86
-        - cd build-android-x86
-        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=i686-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
-        - ninja
-    artifacts:
-        expire_in: 2h                   # do not pollute disk
-        paths:
-            - build-android-x86/
-
 build:android:x86_64:full:
     image: viaduck/ci:android
     stage: build
