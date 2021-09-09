@@ -95,8 +95,8 @@ protected:
 
         W *value;
         while (mQueue->pop_wait(value)) {
+            std::unique_ptr<W> lifetime(value);
             doWork(value);
-            delete value;
         }
 
         releaseThread();
