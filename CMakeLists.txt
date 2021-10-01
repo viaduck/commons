@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 The ViaDuck Project
+# Copyright (C) 2015-2021 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -25,10 +25,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory
 find_package(PythonInterp 3.4 REQUIRED)
 # platform specific thread library
 find_package(Threads REQUIRED)
-
-# enable and require c++14 support
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # options
 option(COMMONS_BASE_ONLY "Skip compiling network code" OFF)
@@ -62,23 +58,23 @@ set(COMMONS_NETWORK_FILES ${COMMONS_NETWORK_SOURCES} ${COMMONS_NETWORK_HEADERS})
 
 # this variable allows turning off all network and ssl dependencies
 if (COMMONS_BASE_ONLY)
-
-    # create the library using only base files
+    # create library target using only base files
     add_library(Commons STATIC ${COMMONS_BASIC_FILES})
-
 else()
-
-    # require openssl
-    add_definitions(-DOPENSSL_API_COMPAT=0x10100000L)       # OpenSSL API compatibility
     if (NOT TARGET ssl)
         add_subdirectory(external/openssl-cmake)
     endif()
+
+    # create library target with all features
+    add_library(Commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})
+
+    # OpenSSL related options
     if (SYSTEM_OPENSSL)
-        add_definitions(-DSYSTEM_OPENSSL)
+        target_compile_definitions(Commons PUBLIC COMMONS_SYSTEM_OPENSSL)
     endif()
 
-    # build
-    add_library(Commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})
+    # OpenSSL API compatibility
+    target_compile_definitions(Commons PUBLIC OPENSSL_API_COMPAT=0x10100000L)
 
     # link to everything but the basics
     target_link_libraries(Commons PUBLIC ssl crypto)
@@ -96,6 +92,9 @@ else()
         setup_doxygen(Commons_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     endif()
 endif()
+
+# require and enable c++14 support
+set_target_properties(Commons PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
 
 # tests
 add_subdirectory(test)

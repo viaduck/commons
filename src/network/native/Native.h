@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2021 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -180,7 +180,7 @@ protected:
     }
 
     void defaultStore(SSL_CTX *ctx) {
-        #ifdef SYSTEM_OPENSSL
+        #ifdef COMMONS_SYSTEM_OPENSSL
             SSL_CTX_set_default_verify_paths(ctx);
         #else
             L_expect(!mVerifyLocation.empty());
