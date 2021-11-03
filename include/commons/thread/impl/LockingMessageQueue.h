@@ -90,7 +90,7 @@ public:
         return false;
     }
 
-    size_t sizeApprox() const {
+    size_t sizeApprox() const override {
         std::unique_lock<std::mutex> lock(mMutex);
         return mQueue.size();
     }
