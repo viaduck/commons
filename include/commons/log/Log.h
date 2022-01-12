@@ -119,6 +119,12 @@ class Log {
         }
 
         /**
+         * @return Whether this log level should be enabled. This respects global enable.
+         */
+        bool isEnabled() const {
+            return mLog.isEnabled() && mEnabled;
+        }
+        /**
          * Enables or disabled this log level.
          * @param enabled True if log level should be enabled, false if not.
          */
@@ -126,19 +132,11 @@ class Log {
             mEnabled = enabled;
         }
 
-        /**
-         * @return Whether this log level should be enabled. This respects global enable.
-         */
-        bool isEnabled() const {
-            return mLog.isEnabled() && mEnabled;
-        }
-
     protected:
-
         /**
          * @param log Global Log
          */
-        LogStream(Log &log) : mLog(log) { }
+        explicit LogStream(Log &log) : mLog(log) { }
 
         Log &mLog;
         bool mEnabled = true;
@@ -161,7 +159,7 @@ public:
     void unregisterLogger(ILogger *logger);
 
     /**
-     * Disables a certain LogLevel.
+     * Disables only a certain LogLevel.
      * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely disabled, which has priority
      *        over individual enabled status of log levels.
      */
@@ -175,11 +173,10 @@ public:
             case LogLevel::INVALID_ENUM_VALUE: mEnabled = false; break;
         }
     }
-
     /**
-     * Enables a certain LogLevel.
+     * Enables only a certain LogLevel.
      * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely enabled, which has priority
-     *        over individual enabled status of log levels.
+     *              over individual enabled status of log levels.
      */
     void enableLogLevel(LogLevel level = LogLevel::INVALID_ENUM_VALUE) {
         switch (level) {
@@ -191,12 +188,29 @@ public:
             case LogLevel::INVALID_ENUM_VALUE: mEnabled = true; break;
         }
     }
+    /**
+     * Sets a certain LogLevel. All levels below will be disabled, all levels above enabled.
+     * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely disabled for each individual
+     *              log levels as well as the global level.
+     */
+     void setLogLevel(LogLevel level) {
+         bool found;
+         trac.setEnabled(found = (level == LogLevel::LEVEL_TRACE));
+         dbg.setEnabled(found = (found || level == LogLevel::LEVEL_DEBUG));
+         info.setEnabled(found = (found || level == LogLevel::LEVEL_INFO));
+         warn.setEnabled(found = (found || level == LogLevel::LEVEL_WARNING));
+         err.setEnabled(found = (found || level == LogLevel::LEVEL_ERROR));
+         mEnabled = found;
+     }
 
     /**
      * @return Global log enabled status, which has priority over individual enabled status of log levels.
      */
-    bool isEnabled() {
+    bool isEnabled() const {
         return mEnabled;
+    }
+    void setEnabled(bool value = true) {
+        mEnabled = value;
     }
 
     /**
@@ -211,7 +225,6 @@ public:
     StdoutLogger &defaultLogger() {
         return mDefaultLogger;
     }
-
 
     /**
      * Trace log level
@@ -241,7 +254,7 @@ public:
         return mInstance;
     }
 protected:
-    Log() { }
+    explicit Log() { }
 
     std::vector<ILogger *> mLoggers;
 
