@@ -55,6 +55,14 @@
     e_def.outl('    return static_cast<{name}>(val);')
     e_def.outl("}}");
 
+    e_def.outl("template<typename T>")
+    e_def.outl("T toEnum({type});")
+
+    e_def.outl("template<>")
+    e_def.outl("inline {name} toEnum({type} val) {{")
+    e_def.outl("    return to{name}(val);")
+    e_def.outl("}}")
+
     e_def.outl("inline std::ostream &operator<<(std::ostream &os, const {name} &e) {{")
     e_def.outl("    return (os << toString(e));")
     e_def.outl("}}");
