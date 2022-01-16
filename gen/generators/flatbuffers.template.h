@@ -76,7 +76,7 @@ public:
                 elem.lout("{type.ref_type} __{name}")
         f_def.outl(") {{")
         for elem in f_def.elements:
-            elem.outl("    {name}(__{name});")
+            elem.outl("    {pub_name}(__{name});")
         f_def.outl("}}\n")
 
         # arguments ctor with ranges if buffer exist
@@ -92,50 +92,50 @@ public:
                     elem.lout("{type.ref_type} __{name}")
             f_def.outl(") {{")
             for elem in f_def.elements:
-                elem.outl("    {name}(__{name});")
+                elem.outl("    {pub_name}(__{name});")
             f_def.outl("}}\n")
 
         for elem in f_def.elements:
             # getters
             if "basic" in elem.getter:
-                elem.outl("inline {type.ref_type} {name}() const {{\n"
+                elem.outl("inline {type.ref_type} {pub_name}() const {{\n"
                           "    return _{name};\n"
                           "}}")
             if "type_wrap" in elem.getter:
-                elem.outl("inline {type.ref_type} {name}Value() const {{\n"
+                elem.outl("inline {type.ref_type} {pub_name}Value() const {{\n"
                           "    return _{name};\n"
                           "}}")
-                elem.outl("inline {wrap_type} {name}() const {{\n"
+                elem.outl("inline {wrap_type} {pub_name}() const {{\n"
                           "    return " + elem.wrap_to_type + ";\n"
                           "}}")
 
             # setters
             if "basic" in elem.setter:
-                elem.outl("inline void {name}({type.ref_type} v) {{\n"
+                elem.outl("inline void {pub_name}({type.ref_type} v) {{\n"
                           "    _{name} = v;\n"
                           "}}")
             if "type_wrap" in elem.setter:
-                elem.outl("inline void {name}({set_wrap_type} v) {{\n"
+                elem.outl("inline void {pub_name}({set_wrap_type} v) {{\n"
                           "    _{name} = " + elem.wrap_from_type + ";\n"
                           "}}")
             if "bytes" in elem.setter:
-                elem.outl("inline void {name}({type.ref_type} v) {{\n"
+                elem.outl("inline void {pub_name}({type.ref_type} v) {{\n"
                           "    _{name}.write(v, 0);\n"
                           "}}")
-                elem.outl("inline void {name}(const uint8_t *v, uint32_t size) {{\n"
+                elem.outl("inline void {pub_name}(const uint8_t *v, uint32_t size) {{\n"
                           "    _{name}.write(v, size, 0);\n"
                           "}}")
-                elem.outl("inline void {name}(const BufferRangeConst &v) {{\n"
+                elem.outl("inline void {pub_name}(const BufferRangeConst &v) {{\n"
                           "    _{name}.write(v, 0);\n"
                           "}}")
                 if elem.size > 0:
-                    elem.outl("inline uint32_t {name}_size() {{\n"
+                    elem.outl("inline uint32_t {pub_name}_size() {{\n"
                               "    return {size}u;\n"
                               "}}")
 
             # modifier
             if elem.type.is_ref:
-                elem.outl("inline {type.ref_mod_type} {name}() {{\n"
+                elem.outl("inline {type.ref_mod_type} {pub_name}() {{\n"
                           "    return _{name};\n"
                           "}}")
 
@@ -234,7 +234,7 @@ public:
             # size check
             for elem in f_def.elements:
                 if elem.size > 0:
-                    elem.outl("if ({name}().size() != {size}) {{\n"
+                    elem.outl("if ({pub_name}().size() != {size}) {{\n"
                               "    missing = 0;\n"
                               "    return false;\n"
                               "}}")

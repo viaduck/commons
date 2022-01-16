@@ -27,11 +27,22 @@ from generators.gen_bit import bit_import
 matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)(?P<size>\([\d]+\))?\s+(?P<name>\w*)" + comment_pattern)
 # matches "max_size <bytes>"
 size_matcher = re.compile(r"max_size\s+(?P<max_size>\d*)" + comment_pattern)
+# matches camel case transition from upper to lower case "IDTest" -> I[D][T]est
+case_matcher_utl = re.compile(r"([^\_\s])([A-Z][a-z])")
+# matches camel case transition from lower to upper case "testID" -> tes[t][I]D
+case_matcher_ltu = re.compile(r"([a-z0-9])([A-Z])")
+
 
 # types of enums
 enum_types = {}
 # types of bitfields
 bit_types = {}
+
+
+# convert CamelCase/camelCase to snake_case
+def convert_case(str):
+    str = case_matcher_utl.sub(r'\1_\2', str)
+    return case_matcher_ltu.sub(r'\1_\2', str).lower()
 
 
 class FlatbuffersTypeDef:
@@ -93,7 +104,8 @@ for t_name, t_type in dict(flatbuffers_type).items():
 class FlatbuffersType(CogBase):
     def __init__(self, elem_type, elem_name, elem_size = 0):
         self.type = flatbuffers_type[elem_type] if elem_type is not None else None
-        self.name = elem_name
+        self.pub_name = elem_name
+        self.name = convert_case(elem_name)
         self.size = elem_size
 
         # for wrapped types
