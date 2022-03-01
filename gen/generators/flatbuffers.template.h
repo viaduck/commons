@@ -28,7 +28,7 @@
 ]]]
 [[[end]]]
 
-#include <secure_memory/Serializable.h>
+#include <secure_memory/ISerializable.h>
 #include <secure_memory/Buffer.h>
 #include <secure_memory/Range.h>
 #include <secure_memory/conversions.h>
@@ -46,7 +46,7 @@
 
     f_def.outl("")
     f_def.out("{doxygen}")
-    f_def.outl("class {name} : public Serializable {{")
+    f_def.outl("class {name} : public ISerializable {{")
 
     if f_def.max_size > 0:
         f_def.outl("    const static uint32_t MAX_SIZE = {max_size};")
@@ -164,8 +164,8 @@ public:
             ]]]
             [[[end]]]
         );
-        if (!BufferRange::applyPolicy(out, fbb.GetSize()))
-            throw std::range_error("BufferRange::applyPolicy failed");
+        if (!out.ensureSize(fbb.GetSize()))
+            throw std::range_error("BufferRange::ensureSize failed");
         out.object().write(fbb.GetBufferPointer(), fbb.GetSize(), out.offset());
     }
 
@@ -179,16 +179,16 @@ public:
 
     bool deserialize(const BufferRangeConst &in) {
         uint32_t unused;
-        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), unused);
+        return deserialize(in.const_data(), in.size(), unused);
     }
 
     bool deserialize(const Buffer &in) {
         uint32_t unused;
-        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), unused);
+        return deserialize(in.const_data(), in.size(), unused);
     }
 
     bool deserialize(const Buffer &in, uint32_t &missing) {
-        return deserialize(static_cast<const uint8_t*>(in.const_data()), in.size(), missing);
+        return deserialize(in.const_data(), in.size(), missing);
     }
 
     bool deserialize(const uint8_t *in, uint32_t size, uint32_t &missing) {

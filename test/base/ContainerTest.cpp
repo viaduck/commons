@@ -74,7 +74,7 @@ TEST_F(ContainerTest, Malformed) {
     test.serialize(out);
 
     // manipulate size indicator to be bigger than actual buffer
-    uint32_t size1 = flatbuffers::GetPrefixedSize(static_cast<const uint8_t *>(out.const_data())) + 5;
+    uint32_t size1 = flatbuffers::GetPrefixedSize(out.const_data()) + 5;
     out.write(&size1, sizeof(uint32_t), 0);
     ASSERT_FALSE(test.deserialize(out));
     verify_reset(test);

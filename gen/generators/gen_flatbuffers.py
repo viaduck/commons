@@ -79,7 +79,7 @@ def flatbuffers_vector_type(type_name):
 flatbuffers_type = {
     "bytes": FlatbuffersTypeDef(
         "bytes", "[ubyte]", "", "Buffer", "Buffer &",
-        "_{name}.size() > 0 ? fbb.CreateVector(static_cast<const uint8_t*>(_{name}.const_data()), _{name}.size()) : 0",
+        "_{name}.size() > 0 ? fbb.CreateVector(_{name}.const_data(), _{name}.size()) : 0",
         "if (ptr->{name}()) _{name}.write(ptr->{name}()->Data(), ptr->{name}()->Length(), 0)", "_{name}.clear()"),
     "string": FlatbuffersTypeDef(
         "string", "string", "", "std::string", "std::string &",
