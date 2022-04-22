@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2022 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -26,52 +26,52 @@
 #ifdef WIN32
 	#include <windows.h>
 #else
-    #include <dirent.h>
+    #include <glob.h>
 #endif
 
 class File {
 public:
-    static std::vector<std::string> find(std::string path, const std::string &ext, const std::string &prefix = "") {
+    static std::vector<std::string> find(const std::string &path, const std::string &ext, const std::string &prefix = "") {
         std::vector<std::string> files;
 
-        // append trailing / if missing
-        if (!path.empty() && path.back() != '/')
-            path += '/';
+        // glob pattern
+        std::string pattern = joinPath(path, prefix + "*" + ext);
 
 #ifdef WIN32
-        // glob pattern
-        std::string pattern = path + prefix + "*" + ext;
-
         WIN32_FIND_DATAA find_data;
+
         HANDLE find_result = FindFirstFileA(pattern.c_str(), &find_data);
+        if (find_result != INVALID_HANDLE_VALUE) {
+            do {
+                // skip directories
+                if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+                    files.emplace_back(joinPath(path, find_data.cFileName));
+            } while (FindNextFileA(find_result, &find_data));
 
-        // error occured, maybe we did not find any file
-        if (find_result == INVALID_HANDLE_VALUE)
-            return files;
-
-        do files.emplace_back(path + find_data.cFileName);
-        while (FindNextFileA(find_result, &find_data));
-
-        FindClose(find_result);
-
-#else
-        if (path.empty())
-            path = "./";
-
-        DIR *dir = opendir(path.c_str());
-        dirent *ent;
-
-        while (dir && (ent = readdir(dir))) {
-            std::string filename = ent->d_name;
-
-            if (startsWith(filename, prefix) && endsWith(filename, ext))
-                files.emplace_back(path + filename);
+            FindClose(find_result);
         }
 
-        closedir(dir);
+#else
+        glob_t glob_data;
+
+        if (0 == glob(pattern.c_str(), GLOB_MARK, nullptr, &glob_data)) {
+            for (size_t i = 0; i < glob_data.gl_pathc; i++)
+                // skip directories
+                if (!endsWith(glob_data.gl_pathv[i], "/"))
+                    files.emplace_back(glob_data.gl_pathv[i]);
+
+            globfree(&glob_data);
+        }
 #endif
 
         return files;
+    }
+
+    static std::string joinPath(const std::string &p1, const std::string &p2) {
+        if (!p1.empty() && !endsWith(p1, "/"))
+            return p1 + "/" + p2;
+        else
+            return p1 + p2;
     }
 
 protected:
