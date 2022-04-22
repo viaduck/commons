@@ -22,8 +22,6 @@
 
 #include <gtest/gtest.h>
 
-#include <commons/util/Time.h>
-
 class UtilTest : public ::testing::Test {
 
 };
