@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The ViaDuck Project
+ * Copyright (C) 2020-2022 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,6 +20,7 @@
 #define COMMONS_THREADLOCAL_H
 
 #include <thread>
+#include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
 #include <functional>
