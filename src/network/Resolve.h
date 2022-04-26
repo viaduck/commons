@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2022 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -23,7 +23,7 @@
 DEFINE_ERROR(resolve, base_error);
 
 class Resolve {
-    using addrinfo_ref = std::unique_ptr<addrinfo, decltype(&freeaddrinfo)>;
+    using addrinfo_ref = std::unique_ptr<addrinfo, decltype(&Native::freeaddrinfo)>;
 public:
     Resolve(const std::string &host, uint16_t port) : mResult(nullptr, &Native::freeaddrinfo) {
         addrinfo query{}, *result;
