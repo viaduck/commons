@@ -40,6 +40,7 @@
     #define NW__SHUT_RDWR SHUT_RDWR
 #endif
 
+#include <memory>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 #include <commons/util/Except.h>
