@@ -21,7 +21,7 @@
 #define COMMONS_NATIVE_H
 
 /* network includes */
-#ifdef WIN32
+#ifdef _WIN32
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #include <wincrypt.h>

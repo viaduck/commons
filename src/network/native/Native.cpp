@@ -37,7 +37,7 @@ int ::Native::shutdown(int __fd, int how) {
 }
 
 int ::Native::close(int __fd) {
-#if defined(__WIN32)
+#if defined(_WIN32)
     return ::closesocket(__fd);
 #else
     return ::close(__fd);
