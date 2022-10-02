@@ -51,11 +51,11 @@ public:
         return TCPSocket::connect(addr) && initSSL();
     }
 
-    ssize_t read(void *data, uint32_t size) override {
+    int64_t read(void *data, uint32_t size) override {
         return SSL_read(mSSL.get(), data, size);
     }
 
-    ssize_t write(const void *data, uint32_t size) override {
+    int64_t write(const void *data, uint32_t size) override {
         return SSL_write(mSSL.get(), data, size);
     }
 

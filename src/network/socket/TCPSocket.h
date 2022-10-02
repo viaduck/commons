@@ -90,11 +90,11 @@ public:
         return false;
     }
 
-    ssize_t read(void *data, uint32_t size) override {
+    int64_t read(void *data, uint32_t size) override {
         return Native::recv(mSocket, data, size);
     }
 
-    ssize_t write(const void *data, uint32_t size) override {
+    int64_t write(const void *data, uint32_t size) override {
         return Native::send(mSocket, data, size);
     }
 

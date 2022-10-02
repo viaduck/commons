@@ -72,7 +72,7 @@ bool Connection::read(Buffer &buffer, uint32_t size) {
         return false;
 
     uint32_t total = 0;
-    ssize_t read = 1;
+    int64_t read = 1;
     buffer.increase(size, true);
 
     while (total < size && read > 0) {
@@ -90,7 +90,7 @@ bool Connection::write(const Buffer &buffer) {
         return false;
 
     // try to write
-    ssize_t res = mSocket->write(buffer.const_data(), buffer.size());
+    int64_t res = mSocket->write(buffer.const_data(), buffer.size());
     if (res <= 0)
         return false;
 

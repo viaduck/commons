@@ -56,11 +56,11 @@ int ::Native::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, t
     return ::select(ndfs, _read, _write, _except, timeout);
 }
 
-ssize_t (::Native::recv(int socket, void *buffer, size_t length)) {
+int64_t (::Native::recv(int socket, void *buffer, size_t length)) {
     return ::recv(socket, static_cast<char*>(buffer), length, 0);
 }
 
-ssize_t (::Native::send(int socket, const void *buffer, size_t length)) {
+int64_t (::Native::send(int socket, const void *buffer, size_t length)) {
     return ::send(socket, static_cast<const char*>(buffer), length, 0);
 }
 

@@ -76,7 +76,7 @@ int PushConnection::readNonBlocking(Buffer &buffer, uint32_t size) {
     L_assert(tcp_sock, async_connection_error);
 
     uint32_t total = 0;
-    ssize_t read = 1;
+    int64_t read = 1;
     buffer.increase(size, true);
 
     tcp_sock->setNonBlocking(true);

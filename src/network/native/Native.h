@@ -218,9 +218,9 @@ int connect(int __fd, const sockaddr *__addr, socklen_t __len);
 
 int select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, timeval *timeout);
 
-ssize_t recv(int __fd, void *buffer, size_t length);
+int64_t recv(int __fd, void *buffer, size_t length);
 
-ssize_t send(int __fd, const void *buffer, size_t length);
+int64_t send(int __fd, const void *buffer, size_t length);
 
 static Init gInit;
 

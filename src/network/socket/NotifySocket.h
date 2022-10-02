@@ -100,11 +100,11 @@ public:
         L_assert(read(&message, sizeof(message)) == sizeof(message), notify_socket_error);
     }
 
-    ssize_t read(void *data, uint32_t size) override {
+    int64_t read(void *data, uint32_t size) override {
         return Native::recv(mRxSocket, data, size);
     }
 
-    ssize_t write(const void *data, uint32_t size) override {
+    int64_t write(const void *data, uint32_t size) override {
         return Native::send(mTxSocket, data, size);
     }
 

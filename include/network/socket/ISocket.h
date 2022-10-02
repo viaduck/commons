@@ -31,8 +31,8 @@ public:
     virtual ~ISocket() = default;
 
     virtual bool connect(addrinfo *addr) = 0;
-    virtual ssize_t read(void *data, uint32_t size) = 0;
-    virtual ssize_t write(const void *data, uint32_t size) = 0;
+    virtual int64_t read(void *data, uint32_t size) = 0;
+    virtual int64_t write(const void *data, uint32_t size) = 0;
 
     IPProtocol protocol() const {
         return mProtocol;

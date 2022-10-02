@@ -51,8 +51,8 @@ struct NativeMock {
     MAKE_MOCK_FUNCTION(connect, int, int, const sockaddr*, socklen_t) { return 0; };
     MAKE_MOCK_FUNCTION(shutdown, int, int, int) { return 0; };
     MAKE_MOCK_FUNCTION(close, int, int) { return 0; };
-    MAKE_MOCK_FUNCTION(recv, ssize_t, int, void*, size_t) { return 0; };
-    MAKE_MOCK_FUNCTION(send, ssize_t, int, const void*, size_t) { return 0; };
+    MAKE_MOCK_FUNCTION(recv, int64_t, int, void*, size_t) { return 0; };
+    MAKE_MOCK_FUNCTION(send, int64_t, int, const void*, size_t) { return 0; };
     MAKE_MOCK_FUNCTION(freeaddrinfo, void, addrinfo*) { return 0; };
     MAKE_MOCK_FUNCTION(getsockopt, int, int, int, int, char*, socklen_t*) { return 0; };
     MAKE_MOCK_FUNCTION(select, int, int, fd_set*, fd_set*, fd_set*, timeval*) { return 0; };
@@ -81,11 +81,11 @@ int ::Native::close(int __fd) {
     return mocks[currentTestName()].close(__fd);
 }
 
-ssize_t (::Native::recv(int __fd, void *buffer, size_t length)) {
+int64_t (::Native::recv(int __fd, void *buffer, size_t length)) {
     return mocks[currentTestName()].recv(__fd, buffer, length);
 }
 
-ssize_t (::Native::send(int __fd, const void *buffer, size_t length)) {
+int64_t (::Native::send(int __fd, const void *buffer, size_t length)) {
     return mocks[currentTestName()].send(__fd, buffer, length);
 }
 
