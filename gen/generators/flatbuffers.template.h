@@ -140,6 +140,20 @@ public:
                           "}}")
 
             elem.outl("")
+
+        # all-in-one setter
+        f_def.out("void set(")
+        f_def.reset_list()
+        for elem in f_def.elements:
+            if "type_wrap" in elem.setter:
+                elem.lout("{set_wrap_type} __{name}")
+            elif "basic" in elem.setter or "bytes" in elem.setter:
+                elem.lout("{type.ref_type} __{name}")
+        f_def.outl(") {{")
+
+        for elem in f_def.elements:
+            elem.outl("    {pub_name}(__{name});")
+        f_def.outl("}}")
     ]]]
     [[[end]]]
     // (de)serialization
