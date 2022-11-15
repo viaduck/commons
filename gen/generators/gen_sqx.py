@@ -22,6 +22,7 @@ from os.path import basename, splitext
 from common import CogBase, DefBase, read_definition
 
 from generators.gen_enum import enum_import
+from generators.gen_bit import bit_import
 
 # matches "foreign Type name ON CASCADE SET NULL"
 fk_matcher = re.compile(r"foreign (?P<path>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*")
@@ -136,6 +137,18 @@ class SQXEnumType(SQXValueType):
         self.store = 'toInt({member_name})'
 
 
+class SQXBitfieldType(SQXReferenceType):
+    def __init__(self, cpp_t, bit_t):
+        super().__init__(cpp_t, "INTEGER", bit_t)
+
+        # when loading from sqlite, convert from bit_t to cpp_t
+        self.load = '{member_name}.value({name});'
+        # when loading from setter argument, no need to convert
+        self.load_setter = '{member_name}.value({name}.value());'
+        # when storing to sqlite, convert from cpp_t to enum_t
+        self.store = '{member_name}.value()'
+
+
 SQLiteTypes = {
     'bool': SQXBoolType(),
     'uint8_t': SQXValueType('uint8_t'),
@@ -199,10 +212,18 @@ class SQXDef(DefBase, CogBase):
 
     def parse_line(self, line):
         e_def = enum_import(self.base_dir, line)
+        b_def = bit_import(self.base_dir, line)
+
         if e_def is not None:
             # add enum as a custom type
             SQLiteTypes.update({e_def.name: SQXEnumType(e_def.name, e_def.type)})
             self.includes.append(e_def)
+            return []
+
+        elif b_def is not None:
+            # add bitfield as custom type
+            SQLiteTypes.update({b_def.name: SQXBitfieldType(b_def.name, b_def.type)})
+            self.includes.append(b_def)
             return []
 
         match = fk_matcher.match(line)
