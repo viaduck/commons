@@ -399,6 +399,28 @@ public:
     ]]]
     [[[end]]]
 
+    // setter (all-in-one)
+    [[[cog
+        s_def.out("void set(")
+
+        # print comma-separated list of setter arguments
+        SQXDef.reset_list()
+        for elem in s_def.elements:
+            if 'basic' in elem.type.setter:
+                elem.lout("{type.cpp_const_ref_t} _{name}")
+            elif 'foreign' in elem.type.setter:
+                elem.lout("int64_t _{name}")
+        s_def.outl(") {{")
+
+        for elem in s_def.elements:
+            if 'basic' in elem.type.setter:
+                elem.outl("    {name}(_{name});")
+            elif 'foreign' in elem.type.setter:
+                elem.outl("    {name}_id(_{name});")
+        s_def.outl("}}")
+    ]]]
+    [[[end]]]
+
 protected:
     sqlite::cryptosqlite_database *db() override {
         if (mParent != nullptr)
