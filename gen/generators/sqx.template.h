@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The ViaDuck Project
+ * Copyright (C) 2022 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -146,7 +146,17 @@ public:
                 if elem.sqx_type == ElemType.Foreign:
                     elem.out(" REFERENCES {type.cpp_t} {constraints}")
 
-            s_def.outl(');";')
+            # insert table modifications
+            for tm in s_def.table_mods:
+                s_def.out(', ' + tm)
+            # end table definition
+            s_def.out(');')
+
+            # insert index modifications
+            for im in s_def.index_mods:
+                s_def.out(' ' + im + ';')
+            # end sql
+            s_def.outl('";')
         ]]]
         [[[end]]]
     }

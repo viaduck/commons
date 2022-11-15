@@ -26,6 +26,8 @@ from generators.gen_bit import bit_import
 
 # matches "foreign Type name ON CASCADE SET NULL"
 fk_matcher = re.compile(r"foreign (?P<path>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*")
+# matches "table|index SQL CLAUSE"
+sql_matcher = re.compile(r"(?P<type>table|index)\s+(?P<clause>.*)")
 # matches "Type name"
 line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s*#?.*")
 
@@ -207,6 +209,10 @@ class SQXDef(DefBase, CogBase):
         # root variables
         self.name = splitext(basename(filename))[0]
 
+        # sql customizations
+        self.table_mods = []
+        self.index_mods = []
+
         # add elements
         self.parse()
 
@@ -224,6 +230,18 @@ class SQXDef(DefBase, CogBase):
             # add bitfield as custom type
             SQLiteTypes.update({b_def.name: SQXBitfieldType(b_def.name, b_def.type)})
             self.includes.append(b_def)
+            return []
+
+        match = sql_matcher.match(line)
+        if match is not None:
+            # add sql to mods
+            sql_type = match.group('type').strip()
+            sql_clause = match.group('clause').strip()
+
+            if sql_type == "table":
+                self.table_mods.append(sql_clause)
+            else:
+                self.index_mods.append(sql_clause)
             return []
 
         match = fk_matcher.match(line)
