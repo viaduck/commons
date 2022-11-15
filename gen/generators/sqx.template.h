@@ -76,6 +76,32 @@ public:
         return std::move(dbb);
     }
 
+    // variadic template for binding all arguments
+    template<typename T, typename ...Args>
+    static inline sqlite::database_binder &&bind_internal(sqlite::database_binder &&binder, T &&arg1, Args &&...args) {
+        return std::move(bind_internal(std::move(binder << arg1), args...));
+    }
+    // variadic template recursion anchor
+    static inline sqlite::database_binder &&bind_internal(sqlite::database_binder &&binder) {
+        return std::move(binder);
+    }
+
+    // select all rows matching optional condition
+    template<typename ...Args>
+    static std::vector<int64_t> selectAll(sqlite::cryptosqlite_database &dbConnection, const std::string &where = "", Args &&...args) {
+        std::vector<int64_t> elements;
+
+        [[[cog
+            s_def.outl('bind_internal(dbConnection << "SELECT pid FROM {name}" + (where.empty() ? ";" : " " + where + ";"), args...) >>')
+        ]]]
+        [[[end]]]
+            [&] (int64_t pid) {
+                elements.push_back(pid);
+            };
+
+        return elements;
+    }
+
     // variadic template for building SQL UPDATE statement
     template<typename Column, typename... Columns>
     static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
@@ -286,21 +312,6 @@ public:
             ]]]
             [[[end]]]
         }
-    }
-
-    // select all rows
-    static std::vector<int64_t> selectAll(sqlite::cryptosqlite_database &dbConnection, const std::string &where = "") {
-        std::vector<int64_t> elements;
-
-        [[[cog
-            s_def.outl('dbConnection << "SELECT pid FROM {name}" + (where.empty() ? ";" : " " + where + ";") >>')
-        ]]]
-        [[[end]]]
-        [&] (int64_t pid) {
-            elements.push_back(pid);
-        };
-
-        return elements;
     }
 
     // id of this row
