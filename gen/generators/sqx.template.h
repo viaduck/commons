@@ -65,12 +65,12 @@ public:
     template<typename T>
     sqlite::database_binder &&member_store(sqlite::database_binder &&dbb);
 
-    // variadic template for iterating all template arguments to store them
+    // variadic template for storing all template arguments using member_store
     template <typename T, typename... Args>
     inline sqlite::database_binder &&internal_store(sqlite::database_binder &&dbb) {
         return std::move(internal_store<Args...>(std::move(member_store<T>(std::move(dbb)))));
     }
-    // variadic template recursion anchor
+    // variadic template recursion anchor when Args is empty
     template <typename... Args>
     inline sqlite::database_binder &&internal_store(sqlite::database_binder &&dbb, typename std::enable_if<sizeof...(Args) == 0>::type* = 0) {
         return std::move(dbb);

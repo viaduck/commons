@@ -82,7 +82,7 @@ class DefBase:
 
 
 def read_definition(filename):
-    # pre and post dash
+    # pre- and post-dash
     initial = []
     body = []
 
@@ -113,7 +113,7 @@ def bits_type(bits):
     # default to largest type
     s_type, s_bits = list(types.items())[0]
 
-    # try to find smallest type having bits
+    # try to find the smallest type having bits
     for type_name, bit_size in types.items():
         if bits <= bit_size <= s_bits:
             s_type, s_bits = type_name, bit_size
