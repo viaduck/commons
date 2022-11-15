@@ -66,12 +66,15 @@ class FlatbuffersTypeDef:
 
 def flatbuffers_vector_type(type_name):
     base_type = flatbuffers_type[type_name]
+    create_type = "CreateVectorOfStrings" if type_name == "string" else "CreateVector"
+    load_type = "i->str()" if type_name == "string" else "i"
+
     return FlatbuffersTypeDef(
         type_name+"[]", "["+base_type.fbs_type+"]", "",
-        "std::vector<"+type_name+">",
-        "std::vector<"+type_name+"> &",
-        "_{name}.size() > 0 ? fbb.CreateVector(_{name}) : 0",
-        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back(i)",
+        "std::vector<"+base_type.member_type+">",
+        "std::vector<"+base_type.member_type+"> &",
+        "_{name}.size() > 0 ? fbb."+create_type+"(_{name}) : 0",
+        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
         "_{name}.clear()"
     )
 
@@ -95,9 +98,9 @@ flatbuffers_type = {
     "int64_t": FlatbuffersTypeDef("int64_t", "int64"),
     "uint64_t": FlatbuffersTypeDef("uint64_t", "uint64"),
 }
-for t_name, t_type in dict(flatbuffers_type).items():
-    if not t_type.is_ref:
-        t_vec = flatbuffers_vector_type(t_name)
+for el_name, el_type in dict(flatbuffers_type).items():
+    if not el_type.is_ref or el_name == "string":
+        t_vec = flatbuffers_vector_type(el_name)
         flatbuffers_type[t_vec.type_name] = t_vec
 
 
