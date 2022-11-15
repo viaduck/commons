@@ -32,6 +32,7 @@ types = OrderedDict([
     ("uint16_t", 16),
     ("int8_t", 8),
     ("uint8_t", 8),
+    ("bool", 1),
 ])
 
 # matches in-line comment
