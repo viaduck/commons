@@ -261,6 +261,13 @@ public:
     }
 
 protected:
+    static flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> CreateVectorOfBuffers(
+            flatbuffers::FlatBufferBuilder &fbb, const std::vector<Buffer> &v) {
+        std::vector<flatbuffers::Offset<flatbuffers::String>> elems(v.size());
+        for (size_t i = 0; i < v.size(); i++) elems[i] = fbb.CreateString(v[i].const_data<char>(), v[i].size());
+        return fbb.CreateVector(elems);
+    }
+
     [[[cog
         for elem in f_def.elements:
             elem.outl("{type.member_type} _{name};")

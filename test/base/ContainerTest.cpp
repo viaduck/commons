@@ -115,6 +115,7 @@ TEST_F(ContainerTest, Serialize) {
     msg.bufVar2().append("defgh", 5);
     msg.bufFixed().append("12345678901", 11);
     msg.some_vector({1, 2, 3, 4});
+    msg.some_vector_of_bytes({Buffer("123", 3), Buffer("456", 3)});
 
     Buffer out;
     msg.serialize(out);
@@ -130,6 +131,8 @@ TEST_F(ContainerTest, Serialize) {
     EXPECT_EQ(2u, omsg.some_vector()[1]);
     EXPECT_EQ(3u, omsg.some_vector()[2]);
     EXPECT_EQ(4u, omsg.some_vector()[3]);
+    EXPECT_EQ(Buffer("123", 3), omsg.some_vector_of_bytes()[0]);
+    EXPECT_EQ(Buffer("456", 3), omsg.some_vector_of_bytes()[1]);
 }
 
 TEST_F(ContainerTest, Evolve) {

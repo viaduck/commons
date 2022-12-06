@@ -66,19 +66,20 @@ class FlatbuffersTypeDef:
         self.reset = ("_{name} = " + default) if reset is None else reset
 
 
-def flatbuffers_vector_type(type_name):
-    base_type = flatbuffers_type[type_name]
-    create_type = "CreateVectorOfStrings" if type_name == "string" else "CreateVector"
-    load_type = "i->str()" if type_name == "string" else "i"
+class FlatbuffersVectorTypeDef(FlatbuffersTypeDef):
+    def __init__(self, t_name, fbs_type=None, create_type="fbb.CreateVector(_{name})", load_type="i"):
+        base_type = flatbuffers_type[t_name]
 
-    return FlatbuffersTypeDef(
-        type_name+"[]", "["+base_type.fbs_type+"]", "",
-        "std::vector<"+base_type.member_type+">",
-        "std::vector<"+base_type.member_type+"> &",
-        "_{name}.size() > 0 ? fbb."+create_type+"(_{name}) : 0",
-        "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
-        "_{name}.clear()"
-    )
+        super().__init__(
+            t_name + "[]", "", "",
+            "std::vector<"+base_type.member_type+">",
+            "std::vector<"+base_type.member_type+"> &",
+            "_{name}.size() > 0 ? "+create_type+" : 0",
+            "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
+            "_{name}.clear()"
+        )
+
+        self.fbs_type = "[" + base_type.fbs_type + "]" if fbs_type is None else fbs_type
 
 
 flatbuffers_type = {
@@ -101,8 +102,17 @@ flatbuffers_type = {
     "uint64_t": FlatbuffersTypeDef("uint64_t", "uint64"),
 }
 for el_name, el_type in dict(flatbuffers_type).items():
-    if not el_type.is_ref or el_name == "string":
-        t_vec = flatbuffers_vector_type(el_name)
+    t_vec = None
+
+    if not el_type.is_ref:
+        t_vec = FlatbuffersVectorTypeDef(el_name)
+    elif el_name == "string":
+        t_vec = FlatbuffersVectorTypeDef(el_name, None, "fbb.CreateVectorOfStrings(_{name})", "i->str()")
+    elif el_name == "bytes":
+        t_vec = FlatbuffersVectorTypeDef(el_name, "[string]", "CreateVectorOfBuffers(fbb, _{name})",
+                                         "Buffer(i->data(), i->size())")
+
+    if t_vec is not None:
         flatbuffers_type[t_vec.type_name] = t_vec
 
 
