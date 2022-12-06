@@ -27,6 +27,8 @@ from generators.gen_enum import enum_import
 matcher = re.compile(r"(?P<depr>~)?(?P<type>[\w\[\]]*)(?P<size>\(\d+\))?\s+(?P<name>\w*)" + comment_pattern)
 # matches "max_size <bytes>"
 size_matcher = re.compile(r"max_size\s+(?P<max_size>\d*)" + comment_pattern)
+# matches "serialize_public <true|false>"
+serialize_matcher = re.compile(r"serialize_public\s+(?P<public>true|false)" + comment_pattern)
 # matches camel case transition from upper to lower case "IDTest" -> I[D][T]est
 case_matcher_utl = re.compile(r"([^_\s])([A-Z][a-z])")
 # matches camel case transition from lower to upper case "testID" -> tes[t][I]D
@@ -161,6 +163,7 @@ class FlatbuffersDef(DefBase, CogBase):
     def __init__(self, base_dir, filename, outfile):
         DefBase.__init__(self, base_dir, filename)
         self.max_size = 500
+        self.serialize_modifier = "public"
 
         # name fbs table after basename of the file
         self.name = splitext(basename(filename))[0]
@@ -198,9 +201,17 @@ class FlatbuffersDef(DefBase, CogBase):
 
         match = matcher.match(line)
         size_match = size_matcher.match(line)
+        serialize_match = serialize_matcher.match(line)
+
         if size_match is not None:
             self.max_size = int(size_match.group('max_size').strip())
             return []
+
+        elif serialize_match is not None:
+            is_public = serialize_match.group("public").strip() == "true"
+            self.serialize_modifier = "public" if is_public else "protected"
+            return []
+
         elif match is not None:
             is_depr = match.group('depr') is not None
             elem_type = match.group('type').strip()

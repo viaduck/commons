@@ -46,7 +46,7 @@
 
     f_def.outl("")
     f_def.out("{doxygen}")
-    f_def.outl("class {name} : public ISerializable {{")
+    f_def.outl("class {name} : {serialize_modifier} ISerializable {{")
 
     if f_def.max_size > 0:
         f_def.outl("    const static uint32_t MAX_SIZE = {max_size};")
@@ -158,6 +158,19 @@ public:
     [[[end]]]
     // (de)serialization
 
+    void clear() {
+        [[[cog
+            for elem in f_def.elements:
+                elem.outl(elem.type.reset + ";")
+        ]]]
+        [[[end]]]
+    }
+
+    // (de)serialization
+[[[cog
+    f_def.outl("{serialize_modifier}:")
+]]]
+[[[end]]]
     void serialize(Buffer &out) const {
         BufferRange r = out.end();
         return serialize(r);
@@ -181,14 +194,6 @@ public:
         if (!out.ensureSize(fbb.GetSize()))
             throw std::range_error("BufferRange::ensureSize failed");
         out.object().write(fbb.GetBufferPointer(), fbb.GetSize(), out.offset());
-    }
-
-    void clear() {
-        [[[cog
-            for elem in f_def.elements:
-                elem.outl(elem.type.reset + ";")
-        ]]]
-        [[[end]]]
     }
 
     bool deserialize(const BufferRangeConst &in) {
