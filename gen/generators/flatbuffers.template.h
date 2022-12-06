@@ -119,13 +119,12 @@ public:
                           "    _{name} = " + elem.wrap_from_type + ";\n"
                           "}}")
             if "bytes" in elem.setter:
-                elem.outl("inline void {pub_name}({type.ref_type} v) {{\n"
-                          "    _{name}.write(v, 0);\n"
-                          "}}")
                 elem.outl("inline void {pub_name}(const uint8_t *v, uint32_t size) {{\n"
+                          "    _{name}.clear();\n"
                           "    _{name}.write(v, size, 0);\n"
                           "}}")
                 elem.outl("inline void {pub_name}(const BufferRangeConst &v) {{\n"
+                          "    _{name}.clear();\n"
                           "    _{name}.write(v, 0);\n"
                           "}}")
                 if elem.size > 0:
@@ -146,17 +145,16 @@ public:
         f_def.reset_list()
         for elem in f_def.elements:
             if "type_wrap" in elem.setter:
-                elem.lout("{set_wrap_type} __{name}")
+                elem.lout("{set_wrap_type} {name}_")
             elif "basic" in elem.setter or "bytes" in elem.setter:
-                elem.lout("{type.ref_type} __{name}")
+                elem.lout("{type.ref_type} {name}_")
         f_def.outl(") {{")
 
         for elem in f_def.elements:
-            elem.outl("    {pub_name}(__{name});")
+            elem.outl("    {pub_name}({name}_);")
         f_def.outl("}}")
     ]]]
     [[[end]]]
-    // (de)serialization
 
     void clear() {
         [[[cog
@@ -253,7 +251,7 @@ public:
             # size check
             for elem in f_def.elements:
                 if elem.size > 0:
-                    elem.outl("if ({pub_name}().size() != {size}) {{\n"
+                    elem.outl("if (!{pub_name}().empty() && {pub_name}().size() != {size}) {{\n"
                               "    missing = 0;\n"
                               "    return false;\n"
                               "}}")

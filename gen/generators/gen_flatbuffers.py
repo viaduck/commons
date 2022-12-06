@@ -120,11 +120,10 @@ class FlatbuffersType(CogBase):
         self.wrap_from_type = None
 
         self.getter = ['basic']
+        self.setter = ['basic']
         if elem_type == "bytes":
             # special setter for bytes
-            self.setter = ['bytes']
-        else:
-            self.setter = ['basic']
+            self.setter.append('bytes')
 
     def fbs_line(self, is_depr):
         # line in fbs file for this field
