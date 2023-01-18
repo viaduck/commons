@@ -68,6 +68,13 @@ public:
     }
 
     /**
+     * Indicates whether the worker thread is active
+     */
+    bool threadActive() const {
+        return mThread.joinable();
+    }
+
+    /**
      * Enqueues work into queue
      *
      * @param work Work to process in thread. Takes pointer ownership
