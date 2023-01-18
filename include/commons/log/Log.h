@@ -163,14 +163,14 @@ public:
      * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely disabled, which has priority
      *        over individual enabled status of log levels.
      */
-    void disableLogLevel(LogLevel level = LogLevel::INVALID_ENUM_VALUE) {
+    void disableLogLevel(LogLevel level = LogLevel::VALUE_INVALID) {
         switch (level) {
             case LogLevel::LEVEL_TRACE: trac.setEnabled(false); break;
             case LogLevel::LEVEL_DEBUG: dbg.setEnabled(false); break;
             case LogLevel::LEVEL_INFO: info.setEnabled(false); break;
             case LogLevel::LEVEL_WARNING: warn.setEnabled(false); break;
             case LogLevel::LEVEL_ERROR: err.setEnabled(false); break;
-            case LogLevel::INVALID_ENUM_VALUE: mEnabled = false; break;
+            case LogLevel::VALUE_INVALID: mEnabled = false; break;
         }
     }
     /**
@@ -178,14 +178,14 @@ public:
      * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely enabled, which has priority
      *              over individual enabled status of log levels.
      */
-    void enableLogLevel(LogLevel level = LogLevel::INVALID_ENUM_VALUE) {
+    void enableLogLevel(LogLevel level = LogLevel::VALUE_INVALID) {
         switch (level) {
             case LogLevel::LEVEL_TRACE: trac.setEnabled(true); break;
             case LogLevel::LEVEL_DEBUG: dbg.setEnabled(true); break;
             case LogLevel::LEVEL_INFO: info.setEnabled(true); break;
             case LogLevel::LEVEL_WARNING: warn.setEnabled(true); break;
             case LogLevel::LEVEL_ERROR: err.setEnabled(true); break;
-            case LogLevel::INVALID_ENUM_VALUE: mEnabled = true; break;
+            case LogLevel::VALUE_INVALID: mEnabled = true; break;
         }
     }
     /**

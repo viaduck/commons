@@ -64,7 +64,7 @@ public:
      * @return IP protocol used for connection
      */
     IPProtocol protocol() const {
-        return connected() ? mSocket->protocol() : IPProtocol::INVALID_ENUM_VALUE;
+        return connected() ? mSocket->protocol() : IPProtocol::VALUE_INVALID;
     }
 
     /**

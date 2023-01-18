@@ -213,12 +213,12 @@ TEST_F(ContainerTest, Enum) {
     msg.myTestEnum(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY);
     EXPECT_EQ(TestEnum::NO_STRICT_NAMING_ONLY_CPP_LIMITATIONS_APPLY, msg.myTestEnum());
 
-    msg.myTestEnum(TestEnum::INVALID_ENUM_VALUE);
-    EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
+    msg.myTestEnum(TestEnum::VALUE_INVALID);
+    EXPECT_EQ(TestEnum::VALUE_INVALID, msg.myTestEnum());
 
-    const int val = static_cast<uint16_t>(TestEnum::INVALID_ENUM_VALUE)+2;
+    const int val = static_cast<uint16_t>(TestEnum::VALUE_INVALID)+2;
     msg.myTestEnum(val);
-    EXPECT_EQ(TestEnum::INVALID_ENUM_VALUE, msg.myTestEnum());
+    EXPECT_EQ(TestEnum::VALUE_INVALID, msg.myTestEnum());
 
     msg.myTestEnum(static_cast<uint16_t>(TestEnum::VALUE_X55));
     EXPECT_EQ(TestEnum::VALUE_X55, msg.myTestEnum());

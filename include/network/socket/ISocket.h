@@ -42,7 +42,7 @@ protected:
     // constant connection information
     const ConnectionInfo &mInfo;
     // current IP protocol used
-    IPProtocol mProtocol = IPProtocol::INVALID_ENUM_VALUE;
+    IPProtocol mProtocol = IPProtocol::VALUE_INVALID;
 };
 
 #endif //COMMONS_ISOCKET_H
