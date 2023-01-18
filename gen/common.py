@@ -1,5 +1,5 @@
 
-# Copyright (C) 2018 The ViaDuck Project
+# Copyright (C) 2018-2023 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -52,7 +52,11 @@ class CogBase:
         self.out(s, **kwargs)
 
     def outl(self, s, **kwargs):
-        cog.outl(s.format(**dict(vars(self), **kwargs)))
+        try:
+            cog.outl(s.format(**dict(vars(self), **kwargs)))
+        except Exception as e:
+            print(f"Formatting error: '{s}'", e)
+            raise e
 
     @staticmethod
     def reset_list():
