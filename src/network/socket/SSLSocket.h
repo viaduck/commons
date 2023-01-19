@@ -69,7 +69,7 @@ protected:
             auto *instance = static_cast<SSLSocket*>(SSL_get_ex_data(ssl, ctx.dataIndex()));
 
             if (instance->mInfo.sslVerify())
-                return instance->mInfo.certStore().verify(pre == 1, X509_get0_pubkey(cert)) ? 1 : 0;
+                return instance->mInfo.certStore()->verify(pre == 1, X509_get0_pubkey(cert)) ? 1 : 0;
 
             return 1;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -29,53 +29,46 @@ public:
      *
      * @param host IP address or hostname
      * @param port Port number
-     * @param ssl Whether to use SSL
-     * @param sslVerify Whether to verify SSL hostname
+     * @param ssl Whether to use SSL, defaults to true
+     * @param sslVerify Whether to verify SSL hostname, defaults to true
      * @param certPath Path to system certificates. Leave empty for default system path.
-     * @param certStore Custom certificate store
-     * @param timeoutC Connect timeout in milliseconds. Default indefinite.
-     * @param timeoutIO IO timout in milliseconds. Default indefinite.
+     * @param certStore Custom certificate store, defaults to the global store
+     * @param timeoutConnect Connect timeout in milliseconds. Default indefinite.
+     * @param timeoutIO IO timeout in milliseconds. Default indefinite.
      */
-    ConnectionInfo(std::string host, uint16_t port, bool ssl = true, bool sslVerify = true, std::string certPath = "",
-                   CertStore &certStore = CertStore::getInstance(), uint32_t timeoutC = 0, uint32_t timeoutIO = 0) :
-                        mHost(std::move(host)), mPort(port),
-                        mSSL(ssl), mSSLVerify(sslVerify),
-                        mCertPath(std::move(certPath)), mCertStore(certStore),
-                        mTimeoutConnect(timeoutC), mTimeoutIO(timeoutIO) {
+    explicit ConnectionInfo(std::string host, uint16_t port, bool ssl = true, bool sslVerify = true,
+                            std::string certPath = "", CertStore *certStore = CertStore::getInstance(),
+                            uint32_t timeoutConnect = 0, uint32_t timeoutIO = 0)
+            : mHost(std::move(host)), mPort(port), mSSL(ssl), mSSLVerify(sslVerify),
+            mCertPath(std::move(certPath)), mCertStore(certStore),
+            mTimeoutConnect(timeoutConnect), mTimeoutIO(timeoutIO) {
 
     }
 
-    const std::string &host() const {
-        return mHost;
-    }
+    const std::string &host() const { return mHost; }
+    void host(const std::string &value) { mHost = value; }
 
-    uint16_t port() const {
-        return mPort;
-    }
+    uint16_t port() const { return mPort; }
+    void port(uint16_t value) { mPort = value; }
 
-    uint32_t timeoutConnect() const {
-        return mTimeoutConnect;
-    }
+    bool ssl() const { return mSSL; }
+    void ssl(bool value) { mSSL = value; }
 
-    uint32_t timeoutIO() const {
-        return mTimeoutIO;
-    }
+    bool sslVerify() const { return mSSLVerify; }
+    void sslVerify(bool value) { mSSLVerify = value; }
 
-    bool ssl() const {
-        return mSSL;
-    }
+    const std::string &certPath() const { return mCertPath; }
+    void certPath(const std::string &value) { mCertPath = value; }
 
-    bool sslVerify() const {
-        return mSSLVerify;
-    }
+    const CertStore *certStore() const { return mCertStore; }
+    CertStore *certStore() { return mCertStore; }
+    void certStore(CertStore *value) { mCertStore = value; }
 
-    const std::string &certPath() const {
-        return mCertPath;
-    }
+    uint32_t timeoutConnect() const { return mTimeoutConnect; }
+    void timeoutConnect(uint32_t value) { mTimeoutConnect = value; }
 
-    const CertStore &certStore() const {
-        return mCertStore;
-    }
+    uint32_t timeoutIO() const { return mTimeoutIO; }
+    void timeoutIO(uint32_t value) { mTimeoutIO = value; }
 
     size_t hash() const {
         return (std::hash<std::string>()(mHost) + 0x9e3779b9) ^ std::hash<uint16_t>()(mPort);
@@ -90,7 +83,7 @@ private:
     bool mSSL;
     bool mSSLVerify;
     std::string mCertPath;
-    CertStore &mCertStore;
+    CertStore *mCertStore;
 
     // timeouts
     uint32_t mTimeoutConnect;

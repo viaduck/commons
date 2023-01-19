@@ -82,8 +82,8 @@ public:
     /**
      * @return Singleton application-wide instance
      */
-    static CertStore &getInstance() {
-        return mInstance;
+    static CertStore *getInstance() {
+        return &mInstance;
     }
 
     /**
