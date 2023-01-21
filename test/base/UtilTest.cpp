@@ -42,7 +42,7 @@ TEST_F(UtilTest, testTime) {
     EXPECT_EQ("6 02.03.2018 21:55:13.001+0000", Time(1517694913001).formatFull("%w %m.%d.%Y %H:%M:%S.%k%z"));
 }
 
-TEST_F(UtilTest, testStr) {
+TEST_F(UtilTest, testStrSplit) {
     ASSERT_VECTOR_EQ({}, Str::splitAll("Hello World", ""));
     ASSERT_VECTOR_EQ({"Hello", "World"}, Str::splitAll("Hello World", " "));
     ASSERT_VECTOR_EQ({"H", "llo World"}, Str::splitAll("Hello World", "e"));
@@ -51,4 +51,14 @@ TEST_F(UtilTest, testStr) {
     ASSERT_VECTOR_EQ({"", "", "e:"}, Str::splitAll("::e:", ":", 3));
     ASSERT_VECTOR_EQ({"", ":e:"}, Str::splitAll("::e:", ":", 2));
     ASSERT_VECTOR_EQ({"::e:"}, Str::splitAll("::e:", ":", 1));
+}
+
+TEST_F(UtilTest, testStrJoin) {
+    ASSERT_EQ("Hello World", Str::joinAll({"Hello", "World"}, " "));
+    ASSERT_EQ("Hello World", Str::joinAll({"H", "llo World"}, "e"));
+
+    ASSERT_EQ("::e:", Str::joinAll({"", "", "e", ""}, ":"));
+    ASSERT_EQ("::e:", Str::joinAll({"", "", "e:"}, ":"));
+    ASSERT_EQ("::e:", Str::joinAll({"", ":e:"}, ":"));
+    ASSERT_EQ("::e:", Str::joinAll({"::e:"}, ":"));
 }
