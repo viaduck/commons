@@ -20,8 +20,8 @@
 #ifndef COMMONS_SQXBASE_H
 #define COMMONS_SQXBASE_H
 
-#include <cryptosqlite/cryptosqlite.h>
-#include <sqlite_modern_cpp/cryptosqlite.h>
+#include <crypto_sqlite/crypto_sqlite.h>
+#include <sqlite_modern_cpp/crypto_sqlite.h>
 #include <commons/util/Except.h>
 
 class SQXBase {
@@ -29,7 +29,7 @@ public:
     DEFINE_ERROR(load, base_error);
 
     virtual ~SQXBase() = default;
-    virtual sqlite::cryptosqlite_database *db() = 0;
+    virtual sqlite::crypto_sqlite_database *db() = 0;
 
 protected:
     virtual void process() {};

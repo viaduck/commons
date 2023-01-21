@@ -88,7 +88,7 @@ public:
 
     // select all rows matching optional condition
     template<typename ...Args>
-    static std::vector<int64_t> selectAll(sqlite::cryptosqlite_database &dbConnection, const std::string &where = "", Args &&...args) {
+    static std::vector<int64_t> selectAll(sqlite::crypto_sqlite_database &dbConnection, const std::string &where = "", Args &&...args) {
         std::vector<int64_t> elements;
 
         [[[cog
@@ -157,7 +157,7 @@ public:
     [[[end]]]
 
     // create
-    static void createTable(sqlite::cryptosqlite_database &db) {
+    static void createTable(sqlite::crypto_sqlite_database &db) {
         [[[cog
             # create foreign sub tables first
             for elem in s_def.elements:
@@ -422,7 +422,7 @@ public:
     [[[end]]]
 
 protected:
-    sqlite::cryptosqlite_database *db() override {
+    sqlite::crypto_sqlite_database *db() override {
         if (mParent != nullptr)
             return mParent->db();
         else
