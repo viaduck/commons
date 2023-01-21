@@ -160,7 +160,7 @@ public:
 
     /**
      * Disables only a certain LogLevel.
-     * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely disabled, which has priority
+     * @param level If this is set to LogLevel::VALUE_INVALID, logging is completely disabled, which has priority
      *        over individual enabled status of log levels.
      */
     void disableLogLevel(LogLevel level = LogLevel::VALUE_INVALID) {
@@ -175,7 +175,7 @@ public:
     }
     /**
      * Enables only a certain LogLevel.
-     * @param level If this is set to LogLevel::INVALID_ENUM_VALUE, logging is completely enabled, which has priority
+     * @param level If this is set to LogLevel::VALUE_INVALID, logging is completely enabled, which has priority
      *              over individual enabled status of log levels.
      */
     void enableLogLevel(LogLevel level = LogLevel::VALUE_INVALID) {
