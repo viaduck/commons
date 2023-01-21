@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2021 The ViaDuck Project
+# Copyright (C) 2015-2023 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -36,25 +36,25 @@ if (GTEST_FOUND)
 
     ###
     if (COMMONS_BASE_ONLY)
-        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
+        add_executable(commons_test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
     else()
-        add_executable(Commons_Test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
+        add_executable(commons_test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
     endif()
 
     # require and enable c++14 support
-    set_target_properties(Commons_Test PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
+    set_target_properties(commons_test PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
 
-    target_compile_definitions(Commons PUBLIC CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+    target_compile_definitions(commons PUBLIC CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
 
-    # link to Commons and its dependencies
-    target_link_libraries(Commons_Test Commons Commons_gen ${GTEST_BOTH_LIBRARIES})
+    # link to commons and its dependencies
+    target_link_libraries(commons_test commons commons_gen ${GTEST_BOTH_LIBRARIES})
 
     ## code coverage
     include(CodeCoverage)
     if (LCOV_PATH AND NOT ANDROID)
         # compiler flags for coverage
-        target_compile_options(Commons_Test PUBLIC -g -O0 --coverage -fexceptions)
-        target_link_libraries(Commons_Test --coverage)
-        setup_target_for_coverage(Commons_Coverage Commons_Test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*';'${CMAKE_SOURCE_DIR}/build/*'")
+        target_compile_options(commons_test PUBLIC -g -O0 --coverage -fexceptions)
+        target_link_libraries(commons_test --coverage)
+        setup_target_for_coverage(commons_coverage commons_test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*';'${CMAKE_SOURCE_DIR}/build/*'")
     endif()
 endif()

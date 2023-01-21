@@ -27,7 +27,7 @@ build:linux:x86_64:full:
 lint:linux:x86_64:full:
     stage: lint
     script:
-        - vd-lint Commons $PWD
+        - vd-lint commons $PWD
     needs:
         - job: build:linux:x86_64:full
           artifacts: false
@@ -38,7 +38,7 @@ test:linux:x86_64:full:
     stage: test
     script:
         - cd build
-        - test/Commons_Test             # runs gtest target
+        - test/commons_test             # runs gtest target
     needs:
         - build:linux:x86_64:full
 
@@ -60,7 +60,7 @@ test:linux:x86_64:full:system-openssl:
     stage: test
     script:
         - cd build
-        - test/Commons_Test             # runs gtest target
+        - test/commons_test             # runs gtest target
     needs:
         - build:linux:x86_64:full:system-openssl
 
@@ -82,7 +82,7 @@ test:linux:x86_64:base-only:
     stage: test
     script:
         - cd build
-        - test/Commons_Test             # runs gtest target
+        - test/commons_test             # runs gtest target
     needs:
         - build:linux:x86_64:base-only
 
@@ -91,7 +91,7 @@ coverage:linux:x86_64:
     script:
         - cd build
         - cmake . -DCMAKE_BUILD_TYPE=Debug
-        - ninja Commons_Coverage        # generate code coverage
+        - ninja commons_coverage        # generate code coverage
     artifacts:
         paths:
             - build/test/coverage/         # coverage data
@@ -102,7 +102,7 @@ documentation:linux:x86_64:
     stage: documentation
     script:
         - cd build
-        - ninja Commons_doc             # generate doxygen code documentation
+        - ninja commons_doc             # generate doxygen code documentation
     artifacts:
         paths:
             - build/doc/html/                # doxygen documentation
@@ -119,7 +119,7 @@ build:windows:x86_64:full:
         - cd build-windows-x86_64
         - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/securememory/cmake-modules/toolchains/mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
-        - peldd test/Commons_Test.exe | grep -vE '\.exe$' | xargs cp -t .
+        - peldd test/commons_test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
         expire_in: 2h                   # do not pollute disk
         paths:
@@ -142,7 +142,7 @@ test:windows:x86_64:full:
     stage: test
     script:
         - cd build-windows-x86_64
-        - test\Commons_Test.exe             # runs gtest target
+        - test\commons_test.exe             # runs gtest target
     needs:
         - build:windows:x86_64:full
     tags:

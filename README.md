@@ -25,9 +25,9 @@ Provides common features used by multiple subprojects of ViaDuck.
 ## How to use
 ### Adding to project
 1. Add as git submodule `external/commons`
-2. In CMakeLists: `add_subdirectory(external/commons)` and link against `Commons`
+2. In CMakeLists: `add_subdirectory(external/commons)` and link against `commons`
 
-Note: In order to build `Commons` with only the base module, set `COMMONS_BASE_ONLY=ON`.
+Note: In order to build Commons with only the base module, set `COMMONS_BASE_ONLY=ON`.
 
 ### Usage
 - Add own enums, protocol or sqlite classes as definitions to `gen/` subdirectories
@@ -38,7 +38,7 @@ This library is subject to the GNU Lesser General Public License v3.0 (GNU
 LGPLv3).
 
 ```
-Copyright (C) 2015-2018  The ViaDuck Project
+Copyright (C) 2015-2023  The ViaDuck Project
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by

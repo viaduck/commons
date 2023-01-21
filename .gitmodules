@@ -1,9 +1,9 @@
 [submodule "external/openssl-cmake"]
 	path = external/openssl-cmake
 	url = ../../viaduck/openssl-cmake.git
-[submodule "external/securememory"]
-	path = external/securememory
-	url = ../../viaduck/securememory.git
+[submodule "external/secure_memory"]
+	path = external/secure_memory
+	url = ../../viaduck/secure_memory.git
 [submodule "external/flatbuffers"]
 	path = external/flatbuffers
 	url = https://github.com/google/flatbuffers.git

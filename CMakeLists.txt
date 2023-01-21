@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2021 The ViaDuck Project
+# Copyright (C) 2015-2023 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -16,10 +16,10 @@
 # along with Commons.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.1)
-project(Commons)
+project(commons)
 
 # add additional cmake modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/securememory/cmake-modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/secure_memory/cmake-modules")
 
 # python used to auto generate files
 find_package(PythonInterp 3.4 REQUIRED)
@@ -31,7 +31,7 @@ option(COMMONS_BASE_ONLY "Skip compiling network code" OFF)
 option(COMMONS_USE_LOCK_FREE_QUEUE "Enable lock-free instead of locking message queues" OFF)
 
 # externals
-add_subdirectory(external/securememory)
+add_subdirectory(external/secure_memory)
 
 # compile flatbuffers lib to support cross compilation
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -44,7 +44,7 @@ add_subdirectory(external/flatbuffers)
 add_subdirectory(gen)
 
 # create gen target
-gen_add(Commons ${CMAKE_CURRENT_SOURCE_DIR}/def/)
+gen_add(commons ${CMAKE_CURRENT_SOURCE_DIR}/def/)
 
 # collect files
 file(GLOB_RECURSE COMMONS_BASE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/commons/*.cpp)
@@ -59,54 +59,54 @@ set(COMMONS_NETWORK_FILES ${COMMONS_NETWORK_SOURCES} ${COMMONS_NETWORK_HEADERS})
 # this variable allows turning off all network and ssl dependencies
 if (COMMONS_BASE_ONLY)
     # create library target using only base files
-    add_library(Commons STATIC ${COMMONS_BASIC_FILES})
+    add_library(commons STATIC ${COMMONS_BASIC_FILES})
 else()
     if (NOT TARGET ssl)
         add_subdirectory(external/openssl-cmake)
     endif()
 
     # create library target with all features
-    add_library(Commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})
+    add_library(commons STATIC ${COMMONS_BASIC_FILES} ${COMMONS_NETWORK_FILES})
 
     # OpenSSL related options
     if (SYSTEM_OPENSSL)
-        target_compile_definitions(Commons PUBLIC COMMONS_SYSTEM_OPENSSL)
+        target_compile_definitions(commons PUBLIC COMMONS_SYSTEM_OPENSSL)
     endif()
 
     # OpenSSL API compatibility
-    target_compile_definitions(Commons PUBLIC OPENSSL_API_COMPAT=0x10100000L)
+    target_compile_definitions(commons PUBLIC OPENSSL_API_COMPAT=0x10100000L)
 
     # link to everything but the basics
-    target_link_libraries(Commons PUBLIC ssl crypto)
+    target_link_libraries(commons PUBLIC ssl crypto)
 
     # ntoh related stuff on windows needs winsock
     if (WIN32)
-        target_link_libraries(Commons PUBLIC ws2_32 crypt32)
+        target_link_libraries(commons PUBLIC ws2_32 crypt32)
     elseif(NOT ANDROID)
-        target_link_libraries(Commons PUBLIC Threads::Threads dl)
+        target_link_libraries(commons PUBLIC Threads::Threads dl)
     endif()
 
     # doxygen
     include(Doxygen)
     if (DOXYGEN_FOUND)
-        setup_doxygen(Commons_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+        setup_doxygen(commons_doc ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     endif()
 endif()
 
 # require and enable c++14 support
-set_target_properties(Commons PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
+set_target_properties(commons PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
 
 # tests
 add_subdirectory(test)
 
 # link to base dependencies in any case
-# and force a rebuild of Commons if one of the spec files changes
-target_link_libraries(Commons PUBLIC SecureMemory Commons_gen)
+# and force a rebuild of commons if one of the spec files changes
+target_link_libraries(commons PUBLIC secure_memory commons_gen)
 
 # export threading dependency because it is used in the header
-target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/concurrentqueue/)
+target_include_directories(commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/concurrentqueue/)
 
 # export the basic includes and compile options in any case
-target_include_directories(Commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
-target_compile_options(Commons PUBLIC -Wall -Wextra)
-target_compile_definitions(Commons PUBLIC -DCOMMONS_USE_LOCK_FREE_QUEUE=$<BOOL:${COMMONS_USE_LOCK_FREE_QUEUE}>)
+target_include_directories(commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+target_compile_options(commons PUBLIC -Wall -Wextra)
+target_compile_definitions(commons PUBLIC -DCOMMONS_USE_LOCK_FREE_QUEUE=$<BOOL:${COMMONS_USE_LOCK_FREE_QUEUE}>)
