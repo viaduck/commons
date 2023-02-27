@@ -110,6 +110,10 @@ TEST_F(ContainerTest, Malformed) {
 
 TEST_F(ContainerTest, Serialize) {
     VarMsg msg, omsg;
+    msg.testFuture().first(5);
+    msg.testFuture2().second(8);
+    msg.testFutureEx().first(22);
+    msg.testFutureEx2().second(42);
     msg.this_is_a_cool_property(123);
     msg.bufVar().append("abc", 3);
     msg.bufVar2().append("defgh", 5);
@@ -121,6 +125,10 @@ TEST_F(ContainerTest, Serialize) {
     msg.serialize(out);
     ASSERT_TRUE(omsg.deserialize(out));
 
+    EXPECT_EQ(5u, omsg.testFuture().first());
+    EXPECT_EQ(8u, omsg.testFuture2().second());
+    EXPECT_EQ(22u, omsg.testFutureEx().first());
+    EXPECT_EQ(42u, omsg.testFutureEx2().second());
     EXPECT_EQ(123u, omsg.this_is_a_cool_property());
     EXPECT_EQ(3u, omsg.bufVar().size());
     EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);

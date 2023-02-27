@@ -1,14 +1,15 @@
 import bit/test/TestField.btx
 import enum/test/TestEnum.the
 
-~TestField   testField
-uint32_t    first
-uint8_t     second
-~TestEnum    myTestEnum
-~uint16_t    third
-bytes       fourth
-uint16_t    fifth
-~uint32_t[]  myVector
+~TestField          testField
+virtual uint32_t    first
+uint8_t             second
+~TestEnum           myTestEnum
+~uint16_t           third
+bytes               fourth
+uint16_t            fifth
+~uint32_t[]         myVector
+virtual bytes[]     myByteArray
 
-TestField   newField
-TestEnum    newEnum
+TestField           newField
+virtual TestEnum    newEnum

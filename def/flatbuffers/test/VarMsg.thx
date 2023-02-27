@@ -1,16 +1,22 @@
 import bit/test/TestField.btx
+import flatbuffers/test/TestFuture.thx
+from base/TestFutureExtended.h import TestFutureExtended
 
-TestField   testField
-uint32_t    version
-uint8_t     first
-uint16_t    second
-bytes       buf
-uint16_t    third
-bytes(11)   bufFixed
-bytes       bufVar
-bytes       bufVar2
-bytes       bufVarMedium
-bytes       bufVarBig
-uint32_t    this_is_a_cool_property
-uint16_t[]  some_vector
-bytes[]     some_vector_of_bytes
+virtual TestField           testField
+virtual TestFuture          testFuture
+TestFuture                  testFuture2
+virtual TestFutureExtended  testFutureEx
+TestFutureExtended          testFutureEx2
+uint32_t                    version
+uint8_t                     first
+uint16_t                    second
+bytes                       buf
+uint16_t                    third
+bytes(11)                   bufFixed
+bytes                       bufVar
+bytes                       bufVar2
+bytes                       bufVarMedium
+bytes                       bufVarBig
+uint32_t                    this_is_a_cool_property
+virtual uint16_t[]          some_vector
+bytes[]                     some_vector_of_bytes

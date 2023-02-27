@@ -40,15 +40,15 @@ comment_pattern = r"\s*(?:#.*)?$"
 
 
 class CogBase:
-    _first_comma = True
+    _first_element = True
 
     def out(self, s, **kwargs):
         cog.out(s.format(**dict(vars(self), **kwargs)))
 
-    def lout(self, s, **kwargs):
+    def lout(self, s, sep=", ", **kwargs):
         # list out - output comma
-        cog.out("" if CogBase._first_comma else ", ")
-        CogBase._first_comma = False
+        cog.out("" if CogBase._first_element else sep)
+        CogBase._first_element = False
         self.out(s, **kwargs)
 
     def outl(self, s, **kwargs):
@@ -60,7 +60,7 @@ class CogBase:
 
     @staticmethod
     def reset_list():
-        CogBase._first_comma = True
+        CogBase._first_element = True
 
 
 class DefBase:
