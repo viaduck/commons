@@ -10,3 +10,6 @@
 [submodule "external/concurrentqueue"]
 	path = external/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json.git

@@ -20,3 +20,4 @@ bytes                       bufVarBig
 uint32_t                    this_is_a_cool_property
 virtual uint16_t[]          some_vector
 bytes[]                     some_vector_of_bytes
+json                        someJson

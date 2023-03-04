@@ -1,5 +1,5 @@
 import copy
-# Copyright (C) 2018 The ViaDuck Project
+# Copyright (C) 2023 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -144,6 +144,17 @@ flatbuffers_type = {
         "flatbuffers::String",
         "_{name}.empty() ? 0 : fbb.CreateString(_{name})",
         "if (ptr->{name}()) _{name} = ptr->{name}()->str()",
+    "json": FlatbuffersTypeDef(
+        "json", "string", "",
+        "nlohmann::json", "nlohmann::json &",
+        "flatbuffers::String",
+        "_{name}.empty() ? 0 : fbb.CreateString(_{name}.dump())",
+        "if (ptr->{name}())\n"
+        "    _{name} = nlohmann::json::parse(ptr->{name}()->str());\n"
+        "if (_{name}.type() == nlohmann::json::value_t::discarded) {{\n"
+        "    missing = 0;\n"
+        "    return false;\n"
+        "}}",
         "_{name}.clear()", "_{name}.empty()"),
     "bool": FlatbuffersTypeDef("bool", "bool", "false"),
     "int8_t": FlatbuffersTypeDef("int8_t", "int8"),

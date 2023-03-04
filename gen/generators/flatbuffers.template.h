@@ -28,12 +28,15 @@
 ]]]
 [[[end]]]
 
+#include <commons/Bitfield.h>
+
 #include <secure_memory/ISerializable.h>
 #include <secure_memory/Buffer.h>
 #include <secure_memory/Range.h>
 #include <secure_memory/conversions.h>
-#include <commons/Bitfield.h>
+
 #include <flatbuffers/flatbuffers.h>
+#include <nlohmann/json.hpp>
 
 #include <cstring>
 

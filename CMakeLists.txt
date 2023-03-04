@@ -33,6 +33,9 @@ option(COMMONS_USE_LOCK_FREE_QUEUE "Enable lock-free instead of locking message 
 # externals
 add_subdirectory(external/secure_memory)
 
+# json
+add_subdirectory(external/json)
+
 # compile flatbuffers lib to support cross compilation
 set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(FLATBUFFERS_INSTALL OFF CACHE BOOL "" FORCE)
@@ -101,7 +104,7 @@ add_subdirectory(test)
 
 # link to base dependencies in any case
 # and force a rebuild of commons if one of the spec files changes
-target_link_libraries(commons PUBLIC secure_memory commons_gen)
+target_link_libraries(commons PUBLIC secure_memory commons_gen nlohmann_json)
 
 # export threading dependency because it is used in the header
 target_include_directories(commons PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/concurrentqueue/)

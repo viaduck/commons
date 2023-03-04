@@ -109,6 +109,15 @@ TEST_F(ContainerTest, Malformed) {
 }
 
 TEST_F(ContainerTest, Serialize) {
+    nlohmann::json testJson = {
+        {"a", 1234},
+        {"b", 1234},
+        {"c", {
+            {"q1234/#´12", "kasjkaslj"},
+            {"a", "123"},
+          }},
+    };
+
     VarMsg msg, omsg;
     msg.testFuture().first(5);
     msg.testFuture2().second(8);
@@ -120,6 +129,7 @@ TEST_F(ContainerTest, Serialize) {
     msg.bufFixed().append("12345678901", 11);
     msg.some_vector({1, 2, 3, 4});
     msg.some_vector_of_bytes({Buffer("123", 3), Buffer("456", 3)});
+    msg.someJson() = testJson;
 
     Buffer out;
     msg.serialize(out);
@@ -141,6 +151,7 @@ TEST_F(ContainerTest, Serialize) {
     EXPECT_EQ(4u, omsg.some_vector()[3]);
     EXPECT_EQ(Buffer("123", 3), omsg.some_vector_of_bytes()[0]);
     EXPECT_EQ(Buffer("456", 3), omsg.some_vector_of_bytes()[1]);
+    EXPECT_EQ(testJson, omsg.someJson());
 }
 
 TEST_F(ContainerTest, Evolve) {
