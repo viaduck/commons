@@ -17,7 +17,7 @@ bytes                       bufVar
 bytes                       bufVar2
 bytes                       bufVarMedium
 bytes                       bufVarBig
-uint32_t                    this_is_a_cool_property
-virtual uint16_t[]          some_vector
-bytes[]                     some_vector_of_bytes
+uint32_t                    thisIsACoolProperty
+virtual uint16_t[]          someVector
+bytes[]                     someVectorOfBytes
 json                        someJson

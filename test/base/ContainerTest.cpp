@@ -123,12 +123,12 @@ TEST_F(ContainerTest, Serialize) {
     msg.testFuture2().second(8);
     msg.testFutureEx().first(22);
     msg.testFutureEx2().second(42);
-    msg.this_is_a_cool_property(123);
+    msg.thisIsACoolProperty(123);
     msg.bufVar().append("abc", 3);
     msg.bufVar2().append("defgh", 5);
     msg.bufFixed().append("12345678901", 11);
-    msg.some_vector({1, 2, 3, 4});
-    msg.some_vector_of_bytes({Buffer("123", 3), Buffer("456", 3)});
+    msg.someVector({1, 2, 3, 4});
+    msg.someVectorOfBytes({Buffer("123", 3), Buffer("456", 3)});
     msg.someJson() = testJson;
 
     Buffer out;
@@ -139,18 +139,18 @@ TEST_F(ContainerTest, Serialize) {
     EXPECT_EQ(8u, omsg.testFuture2().second());
     EXPECT_EQ(22u, omsg.testFutureEx().first());
     EXPECT_EQ(42u, omsg.testFutureEx2().second());
-    EXPECT_EQ(123u, omsg.this_is_a_cool_property());
+    EXPECT_EQ(123u, omsg.thisIsACoolProperty());
     EXPECT_EQ(3u, omsg.bufVar().size());
     EXPECT_ARRAY_EQ(const uint8_t, "abc", omsg.bufVar().const_data(), 3);
     EXPECT_EQ(5u, omsg.bufVar2().size());
     EXPECT_ARRAY_EQ(const uint8_t, "defgh", omsg.bufVar2().const_data(), 5);
-    EXPECT_EQ(4u, omsg.some_vector().size());
-    EXPECT_EQ(1u, omsg.some_vector()[0]);
-    EXPECT_EQ(2u, omsg.some_vector()[1]);
-    EXPECT_EQ(3u, omsg.some_vector()[2]);
-    EXPECT_EQ(4u, omsg.some_vector()[3]);
-    EXPECT_EQ(Buffer("123", 3), omsg.some_vector_of_bytes()[0]);
-    EXPECT_EQ(Buffer("456", 3), omsg.some_vector_of_bytes()[1]);
+    EXPECT_EQ(4u, omsg.someVector().size());
+    EXPECT_EQ(1u, omsg.someVector()[0]);
+    EXPECT_EQ(2u, omsg.someVector()[1]);
+    EXPECT_EQ(3u, omsg.someVector()[2]);
+    EXPECT_EQ(4u, omsg.someVector()[3]);
+    EXPECT_EQ(Buffer("123", 3), omsg.someVectorOfBytes()[0]);
+    EXPECT_EQ(Buffer("456", 3), omsg.someVectorOfBytes()[1]);
     EXPECT_EQ(testJson, omsg.someJson());
 }
 

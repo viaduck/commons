@@ -207,6 +207,7 @@ public:
         [[[cog
             for elem in f_def.elements:
                 if "embedded" in elem.setter and not elem.is_virtual:
+                    elem.outl("// pre-serialize {name}")
                     elem.outl(elem.base_type.pre_pack + "\n")
         ]]]
         [[[end]]]
@@ -218,6 +219,7 @@ public:
 
                 for elem in f_def.elements:
                     elem.outl(",")
+                    elem.outl("// serialize {name}")
                     elem.out(elem.base_type.pack)
 
                 f_def.out(")")
@@ -282,23 +284,25 @@ public:
                            "auto ptr = flatbuffers::GetSizePrefixedRoot<internal::{name}>(in);\n")
 
                 for elem in f_def.elements:
-                    elem.outl(elem.base_type.unpack + ";")
+                    elem.outl("// deserialize {name}")
+                    elem.outl(elem.base_type.unpack + ";\n")
 
-                f_def.outl("")
+                f_def.outl("// post-deserialization hooks\n")
 
                 for elem in f_def.elements:
                     if elem.is_virtual:
                         elem.outl("deserialize_{pub_name}();")
 
-                f_def.outl("")
+                f_def.outl("\n// size checks\n")
 
                 # size check
                 for elem in f_def.elements:
                     if elem.size > 0:
+                        elem.outl("// checking {name} size")
                         elem.outl("if (!{pub_name}().empty() && {pub_name}().size() != {size}) {{\n"
                                   "    missing = 0;\n"
                                   "    return false;\n"
-                                  "}}")
+                                  "}}\n")
 
                 f_def.outl("(void)unused;")
         ]]]

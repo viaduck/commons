@@ -106,7 +106,7 @@ class FlatbuffersVectorTypeDef(FlatbuffersTypeDef):
             "std::vector<"+base_type.member_type+">", "std::vector<"+base_type.member_type+"> &",
             "flatbuffers::Vector<"+base_v_type+">",
             "_{name}.empty() ? 0 : "+create_type,
-            "if (ptr->{name}()) for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
+            "if (ptr->{name}())\n    for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
             "_{name}.clear()",
             "_{name}.empty()"
         )
@@ -136,14 +136,17 @@ flatbuffers_type = {
         "Buffer", "Buffer &",
         "flatbuffers::Vector<uint8_t>",
         "_{name}.empty() ? 0 : fbb.CreateVector(_{name}.const_data(), _{name}.size())",
-        "if (ptr->{name}()) _{name}.write(ptr->{name}()->Data(), ptr->{name}()->size(), 0)",
+        "if (ptr->{name}())\n"
+        "    _{name}.write(ptr->{name}()->Data(), ptr->{name}()->size(), 0)",
         "_{name}.clear()", "_{name}.empty()"),
     "string": FlatbuffersTypeDef(
         "string", "string", "",
         "std::string", "std::string &",
         "flatbuffers::String",
         "_{name}.empty() ? 0 : fbb.CreateString(_{name})",
-        "if (ptr->{name}()) _{name} = ptr->{name}()->str()",
+        "if (ptr->{name}())\n"
+        "    _{name} = ptr->{name}()->str()",
+        "_{name}.clear()", "_{name}.empty()"),
     "json": FlatbuffersTypeDef(
         "json", "string", "",
         "nlohmann::json", "nlohmann::json &",
