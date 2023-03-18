@@ -173,7 +173,7 @@ TEST_F(ContainerTest, Evolve) {
     EXPECT_ARRAY_EQ(const uint8_t, "asdf", future.fourth().const_data(), 4);
     EXPECT_EQ(901u, future.fifth());
     EXPECT_EQ(TestEnum::VALUE_1, future.newEnum());
-    EXPECT_EQ(0u, future.newFieldValue());
+    EXPECT_EQ(0u, future.newField().value());
 }
 
 TEST_F(ContainerTest, Bit) {
@@ -235,10 +235,9 @@ TEST_F(ContainerTest, Enum) {
     msg.myTestEnum(TestEnum::VALUE_INVALID);
     EXPECT_EQ(TestEnum::VALUE_INVALID, msg.myTestEnum());
 
-    const int val = static_cast<uint16_t>(TestEnum::VALUE_INVALID)+2;
-    msg.myTestEnum(val);
+    msg.myTestEnum(static_cast<TestEnum>(static_cast<uint16_t>(TestEnum::VALUE_INVALID)+2));
     EXPECT_EQ(TestEnum::VALUE_INVALID, msg.myTestEnum());
 
-    msg.myTestEnum(static_cast<uint16_t>(TestEnum::VALUE_X55));
+    msg.myTestEnum(TestEnum::VALUE_X55);
     EXPECT_EQ(TestEnum::VALUE_X55, msg.myTestEnum());
 }

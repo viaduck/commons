@@ -39,11 +39,11 @@
 public:
     // constructors
     [[[cog
-        # ctr with existing field
-        b_def.outl("explicit {name}({type} field = 0) : mField(field) {{ }}\n")
+        # default ctr
+        b_def.outl("{name}() : {name}(0) {{ }}\n")
 
-        # copy ctr
-        b_def.outl("{name}(const {name} &other) : mField(other.mField) {{ }}\n")
+        # ctr with existing field
+        b_def.outl("explicit {name}({type} field) : mField(field) {{ }}\n")
 
         # ctr with new field, set args
         b_def.out("{name}(")

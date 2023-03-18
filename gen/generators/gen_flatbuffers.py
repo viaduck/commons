@@ -51,147 +51,162 @@ def convert_case(string):
     return case_matcher_ltu.sub(r'\1_\2', string).lower()
 
 
-class FlatbuffersTypeDef:
-    def __init__(self, t_name, fbs_type, default="0", m_type=None, r_type=None, v_type=None, pack=None, unpack=None,
-                 reset=None, empty_check=None):
+class FlatbuffersType:
+    def __init__(self, t_name, fbs_type, **kwargs):
         """
         :param t_name: Name of fbx type. This type is used in fbx definitions.
         :param fbs_type: Name of fbs base type. This type is used in internal fbs definition.
         :param default: Default value of this type.
-        :param v_type: Virtual type. This type is the one used by flatbuffers in Offset<...> templates.
-        Defaults to t_name.
         :param m_type: Member type. This type is used in C++ members to save this type into. Defaults to t_name.
         :param r_type: Reference type. This type is used when a C++ mutable reference to this type is needed. Defaults
         to t_name.
+        :param v_type: Virtual type. This type is the one used by flatbuffers in Offset<...> templates.
+        Defaults to t_name.
         :param pack: C++ expression used to "pack" this type and serialize its value. Defaults to returning the member
         variable.
         :param unpack: C++ expression used to "unpack" this type and deserialize its value. Defaults to assigning to
         the member variable.
         :param reset: C++ expression used to "reset" (i.e. clean) the member variable. Defaults to assigning the
         default to the member variable.
-        :param empty_check: C++ expression used to check if member variable is "empty" (i.e. unset from default ctor).
+        :param e_check: C++ expression used to check if member variable is "empty" (i.e. unset from default ctor).
         Defaults to comparing the member variable to its default value.
         """
         # usual types
         self.type_name = t_name
         self.fbs_type = fbs_type
-        self.default = default
-        self.member_type = t_name if m_type is None else m_type
+        self.member_type = kwargs.get("m_type", t_name)
 
         # reference types
-        self.is_ref = r_type is not None
-        self.ref_type = t_name if r_type is None else "const " + r_type
-        self.ref_mod_type = r_type
+        self.is_ref = bool(kwargs.get("is_ref", False))
+        self.ref_mod_type = self.member_type + " &" if self.is_ref else t_name
+        self.ref_type = "const " + self.ref_mod_type if self.is_ref else t_name
+        self.default = kwargs.get("default", "{}" if self.is_ref else "0")
 
         # virtual types
-        v_type = t_name if v_type is None else v_type
+        v_type = kwargs.get("v_type", t_name)
         self.v_type = "flatbuffers::Offset<"+v_type+">" if self.is_ref else v_type
 
         # (un)pack
-        self.pack = "_{name}" if pack is None else pack
-        self.unpack = "_{name} = ptr->{name}()" if unpack is None else unpack
-        self.reset = ("_{name} = " + default) if reset is None else reset
+        self.assign = kwargs.get("assign", "v")
+        self.pack = kwargs.get("pack", "_{name}")
+        self.unpack = kwargs.get("unpack", "_{name} = ptr->{name}()")
+        self.reset = kwargs.get("reset", "_{name} = " + self.default)
 
-        # misc
-        self.empty_check = "_{name} == " + default if empty_check is None else empty_check
+        # empty
+        self.e_check = kwargs.get("e_check", "_{name} == " + self.default)
 
 
-class FlatbuffersVectorTypeDef(FlatbuffersTypeDef):
-    def __init__(self, t_name, fbs_type=None, base_for_v=None, create_type="fbb.CreateVector(_{name})", load_type="i"):
-        base_type = flatbuffers_type[t_name]
-        base_v_type = base_type.v_type if not base_for_v else flatbuffers_type[base_for_v].v_type
+class FlatbuffersWrappedType(FlatbuffersType):
+    def __init__(self, t_name, base_t_name, **kwargs):
+        self.base_type = copy.deepcopy(flatbuffers_type[base_t_name])
 
         super().__init__(
-            t_name + "[]", "", "",
-            "std::vector<"+base_type.member_type+">", "std::vector<"+base_type.member_type+"> &",
-            "flatbuffers::Vector<"+base_v_type+">",
-            "_{name}.empty() ? 0 : "+create_type,
-            "if (ptr->{name}())\n    for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
-            "_{name}.clear()",
-            "_{name}.empty()"
+            t_name, self.base_type.fbs_type,
+            v_type=self.base_type.v_type,
+            **kwargs
         )
 
-        self.fbs_type = "[" + base_type.fbs_type + "]" if fbs_type is None else fbs_type
+
+class FlatbuffersVectorType(FlatbuffersType):
+    def __init__(self, t_name, **kwargs):
+        self.base_type = copy.deepcopy(flatbuffers_type[t_name])
+
+        base_v_type = flatbuffers_type[kwargs["v_base"]].v_type if "v_base" in kwargs else self.base_type.v_type
+        create_type = kwargs["c_type"] if "c_type" in kwargs else "fbb.CreateVector(_{name})"
+        fbs_type = kwargs["fbs_type"] if "fbs_type" in kwargs else "[" + self.base_type.fbs_type + "]"
+        load_type = kwargs["l_type"] if "l_type" in kwargs else "i"
+
+        super().__init__(
+            t_name + "[]", fbs_type,
+            m_type="std::vector<"+self.base_type.member_type+">", is_ref=True,
+            v_type="flatbuffers::Vector<"+base_v_type+">",
+            pack="_{name}.empty() ? 0 : "+create_type,
+            unpack="if (ptr->{name}())\n    for (auto i : *ptr->{name}()) _{name}.push_back("+load_type+")",
+            reset="_{name}.clear()",
+            e_check="_{name}.empty()"
+        )
 
 
-class FlatbuffersEmbeddedTypeDef(FlatbuffersTypeDef):
+class FlatbuffersEmbeddedType(FlatbuffersType):
     def __init__(self, t_name):
         super().__init__(
-            t_name, "[ubyte]", "",
-            None, t_name + " &",
-            "flatbuffers::Vector<uint8_t>",
-            "{name}_packed.empty() ? 0 : fbb.CreateVector({name}_packed.const_data(), {name}_packed.size())",
-            "if (ptr->{name}() && !_{name}.deserialize(ptr->{name}()->Data(), ptr->{name}()->size(), unused))\n"
+            t_name, "[ubyte]", is_ref=True,
+            v_type="flatbuffers::Vector<uint8_t>",
+            pack="{name}_packed.empty() ? 0 : fbb.CreateVector({name}_packed.const_data(), {name}_packed.size())",
+            unpack="if (ptr->{name}() && !_{name}.deserialize(ptr->{name}()->Data(), ptr->{name}()->size(), unused))\n"
             "    return false",
-            "_{name}.clear()",
-            "_{name}.empty()",
+            reset="_{name}.clear()",
+            e_check="_{name}.empty()",
         )
 
         self.pre_pack = "Buffer {name}_packed;\n_{name}.serialize({name}_packed);"
 
 
 flatbuffers_type = {
-    "bytes": FlatbuffersTypeDef(
-        "bytes", "[ubyte]", "",
-        "Buffer", "Buffer &",
-        "flatbuffers::Vector<uint8_t>",
-        "_{name}.empty() ? 0 : fbb.CreateVector(_{name}.const_data(), _{name}.size())",
-        "if (ptr->{name}())\n"
+    "bytes": FlatbuffersType(
+        "bytes", "[ubyte]",
+        m_type="Buffer", is_ref=True,
+        v_type="flatbuffers::Vector<uint8_t>",
+        pack="_{name}.empty() ? 0 : fbb.CreateVector(_{name}.const_data(), _{name}.size())",
+        unpack="if (ptr->{name}())\n"
         "    _{name}.write(ptr->{name}()->Data(), ptr->{name}()->size(), 0)",
-        "_{name}.clear()", "_{name}.empty()"),
-    "string": FlatbuffersTypeDef(
-        "string", "string", "",
-        "std::string", "std::string &",
-        "flatbuffers::String",
-        "_{name}.empty() ? 0 : fbb.CreateString(_{name})",
-        "if (ptr->{name}())\n"
+        reset="_{name}.clear()",
+        e_check="_{name}.empty()"),
+    "string": FlatbuffersType(
+        "string", "string",
+        default="\"\"",
+        m_type="std::string", is_ref=True,
+        v_type="flatbuffers::String",
+        pack="_{name}.empty() ? 0 : fbb.CreateString(_{name})",
+        unpack="if (ptr->{name}())\n"
         "    _{name} = ptr->{name}()->str()",
-        "_{name}.clear()", "_{name}.empty()"),
-    "json": FlatbuffersTypeDef(
-        "json", "string", "",
-        "nlohmann::json", "nlohmann::json &",
-        "flatbuffers::String",
-        "_{name}.empty() ? 0 : fbb.CreateString(_{name}.dump())",
-        "if (ptr->{name}())\n"
+        reset="_{name}.clear()",
+        e_check="_{name}.empty()"),
+    "json": FlatbuffersType(
+        "json", "string",
+        m_type="nlohmann::json", is_ref=True,
+        v_type="flatbuffers::String",
+        pack="_{name}.empty() ? 0 : fbb.CreateString(_{name}.dump())",
+        unpack="if (ptr->{name}())\n"
         "    _{name} = nlohmann::json::parse(ptr->{name}()->str());\n"
         "if (_{name}.type() == nlohmann::json::value_t::discarded) {{\n"
         "    missing = 0;\n"
         "    return false;\n"
         "}}",
-        "_{name}.clear()", "_{name}.empty()"),
-    "bool": FlatbuffersTypeDef("bool", "bool", "false"),
-    "int8_t": FlatbuffersTypeDef("int8_t", "int8"),
-    "uint8_t": FlatbuffersTypeDef("uint8_t", "uint8"),
-    "int16_t": FlatbuffersTypeDef("int16_t", "int16"),
-    "uint16_t": FlatbuffersTypeDef("uint16_t", "uint16"),
-    "int32_t": FlatbuffersTypeDef("int32_t", "int32"),
-    "uint32_t": FlatbuffersTypeDef("uint32_t", "uint32"),
-    "int64_t": FlatbuffersTypeDef("int64_t", "int64"),
-    "uint64_t": FlatbuffersTypeDef("uint64_t", "uint64"),
+        reset="_{name}.clear()",
+        e_check="_{name}.empty()"),
+    "bool": FlatbuffersType("bool", "bool", default="false"),
+    "int8_t": FlatbuffersType("int8_t", "int8"),
+    "uint8_t": FlatbuffersType("uint8_t", "uint8"),
+    "int16_t": FlatbuffersType("int16_t", "int16"),
+    "uint16_t": FlatbuffersType("uint16_t", "uint16"),
+    "int32_t": FlatbuffersType("int32_t", "int32"),
+    "uint32_t": FlatbuffersType("uint32_t", "uint32"),
+    "int64_t": FlatbuffersType("int64_t", "int64"),
+    "uint64_t": FlatbuffersType("uint64_t", "uint64"),
 }
 for el_name, el_type in dict(flatbuffers_type).items():
     t_vec = None
 
     if not el_type.is_ref:
-        t_vec = FlatbuffersVectorTypeDef(el_name)
+        t_vec = FlatbuffersVectorType(el_name)
     elif el_name == "string":
-        t_vec = FlatbuffersVectorTypeDef(
-            el_name, None,
-            "string", "fbb.CreateVectorOfStrings(_{name})",
-            "i->str()")
+        t_vec = FlatbuffersVectorType(
+            el_name, v_base="string",
+            c_type="fbb.CreateVectorOfStrings(_{name})", l_type="i->str()")
     elif el_name == "bytes":
-        t_vec = FlatbuffersVectorTypeDef(
-            el_name, "[string]",
-            "string", "CreateVectorOfBuffers(fbb, _{name})",
-            "Buffer(i->data(), i->size())")
+        t_vec = FlatbuffersVectorType(
+            el_name, fbs_type="[string]", v_base="string",
+            c_type="CreateVectorOfBuffers(fbb, _{name})", l_type="Buffer(i->data(), i->size())")
 
     if t_vec is not None:
         flatbuffers_type[t_vec.type_name] = t_vec
 
 
-class FlatbuffersType(CogBase):
+class FlatbuffersElement(CogBase):
     def __init__(self, elem_type, elem_name, elem_size=0):
-        self.base_type = flatbuffers_type[elem_type] if elem_type is not None else None
+        self.base_type = elem_type if isinstance(elem_type, FlatbuffersType) \
+            else copy.deepcopy(flatbuffers_type[elem_type])
         self.pub_name = elem_name
         self.name = convert_case(elem_name)
         self.size = elem_size
@@ -215,57 +230,53 @@ class FlatbuffersType(CogBase):
         return self.name + ":" + self.base_type.fbs_type + depr + ";"
 
 
-class FlatbuffersEnumType(FlatbuffersType):
+class FlatbuffersEnumElement(FlatbuffersElement):
     def __init__(self, elem_type, elem_name, e_def):
-        super().__init__(e_def.type, elem_name)
-
-        # enum specifics
-        self.wrap_type = elem_type
-        self.set_wrap_type = elem_type
-        self.wrap_to_type = "to{wrap_type}(_{name})"
-        self.wrap_from_type = "toInt(v)"
-        self.getter = ["type_wrap"]
-        self.setter.append("type_wrap")
+        super().__init__(FlatbuffersWrappedType(
+            elem_type, e_def.type, default="{base_type.type_name}::VALUE_INVALID",
+            assign="to{base_type.type_name}(toInt(v))",
+            pack="toInt(_{name})",
+            unpack="_{name} = to{base_type.type_name}(ptr->{name}())"
+        ), elem_name)
 
 
-class FlatbuffersBitType(FlatbuffersType):
+class FlatbuffersBitElement(FlatbuffersElement):
     def __init__(self, elem_type, elem_name, b_def):
-        super().__init__(b_def.type, elem_name)
+        super().__init__(FlatbuffersWrappedType(
+            elem_type, b_def.type, is_ref=True,
+            pack="_{name}.value()",
+            unpack="_{name}.value(ptr->{name}())",
+            reset="_{name}.value(0)",
+            e_check="_{name}.value() == 0"
+        ), elem_name)
 
-        # bitfield specifics
-        self.wrap_type = elem_type
-        self.set_wrap_type = "const " + elem_type + " &"
-        self.wrap_to_type = "{wrap_type}(_{name})"
-        self.wrap_from_type = "v.value()"
-        self.getter = ["type_wrap"]
-        self.setter.append("type_wrap")
+        # workaround for this semi-ref type
+        self.base_type.v_type = self.base_type.base_type.type_name
 
 
-class FlatbuffersEmbeddedType(FlatbuffersType):
+class FlatbuffersEmbeddedElement(FlatbuffersElement):
     def __init__(self, elem_name, base_type):
         super().__init__("bytes", elem_name)
 
-        self.base_type = base_type
+        self.base_type = copy.deepcopy(base_type)
         self.setter = ["basic", "embedded"]
 
 
-def virtualize_type(f_type):
+def virtualize_element(f_elem):
     # triggers generation of virtual serialize_{name} and deserialize_{name} functions
-    f_type.is_virtual = True
+    f_elem.is_virtual = True
 
-    # copy base_type before modifying it to avoid affecting other types with same base_type
-    f_type.base_type = copy.deepcopy(f_type.base_type)
     # switch pack to vpack and instead call serialize_{name} to pack
-    f_type.base_type.vpack = f_type.base_type.pack
-    f_type.base_type.pack = "serialize_{pub_name}(fbb)"
+    f_elem.base_type.vpack = f_elem.base_type.pack
+    f_elem.base_type.pack = "serialize_{pub_name}(fbb)"
 
-    return f_type
+    return f_elem
 
 
 class FlatbuffersCustomDef:
     def __init__(self, c_name, c_path):
         self.name = c_name
-        self.type = FlatbuffersEmbeddedTypeDef(c_name)
+        self.type = FlatbuffersEmbeddedType(c_name)
         self.import_path = c_path
 
 
@@ -290,7 +301,7 @@ class FlatbuffersDef(DefBase, CogBase):
         self.fbs.append("root_type " + self.name + ";")
 
         # for flatbuffers imports
-        self.type = FlatbuffersEmbeddedTypeDef(self.name)
+        self.type = FlatbuffersEmbeddedType(self.name)
         self.import_path = splitext(filename)[0] + ".h"
 
         # write to fbs file
@@ -345,16 +356,16 @@ class FlatbuffersDef(DefBase, CogBase):
 
             # handle enum or bitfield types
             if elem_type in enum_types:
-                result = FlatbuffersEnumType(elem_type, elem_name, enum_types[elem_type])
+                result = FlatbuffersEnumElement(elem_type, elem_name, enum_types[elem_type])
             elif elem_type in bit_types:
-                result = FlatbuffersBitType(elem_type, elem_name, bit_types[elem_type])
+                result = FlatbuffersBitElement(elem_type, elem_name, bit_types[elem_type])
             elif elem_type in flatbuffers_types:
-                result = FlatbuffersEmbeddedType(elem_name, flatbuffers_types[elem_type].type)
+                result = FlatbuffersEmbeddedElement(elem_name, flatbuffers_types[elem_type].type)
             else:
-                result = FlatbuffersType(elem_type, elem_name, elem_size)
+                result = FlatbuffersElement(elem_type, elem_name, elem_size)
 
             if is_virt:
-                result = virtualize_type(result)
+                result = virtualize_element(result)
 
             # add to fbs with deprecation info
             self.fbs.append(result.fbs_line(is_depr))

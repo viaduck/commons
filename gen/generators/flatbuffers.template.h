@@ -71,13 +71,10 @@ public:
 
         # arguments ctor if arguments exist
         if len(f_def.elements) > 0:
-            f_def.out("{name}(")
+            f_def.out("explicit {name}(")
             f_def.reset_list()
             for elem in f_def.elements:
-                if "type_wrap" in elem.setter:
-                    elem.lout("{set_wrap_type} __{name}")
-                else:
-                    elem.lout("{base_type.ref_type} __{name}")
+                elem.lout("{base_type.ref_type} __{name}" + ("" if f_def.is_list_first() else " = {base_type.default}"))
             f_def.outl(") {{")
             for elem in f_def.elements:
                 elem.outl("    {pub_name}(__{name});")
@@ -85,12 +82,10 @@ public:
 
         # arguments ctor with ranges if buffer exist
         if sum(1 for elem in f_def.elements if "bytes" in elem.setter) > 0:
-            f_def.out("{name}(")
+            f_def.out("explicit {name}(")
             f_def.reset_list()
             for elem in f_def.elements:
-                if "type_wrap" in elem.setter:
-                    elem.lout("{set_wrap_type} __{name}")
-                elif "bytes" in elem.setter:
+                if "bytes" in elem.setter:
                     elem.lout("const BufferRangeConst &__{name}")
                 else:
                     elem.lout("{base_type.ref_type} __{name}")
@@ -101,7 +96,7 @@ public:
 
         # virtual dtor if virtual fields exist
         if sum(1 for elem in f_def.elements if elem.is_virtual) > 0:
-            f_def.outl("virtual ~{name}() = default;")
+            f_def.outl("virtual ~{name}() = default;\n")
 
         for elem in f_def.elements:
             # getters
@@ -109,23 +104,12 @@ public:
                 elem.outl("inline {base_type.ref_type} {pub_name}() const {{\n"
                           "    return _{name};\n"
                           "}}")
-            if "type_wrap" in elem.getter:
-                elem.outl("inline {base_type.ref_type} {pub_name}Value() const {{\n"
-                          "    return _{name};\n"
-                          "}}")
-                elem.outl("inline {wrap_type} {pub_name}() const {{\n"
-                          "    return " + elem.wrap_to_type + ";\n"
-                          "}}")
 
             # setters
             if "basic" in elem.setter:
-                elem.outl("inline void {pub_name}({base_type.ref_type} v) {{\n"
-                          "    _{name} = v;\n"
-                          "}}")
-            if "type_wrap" in elem.setter:
-                elem.outl("inline void {pub_name}({set_wrap_type} v) {{\n"
-                          "    _{name} = " + elem.wrap_from_type + ";\n"
-                          "}}")
+                elem.outl("inline void {pub_name}({base_type.ref_type} v) {{{{\n"
+                          "    _{name} = {base_type.assign};\n"
+                          "}}}}")
             if "bytes" in elem.setter:
                 elem.outl("inline void {pub_name}(const uint8_t *v, uint32_t size) {{\n"
                           "    _{name}.clear();\n"
@@ -160,9 +144,7 @@ public:
         f_def.out("void set(")
         f_def.reset_list()
         for elem in f_def.elements:
-            if "type_wrap" in elem.setter:
-                elem.lout("{set_wrap_type} {name}_")
-            elif "basic" in elem.setter or "bytes" in elem.setter:
+            if "basic" in elem.setter or "bytes" in elem.setter:
                 elem.lout("{base_type.ref_type} {name}_")
         f_def.outl(") {{")
 
@@ -181,7 +163,7 @@ public:
 
                 f_def.reset_list()
                 for elem in f_def.elements:
-                    elem.lout("\n    " + elem.base_type.empty_check, sep=" && ")
+                    elem.lout("\n    " + elem.base_type.e_check, sep=" && ")
 
                 f_def.outl(";")
         ]]]

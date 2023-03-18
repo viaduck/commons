@@ -39,11 +39,41 @@ types = OrderedDict([
 comment_pattern = r"\s*(?:#.*)?$"
 
 
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
+
 class CogBase:
     _first_element = True
 
+    def _format_with_vars(self, s, **kwargs):
+        sf = s
+
+        while True:
+            try:
+                sf = s.format(**SafeDict(vars(self), **kwargs))
+            except (ValueError, KeyError, IndexError):
+                pass
+
+            if sf == s:
+                break
+            s = sf
+
+        return s
+
+    def _try_print_with_vars(self, s, pcb, **kwargs):
+        try:
+            pcb(self._format_with_vars(s, **kwargs))
+        except Exception as e:
+            print(f"Formatting error: '{s}'", e)
+            raise e
+
     def out(self, s, **kwargs):
-        cog.out(s.format(**dict(vars(self), **kwargs)))
+        self._try_print_with_vars(s, cog.out, **kwargs)
+
+    def outl(self, s, **kwargs):
+        self._try_print_with_vars(s, cog.outl, **kwargs)
 
     def lout(self, s, sep=", ", **kwargs):
         # list out - output comma
@@ -51,12 +81,9 @@ class CogBase:
         CogBase._first_element = False
         self.out(s, **kwargs)
 
-    def outl(self, s, **kwargs):
-        try:
-            cog.outl(s.format(**dict(vars(self), **kwargs)))
-        except Exception as e:
-            print(f"Formatting error: '{s}'", e)
-            raise e
+    @staticmethod
+    def is_list_first():
+        return CogBase._first_element
 
     @staticmethod
     def reset_list():
