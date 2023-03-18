@@ -80,7 +80,7 @@ class FlatbuffersType:
         self.is_ref = bool(kwargs.get("is_ref", False))
         self.ref_mod_type = self.member_type + " &" if self.is_ref else t_name
         self.ref_type = "const " + self.ref_mod_type if self.is_ref else t_name
-        self.default = kwargs.get("default", "{}" if self.is_ref else "0")
+        self.default = kwargs.get("default", "\\{\\}" if self.is_ref else "0")
 
         # virtual types
         v_type = kwargs.get("v_type", t_name)
@@ -169,10 +169,10 @@ flatbuffers_type = {
         pack="_{name}.empty() ? 0 : fbb.CreateString(_{name}.dump())",
         unpack="if (ptr->{name}())\n"
         "    _{name} = nlohmann::json::parse(ptr->{name}()->str());\n"
-        "if (_{name}.type() == nlohmann::json::value_t::discarded) {{\n"
+        "if (_{name}.type() == nlohmann::json::value_t::discarded) \\{\n"
         "    missing = 0;\n"
         "    return false;\n"
-        "}}",
+        "\\}",
         reset="_{name}.clear()",
         e_check="_{name}.empty()"),
     "bool": FlatbuffersType("bool", "bool", default="false"),

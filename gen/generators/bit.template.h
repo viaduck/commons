@@ -33,17 +33,17 @@
 
 [[[cog
     b_def.out("{doxygen}")
-    b_def.outl("class {name} {{")
+    b_def.outl("class {name} \\{")
 ]]]
 [[[end]]]
 public:
     // constructors
     [[[cog
         # default ctr
-        b_def.outl("{name}() : {name}(0) {{ }}\n")
+        b_def.outl("{name}() : {name}(0) \\{ \\}\n")
 
         # ctr with existing field
-        b_def.outl("explicit {name}({type} field) : mField(field) {{ }}\n")
+        b_def.outl("explicit {name}({type} field) : mField(field) \\{ \\}\n")
 
         # ctr with new field, set args
         b_def.out("{name}(")
@@ -52,38 +52,38 @@ public:
         for elem in b_def.elements:
             elem.lout("{type} _{name}")
 
-        b_def.outl(") : {name}() {{")
+        b_def.outl(") : {name}() \\{")
         for elem in b_def.elements:
             elem.outl("    {name}(_{name});")
-        b_def.outl("}}")
+        b_def.outl("\\}")
     ]]]
     [[[end]]]
 
     // getter and setter
 
     [[[cog
-        b_def.outl("{type} value() const {{\n"
+        b_def.outl("{type} value() const \\{\n"
                    "    return mField;\n"
-                   "}}\n")
+                   "\\}\n")
 
-        b_def.outl("void value({type} v) {{\n"
+        b_def.outl("void value({type} v) \\{\n"
                    "    mField = v;\n"
-                   "}}\n")
+                   "\\}\n")
 
         for elem in b_def.elements:
-            elem.outl("{type} {name}() const {{\n"
+            elem.outl("{type} {name}() const \\{\n"
                       "    return Bitfield::get<{type}>({offset}, {size}, value());\n"
-                      "}}\n")
+                      "\\}\n")
 
-            elem.outl("uint32_t {name}_width() {{\n"
+            elem.outl("uint32_t {name}_width() \\{\n"
                       "    return {size};\n"
-                      "}}\n")
+                      "\\}\n")
 
-            elem.outl("void {name}({type} v) {{\n"
+            elem.outl("void {name}({type} v) \\{\n"
                       "    auto fld = value();\n"
                       "    Bitfield::set({offset}, {size}, v, fld);\n"
                       "    value(fld);\n"
-                      "}}\n")
+                      "\\}\n")
     ]]]
     [[[end]]]
 
@@ -95,7 +95,7 @@ private:
     [[[end]]]
 
 [[[cog
-    b_def.outl("}};")
+    b_def.outl("\\};")
     b_def.outl("#endif //{name}_H")
 ]]]
 [[[end]]]

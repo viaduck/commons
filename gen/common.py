@@ -18,6 +18,7 @@
 
 import math
 import os
+import re
 
 import cog
 from collections import OrderedDict
@@ -37,6 +38,10 @@ types = OrderedDict([
 
 # matches in-line comment
 comment_pattern = r"\s*(?:#.*)?$"
+# matches "escaped" curly braces \{ or \}
+matcher_escaped_braces = re.compile(r"\\([{}])")
+# matches "unescaped" curly braces { or }
+matcher_unescaped_braces = re.compile(r"(?:^|[^\\])([{}])")
 
 
 class SafeDict(dict):
@@ -48,19 +53,13 @@ class CogBase:
     _first_element = True
 
     def _format_with_vars(self, s, **kwargs):
-        sf = s
+        while matcher_unescaped_braces.search(s) is not None:
+            # protect "escaped" braces by doubling them before string format
+            sf = matcher_escaped_braces.sub(r"\\\1\1", s)
+            s = sf.format(**SafeDict(vars(self), **kwargs))
 
-        while True:
-            try:
-                sf = s.format(**SafeDict(vars(self), **kwargs))
-            except (ValueError, KeyError, IndexError):
-                pass
-
-            if sf == s:
-                break
-            s = sf
-
-        return s
+        # remove escape sequences before using the string
+        return matcher_escaped_braces.sub(r"\1", s)
 
     def _try_print_with_vars(self, s, pcb, **kwargs):
         try:

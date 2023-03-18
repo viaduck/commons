@@ -49,7 +49,7 @@
 
     f_def.outl("")
     f_def.out("{doxygen}")
-    f_def.outl("class {name} : public ISerializable {{")
+    f_def.outl("class {name} : public ISerializable \\{")
 
     if f_def.max_size > 0:
         f_def.outl("    const static uint32_t MAX_SIZE = {max_size};")
@@ -67,7 +67,7 @@ public:
             for elem in f_def.elements:
                 if not elem.base_type.is_ref:
                     elem.lout("_{name}({base_type.default})")
-        f_def.outl(" {{ }}\n")
+        f_def.outl(" \\{ \\}\n")
 
         # arguments ctor if arguments exist
         if len(f_def.elements) > 0:
@@ -75,10 +75,10 @@ public:
             f_def.reset_list()
             for elem in f_def.elements:
                 elem.lout("{base_type.ref_type} __{name}" + ("" if f_def.is_list_first() else " = {base_type.default}"))
-            f_def.outl(") {{")
+            f_def.outl(") \\{")
             for elem in f_def.elements:
                 elem.outl("    {pub_name}(__{name});")
-            f_def.outl("}}\n")
+            f_def.outl("\\}\n")
 
         # arguments ctor with ranges if buffer exist
         if sum(1 for elem in f_def.elements if "bytes" in elem.setter) > 0:
@@ -89,10 +89,10 @@ public:
                     elem.lout("const BufferRangeConst &__{name}")
                 else:
                     elem.lout("{base_type.ref_type} __{name}")
-            f_def.outl(") {{")
+            f_def.outl(") \\{")
             for elem in f_def.elements:
                 elem.outl("    {pub_name}(__{name});")
-            f_def.outl("}}\n")
+            f_def.outl("\\}\n")
 
         # virtual dtor if virtual fields exist
         if sum(1 for elem in f_def.elements if elem.is_virtual) > 0:
@@ -101,42 +101,42 @@ public:
         for elem in f_def.elements:
             # getters
             if "basic" in elem.getter:
-                elem.outl("inline {base_type.ref_type} {pub_name}() const {{\n"
+                elem.outl("inline {base_type.ref_type} {pub_name}() const \\{\n"
                           "    return _{name};\n"
-                          "}}")
+                          "\\}")
 
             # setters
             if "basic" in elem.setter:
-                elem.outl("inline void {pub_name}({base_type.ref_type} v) {{{{\n"
+                elem.outl("inline void {pub_name}({base_type.ref_type} v) \\{\n"
                           "    _{name} = {base_type.assign};\n"
-                          "}}}}")
+                          "\\}")
             if "bytes" in elem.setter:
-                elem.outl("inline void {pub_name}(const uint8_t *v, uint32_t size) {{\n"
+                elem.outl("inline void {pub_name}(const uint8_t *v, uint32_t size) \\{\n"
                           "    _{name}.clear();\n"
                           "    _{name}.write(v, size, 0);\n"
-                          "}}")
-                elem.outl("inline void {pub_name}(const BufferRangeConst &v) {{\n"
+                          "\\}")
+                elem.outl("inline void {pub_name}(const BufferRangeConst &v) \\{\n"
                           "    _{name}.clear();\n"
                           "    _{name}.write(v, 0);\n"
-                          "}}")
+                          "\\}")
                 if elem.size > 0:
-                    elem.outl("inline uint32_t {pub_name}_size() {{\n"
+                    elem.outl("inline uint32_t {pub_name}_size() \\{\n"
                               "    return {size}u;\n"
-                              "}}")
+                              "\\}")
             if "embedded" in elem.setter:
-                elem.outl("inline bool {pub_name}(const uint8_t *v, uint32_t size) {{\n"
+                elem.outl("inline bool {pub_name}(const uint8_t *v, uint32_t size) \\{\n"
                           "    uint32_t unused;\n"
                           "    return _{name}.deserialize(v, size, unused);\n"
-                          "}}")
-                elem.outl("inline bool {pub_name}(const BufferRangeConst &v) {{\n"
+                          "\\}")
+                elem.outl("inline bool {pub_name}(const BufferRangeConst &v) \\{\n"
                           "    return _{name}.deserialize(v);\n"
-                          "}}")
+                          "\\}")
 
             # modifier
             if elem.base_type.is_ref:
-                elem.outl("inline {base_type.ref_mod_type} {pub_name}() {{\n"
+                elem.outl("inline {base_type.ref_mod_type} {pub_name}() \\{\n"
                           "    return _{name};\n"
-                          "}}")
+                          "\\}")
 
             elem.outl("")
 
@@ -146,11 +146,11 @@ public:
         for elem in f_def.elements:
             if "basic" in elem.setter or "bytes" in elem.setter:
                 elem.lout("{base_type.ref_type} {name}_")
-        f_def.outl(") {{")
+        f_def.outl(") \\{")
 
         for elem in f_def.elements:
             elem.outl("    {pub_name}({name}_);")
-        f_def.outl("}}")
+        f_def.outl("\\}")
     ]]]
     [[[end]]]
 
@@ -242,10 +242,10 @@ public:
         // size check
         [[[cog
             if f_def.max_size > 0:
-                f_def.outl("if (full_size > MAX_SIZE) {{\n"
+                f_def.outl("if (full_size > MAX_SIZE) \\{\n"
                             "    missing = 0;\n"
                             "    return false;\n"
-                            "}}")
+                            "\\}")
         ]]]
         [[[end]]]
         if (size < full_size) {
@@ -256,10 +256,10 @@ public:
 
         [[[cog
             f_def.outl("flatbuffers::Verifier v(in, size);\n"
-                       "if (!internal::VerifySizePrefixed{name}Buffer(v)) {{\n"
+                       "if (!internal::VerifySizePrefixed{name}Buffer(v)) \\{\n"
                        "    missing = 0;\n"
                        "    return false;\n"
-                       "}}\n")
+                       "\\}\n")
 
             if len(f_def.elements) > 0:
                 f_def.outl("uint32_t unused;\n"
@@ -281,10 +281,10 @@ public:
                 for elem in f_def.elements:
                     if elem.size > 0:
                         elem.outl("// checking {name} size")
-                        elem.outl("if (!{pub_name}().empty() && {pub_name}().size() != {size}) {{\n"
+                        elem.outl("if (!{pub_name}().empty() && {pub_name}().size() != {size}) \\{\n"
                                   "    missing = 0;\n"
                                   "    return false;\n"
-                                  "}}\n")
+                                  "\\}\n")
 
                 f_def.outl("(void)unused;")
         ]]]
@@ -296,14 +296,14 @@ protected:
     [[[cog
         for elem in f_def.elements:
             if elem.is_virtual:
-                elem.outl("virtual {base_type.v_type} serialize_{pub_name}(flatbuffers::FlatBufferBuilder &fbb) const {{\n"
+                elem.outl("virtual {base_type.v_type} serialize_{pub_name}(flatbuffers::FlatBufferBuilder &fbb) const \\{\n"
                           "    (void)fbb;")
                 if "embedded" in elem.setter:
                     for ppl in elem.base_type.pre_pack.split("\n"):
                         elem.outl("    " + ppl)
                 elem.outl("    return "+elem.base_type.vpack+";\n"
-                          "}}")
-                elem.outl("virtual void deserialize_{pub_name}() {{ }}\n")
+                          "\\}")
+                elem.outl("virtual void deserialize_{pub_name}() \\{ \\}\n")
     ]]]
     [[[end]]]
 
@@ -321,7 +321,7 @@ protected:
     [[[end]]]
 
 [[[cog
-    f_def.outl("}};")
+    f_def.outl("\\};")
     f_def.outl("#endif //{name}_H")
 ]]]
 [[[end]]]

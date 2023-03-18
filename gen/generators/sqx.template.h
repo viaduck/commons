@@ -47,7 +47,7 @@
 
     s_def.outl("")
     s_def.outl("{doxygen}")
-    s_def.outl("class {name} : public SQXBase {{")
+    s_def.outl("class {name} : public SQXBase \\{")
 ]]]
 [[[end]]]
 public:
@@ -55,9 +55,9 @@ public:
     // types for partial load / store
     [[[cog
         for elem in s_def.elements:
-            elem.outl('struct Column_{name} {{\n'
-                      '    static constexpr auto ID() {{ return MakeConstexprString("{name}"); }}\n'
-                      '}};')
+            elem.outl('struct Column_{name} \\{\n'
+                      '    static constexpr auto ID() \\{ return MakeConstexprString("{name}"); \\}\n'
+                      '\\};')
     ]]]
     [[[end]]]
 
@@ -149,10 +149,10 @@ public:
 
     // constructors
     [[[cog
-        s_def.outl("{name}() {{}}")
-        s_def.outl("{name}(int64_t id) : mId(id) {{}}")
-        s_def.outl("{name}(SQXBase *base) : mParent(base) {{}}")
-        s_def.outl("{name}(SQXBase *base, int64_t id) : mParent(base), mId(id) {{}}")
+        s_def.outl("{name}() \\{\\}")
+        s_def.outl("{name}(int64_t id) : mId(id) \\{\\}")
+        s_def.outl("{name}(SQXBase *base) : mParent(base) \\{\\}")
+        s_def.outl("{name}(SQXBase *base, int64_t id) : mParent(base), mId(id) \\{\\}")
     ]]]
     [[[end]]]
 
@@ -207,14 +207,14 @@ public:
             for elem in s_def.elements:
                 elem.lout("{type.sql_ref_t} {name}")
 
-            s_def.outl(") {{")
+            s_def.outl(") \\{")
             s_def.outl("    found = true;")
 
             # load each argument into a member
             for elem in s_def.elements:
                 elem.outl("    " + elem.type.load)
 
-            s_def.outl("}};\n")
+            s_def.outl("\\};\n")
 
             # check found
             s_def.outl('if (!found)\n'
@@ -323,9 +323,9 @@ public:
     [[[cog
         for elem in s_def.elements:
             if 'basic' in elem.type.getter:
-                elem.outl("inline {type.cpp_const_ref_t} {name}() const {{\n"
+                elem.outl("inline {type.cpp_const_ref_t} {name}() const \\{\n"
                           "    return {member_name};\n"
-                          "}}\n")
+                          "\\}\n")
     ]]]
     [[[end]]]
 
@@ -333,19 +333,19 @@ public:
     [[[cog
         for elem in s_def.elements:
             if 'basic' in elem.type.setter:
-                elem.outl("inline void {name}({type.cpp_const_ref_t} {name}) {{\n"
+                elem.outl("inline void {name}({type.cpp_const_ref_t} {name}) \\{\n"
                           "    " + elem.type.load_setter + "\n"
-                          "}}\n")
+                          "\\}\n")
 
             if 'ref' in elem.type.setter:
-                elem.outl("inline {type.cpp_ref_t} {name}() {{\n"
+                elem.outl("inline {type.cpp_ref_t} {name}() \\{\n"
                           "    return {member_name};\n"
-                          "}}\n")
+                          "\\}\n")
 
             if 'range' in elem.type.setter:
-                elem.outl("inline void {name}_range(const BufferRangeConst &{name}) {{\n"
+                elem.outl("inline void {name}_range(const BufferRangeConst &{name}) \\{\n"
                           "    " + elem.type.load_setter + "\n"
-                          "}}\n")
+                          "\\}\n")
     ]]]
     [[[end]]]
 
@@ -353,29 +353,29 @@ public:
     [[[cog
         for elem in s_def.elements:
             if 'foreign' in elem.type.getter:
-                elem.outl("inline {type.cpp_ref_t} {name}() {{\n"
+                elem.outl("inline {type.cpp_ref_t} {name}() \\{\n"
                           "    if (!{member_name}) load_{name}();\n"
                           "    if (!{member_name})\n"
                           "        throw SQXBase::load_error(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
                           "    return {member_name};\n"
-                          "}}\n")
+                          "\\}\n")
 
-                elem.outl("inline {type.cpp_const_ref_t} {name}() const {{\n"
+                elem.outl("inline {type.cpp_const_ref_t} {name}() const \\{\n"
                           "    if (!{member_name})\n"
                           "        throw SQXBase::load_error(\"{member_name} in {type.cpp_t} invalid fk\");\n\n"
                           "    return {member_name};\n"
-                          "}}\n")
+                          "\\}\n")
 
-                elem.outl("inline void load_{name}(bool force=true) {{\n"
-                          "    if ({member_name}_id >= 0 && (force || !{member_name})) {{\n"
+                elem.outl("inline void load_{name}(bool force=true) \\{\n"
+                          "    if ({member_name}_id >= 0 && (force || !{member_name})) \\{\n"
                           "        {member_name}.reset(new {type.cpp_t}(this, {member_name}_id));\n"
                           "        {member_name}->load();\n"
-                          "    }}\n"
-                          "}}\n")
+                          "    \\}\n"
+                          "\\}\n")
 
-                elem.outl("inline int64_t {name}_id() const {{\n"
+                elem.outl("inline int64_t {name}_id() const \\{\n"
                           "    return {member_name}_id;\n"
-                          "}}\n")
+                          "\\}\n")
     ]]]
     [[[end]]]
 
@@ -383,19 +383,19 @@ public:
     [[[cog
         for elem in s_def.elements:
             if 'foreign' in elem.type.setter:
-                elem.outl("inline void create_{name}() {{\n"
+                elem.outl("inline void create_{name}() \\{\n"
                           "    {member_name}.reset(new {type.cpp_t}(this));\n"
-                          "}}\n")
+                          "\\}\n")
 
-                elem.outl("inline void {name}_id(int64_t value) {{\n"
+                elem.outl("inline void {name}_id(int64_t value) \\{\n"
                           "    {member_name}.reset();"
                           "    {member_name}_id = value;\n"
-                          "}}\n")
+                          "\\}\n")
 
-                elem.outl("inline void store_{name}() {{\n"
+                elem.outl("inline void store_{name}() \\{\n"
                           "    {member_name}->store();\n"
                           "    {member_name}_id = {member_name}->id();\n"
-                          "}}")
+                          "\\}")
     ]]]
     [[[end]]]
 
@@ -410,14 +410,14 @@ public:
                 elem.lout("{type.cpp_const_ref_t} _{name}")
             elif 'foreign' in elem.type.setter:
                 elem.lout("int64_t _{name}")
-        s_def.outl(") {{")
+        s_def.outl(") \\{")
 
         for elem in s_def.elements:
             if 'basic' in elem.type.setter:
                 elem.outl("    {name}(_{name});")
             elif 'foreign' in elem.type.setter:
                 elem.outl("    {name}_id(_{name});")
-        s_def.outl("}}")
+        s_def.outl("\\}")
     ]]]
     [[[end]]]
 
@@ -445,9 +445,9 @@ protected:
 [[[cog
     for elem in s_def.elements:
         elem.outl('template<>\n'
-                   'inline sqlite::database_binder &&{table.name}::member_store<{table.name}::Column_{name}>(sqlite::database_binder &&dbb) {{\n'
+                   'inline sqlite::database_binder &&{table.name}::member_store<{table.name}::Column_{name}>(sqlite::database_binder &&dbb) \\{\n'
                    '    return std::move(dbb << ' + elem.type.store + ');\n'
-                   '}}\n', table=s_def)
+                   '\\}\n', table=s_def)
 
     s_def.outl("#endif //{name}_H")
 ]]]

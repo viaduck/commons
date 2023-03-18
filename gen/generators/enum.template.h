@@ -34,27 +34,27 @@
 
 [[[cog
     e_def.out("{doxygen}")
-    e_def.outl("enum class {name} : {type} {{")
+    e_def.outl("enum class {name} : {type} \\{")
     for elem in e_def.elements:
         elem.outl("    {name}{value},        {comment}")
-    e_def.outl("}};")
+    e_def.outl("\\};")
 
     e_def.outl("inline std::string toString(const {name} &e);")
 
-    e_def.outl("inline std::ostream &operator<<(std::ostream &os, const {name} &e) {{")
+    e_def.outl("inline std::ostream &operator<<(std::ostream &os, const {name} &e) \\{")
     e_def.outl("    return (os << toString(e));")
-    e_def.outl("}}");
+    e_def.outl("\\}");
 
     if e_def.flags:
-        e_def.outl("inline {name} operator|({name} a, {name} b) {{")
+        e_def.outl("inline {name} operator|({name} a, {name} b) \\{")
         e_def.outl("    return {name}(static_cast<{type}>(a) | static_cast<{type}>(b));")
-        e_def.outl("}}");
+        e_def.outl("\\}");
 
-        e_def.outl("inline {name} operator&({name} a, {name} b) {{")
+        e_def.outl("inline {name} operator&({name} a, {name} b) \\{")
         e_def.outl("    return {name}(static_cast<{type}>(a) & static_cast<{type}>(b));")
-        e_def.outl("}}");
+        e_def.outl("\\}");
 
-        e_def.outl("inline std::string toString(const {name} &e) {{")
+        e_def.outl("inline std::string toString(const {name} &e) \\{")
         e_def.outl("    std::stringstream bruce;")
         e_def.outl("    int i = 0;")
 
@@ -69,32 +69,32 @@
                 elem.outl('    if ((e & {e_def.name}::{name}) == {e_def.name}::{name})', e_def=e_def)
                 elem.outl('        bruce << (i++ > 0 ? " | " : "") << "{e_def.name}::{name}";', e_def=e_def)
         e_def.outl('    return bruce.str();');
-        e_def.outl("}}");
+        e_def.outl("\\}");
     else:
-        e_def.outl("inline std::string toString(const {name} &e) {{")
-        e_def.outl("    switch (e) {{")
+        e_def.outl("inline std::string toString(const {name} &e) \\{")
+        e_def.outl("    switch (e) \\{")
         for elem in e_def.elements:
             elem.outl('    case {e_def.name}::{name}: return "{e_def.name}::{name}";', e_def=e_def)
-        e_def.outl('    }}');
+        e_def.outl('    \\}');
         e_def.outl('    return "";');
-        e_def.outl("}}");
+        e_def.outl("\\}");
 
-    e_def.outl("inline {type} toInt(const {name} &e) {{")
+    e_def.outl("inline {type} toInt(const {name} &e) \\{")
     e_def.outl('    return static_cast<{type}>(e);')
-    e_def.outl("}}");
+    e_def.outl("\\}");
 
-    e_def.outl("inline {name} to{name}({type} val) {{")
+    e_def.outl("inline {name} to{name}({type} val) \\{")
     e_def.outl('    if (val > {max_val}) return {name}::{elem_invalid_val};')
     e_def.outl('    return static_cast<{name}>(val);')
-    e_def.outl("}}");
+    e_def.outl("\\}");
 
     e_def.outl("template<typename T>")
     e_def.outl("T toEnum({type});")
 
     e_def.outl("template<>")
-    e_def.outl("inline {name} toEnum({type} val) {{")
+    e_def.outl("inline {name} toEnum({type} val) \\{")
     e_def.outl("    return to{name}(val);")
-    e_def.outl("}}")
+    e_def.outl("\\}")
 
     e_def.outl("#endif //{name}_H")
 ]]]
