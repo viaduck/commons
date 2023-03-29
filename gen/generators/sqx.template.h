@@ -53,6 +53,9 @@
 public:
 
     // types for partial load / store
+    struct Column_pid {
+        static constexpr auto ID() { return MakeConstexprString("pid"); }
+    };
     [[[cog
         for elem in s_def.elements:
             elem.outl('struct Column_{name} \\{\n'
@@ -86,65 +89,79 @@ public:
         return std::move(binder);
     }
 
-    // select all rows matching optional condition
-    template<typename ...Args>
-    static std::vector<int64_t> selectAll(sqlite::crypto_sqlite_database &dbConnection, const std::string &where = "", Args &&...args) {
+    // variadic template for building list of column IDs with separator and suffix
+    template<typename Column, typename... Columns, size_type size1 = 2, size_type size2 = 0>
+    static constexpr auto build_column_list(ConstexprString<size1> separator = MakeConstexprString(", "),
+                                            ConstexprString<size2> suffix = MakeConstexprString(""),
+                                            typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
+
+        return Column::ID() + suffix + separator + build_column_list<Columns...>(separator, suffix);
+    }
+    // variadic template recursion anchor if there is only one column left
+    template<typename Column, typename... Columns, size_type size1 = 0, size_type size2 = 0>
+    static constexpr auto build_column_list(ConstexprString<size1> = MakeConstexprString(""),
+                                            ConstexprString<size2> suffix = MakeConstexprString(""),
+                                            typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
+
+        return Column::ID() + suffix;
+    }
+
+    template<typename U>
+    struct column_placeholder {
+        static constexpr auto ID() { return MakeConstexprString("?"); }
+    };
+
+    // variadic template for building list of column placeholders, e.g. "?, ?, ?"
+    template<typename... Columns>
+    static constexpr auto build_placeholder_list() {
+        return build_column_list<column_placeholder<Columns>...>();
+    }
+
+    // variadic template for building list of column update placeholders, e.g. "a=?, b=?, c=?"
+    template<typename... Columns>
+    static constexpr auto build_update_list() {
+        return build_column_list<Columns...>(MakeConstexprString(", "), MakeConstexprString("=?"));
+    }
+
+    // template struct used to select which columns to select
+    template<typename... Columns>
+    struct select_view {};
+
+    // raw select for a number of columns, using optional where clause with optional bound arguments
+    template<typename... Columns, typename... Args, size_type size = 0>
+    static inline sqlite::database_binder select(
+            sqlite::crypto_sqlite_database &dbConnection,
+            const select_view<Columns...> & = select_view<Column_pid>{},
+            ConstexprString<size> clause = MakeConstexprString(""),
+            Args &&...args) {
+
+        auto select_stmt = MakeConstexprString("SELECT ")
+                + build_column_list<Columns...>()
+                [[[cog
+                    s_def.outl('+ MakeConstexprString(" FROM {name} ")')
+                ]]]
+                [[[end]]]
+                + clause
+                + MakeConstexprString(";");
+
+        return std::move(bind_internal(dbConnection << select_stmt.c_str(), args...));
+    }
+
+    // select pid of all rows, using optional where clause with optional bound arguments
+    template<typename... Args, size_type size = 0>
+    static std::vector<int64_t> selectAll(
+            sqlite::crypto_sqlite_database &dbConnection,
+            ConstexprString<size> clause = MakeConstexprString(""),
+            Args &&...args) {
+
         std::vector<int64_t> elements;
 
-        [[[cog
-            s_def.outl('bind_internal(dbConnection << "SELECT pid FROM {name}" + (where.empty() ? ";" : " " + where + ";"), args...) >>')
-        ]]]
-        [[[end]]]
+        select(dbConnection, select_view<Column_pid>{}, clause, args...) >>
             [&] (int64_t pid) {
                 elements.push_back(pid);
             };
 
         return elements;
-    }
-
-    // variadic template for building SQL UPDATE statement
-    template<typename Column, typename... Columns>
-    static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
-        return Column::ID() + MakeConstexprString("=?, ") + build_update_stmt<Columns...>();
-    }
-    // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
-    template<typename Column, typename... Columns>
-    static constexpr auto build_update_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
-        return Column::ID() + MakeConstexprString("=? ");
-    }
-    // variadic template recursion anchor
-    static constexpr auto build_update_stmt() {
-        return MakeConstexprString("");
-    }
-
-    // variadic template for building SQL INSERT statement
-    template<typename Column, typename... Columns>
-    static constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
-        return Column::ID() + MakeConstexprString(", ") + build_insert_stmt<Columns...>();
-    }
-    // variadic template specialization if there is only one parameter left. This is required, since the last column must not have a trailing comma.
-    template<typename Column, typename... Columns>
-    static constexpr auto build_insert_stmt(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
-        return Column::ID();
-    }
-    // variadic template recursion anchor
-    static constexpr auto build_insert_stmt() {
-        return MakeConstexprString("");
-    }
-
-    // variadic template for building placeholder sequence, required by INSERT statement
-    template<typename Column, typename... Columns>
-    static constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) != 0>::type* = 0) {
-        return MakeConstexprString("?, ") + build_stmt_placeholders<Columns...>();
-    }
-    // variadic template specialization if there is only one parameter left. This is required, since the last placeholder must not have a trailing comma.
-    template<typename Column, typename... Columns>
-    static constexpr auto build_stmt_placeholders(typename std::enable_if<sizeof...(Columns) == 0>::type* = 0) {
-        return MakeConstexprString("?");
-    }
-    // variadic template recursion anchor
-    static constexpr auto build_stmt_placeholders() {
-        return MakeConstexprString("");
     }
 
     // constructors
@@ -281,21 +298,24 @@ public:
     void storeSpecific() {
         if (mId >= 0) {
             [[[cog
-                s_def.outl('auto update_stmt = MakeConstexprString("UPDATE {name} SET ") + '
-                           'build_update_stmt<Columns...>() + MakeConstexprString("WHERE pid = ?;");')
+                s_def.outl('auto update_stmt = MakeConstexprString("UPDATE {name} SET ")')
             ]]]
             [[[end]]]
+                    + build_update_list<Columns...>()
+                    + MakeConstexprString(" WHERE pid = ?;");
 
             sqlite::database_binder dbb = *db() << update_stmt.c_str();
             internal_store<Columns...>(std::move(dbb)) << mId;
         } else {
             {
                 [[[cog
-                    s_def.outl('auto insert_stmt = MakeConstexprString("INSERT INTO {name} (") + '
-                               'build_insert_stmt<Columns...>() + MakeConstexprString(") VALUES (") + '
-                               '(build_stmt_placeholders<Columns...>()) + MakeConstexprString(");");')
+                    s_def.outl('auto insert_stmt = MakeConstexprString("INSERT INTO {name} (")')
                 ]]]
                 [[[end]]]
+                        + build_column_list<Columns...>()
+                        + MakeConstexprString(") VALUES (")
+                        + build_placeholder_list<Columns...>()
+                        + MakeConstexprString(");");
 
                 sqlite::database_binder dbb = *db() << insert_stmt.c_str();
                 internal_store<Columns...>(std::move(dbb));
