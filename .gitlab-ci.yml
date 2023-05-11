@@ -20,7 +20,7 @@ build:linux:x86_64:full:
         - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build/
 
@@ -38,7 +38,7 @@ test:linux:x86_64:full:
     stage: test
     script:
         - cd build
-        - test/commons_test             # runs gtest target
+        - test/commons_test
     needs:
         - build:linux:x86_64:full
 
@@ -50,7 +50,7 @@ build:linux:x86_64:full:system-openssl:
         - cmake -GNinja ../ -DSYSTEM_OPENSSL=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build/
 
@@ -60,7 +60,7 @@ test:linux:x86_64:full:system-openssl:
     stage: test
     script:
         - cd build
-        - test/commons_test             # runs gtest target
+        - test/commons_test
     needs:
         - build:linux:x86_64:full:system-openssl
 
@@ -72,7 +72,7 @@ build:linux:x86_64:base-only:
         - cmake -GNinja ../ -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build/
 
@@ -82,7 +82,7 @@ test:linux:x86_64:base-only:
     stage: test
     script:
         - cd build
-        - test/commons_test             # runs gtest target
+        - test/commons_test
     needs:
         - build:linux:x86_64:base-only
 
@@ -90,11 +90,11 @@ coverage:linux:x86_64:
     stage: coverage
     script:
         - cd build
-        - cmake . -DCMAKE_BUILD_TYPE=Debug
-        - ninja commons_coverage        # generate code coverage
+        - cmake . -DCMAKE_BUILD_TYPE=Debug -DVIADUCK_COVERAGE=ON
+        - ninja commons_test_coverage
     artifacts:
         paths:
-            - build/test/coverage/         # coverage data
+            - build/commons_test_coverage/
     needs:
         - build:linux:x86_64:full
 
@@ -102,10 +102,10 @@ documentation:linux:x86_64:
     stage: documentation
     script:
         - cd build
-        - ninja commons_doc             # generate doxygen code documentation
+        - ninja commons_doc
     artifacts:
         paths:
-            - build/doc/html/                # doxygen documentation
+            - build/doc/html/
     needs:
         - build:linux:x86_64:full
 
@@ -121,7 +121,7 @@ build:windows:x86_64:full:
         - ninja
         - peldd test/commons_test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build-windows-x86_64/
 
@@ -142,7 +142,7 @@ test:windows:x86_64:full:
     stage: test
     script:
         - cd build-windows-x86_64
-        - test\commons_test.exe             # runs gtest target
+        - test\commons_test.exe
     needs:
         - build:windows:x86_64:full
     tags:
@@ -157,7 +157,7 @@ build:android:arm64-v8a:full:
         - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=arm64-v8a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=arm64-v8a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build-android-arm64-v8a/
 
@@ -170,7 +170,7 @@ build:android:armeabi-v7a:full:
         - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=armeabi-v7a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=armeabi-v7a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build-android-armeabi-v7a/
 
@@ -183,6 +183,6 @@ build:android:x86_64:full:
         - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86_64 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=x86_64-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
-        expire_in: 2h                   # do not pollute disk
+        expire_in: 2h
         paths:
             - build-android-x86_64/

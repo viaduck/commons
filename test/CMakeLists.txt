@@ -19,42 +19,32 @@
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 list(REMOVE_ITEM COMMONS_NETWORK_FILES ${PARENT_DIR}/src/network/native/Native.cpp)
 
-# find system gtest
 include(FindOrBuildGTest)
-
 if (GTEST_FOUND)
-    file(GLOB_RECURSE TEST_BASE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/base/*.cpp)
-    file(GLOB_RECURSE TEST_BASE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/base/*.h)
-    file(GLOB_RECURSE TEST_NETWORK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp)
-    file(GLOB_RECURSE TEST_NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
+    # collect test files
+    file(GLOB_RECURSE TEST_BASE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/base/*.h ${CMAKE_CURRENT_SOURCE_DIR}/base/*.cpp)
+    file(GLOB_RECURSE TEST_NETWORK_FILES ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp)
 
-    set(TEST_BASE_FILES ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
-    set(TEST_NETWORK_FILES ${TEST_NETWORK_SOURCES} ${TEST_NETWORK_HEADERS})
+    macro(make_viaduck_test_target name)
+        if (COMMONS_BASE_ONLY)
+            add_executable(${name} ${COMMONS_BASE_FILES} ${TEST_BASE_FILES})
+        else()
+            add_executable(${name} ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
+        endif()
 
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    include_directories(${GTEST_INCLUDE_DIRS})
+        # includes
+        target_include_directories(${name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+        # link deps
+        target_link_libraries(${name} PUBLIC commons ${GTEST_TARGET})
+        # enable additional warnings
+        target_compile_options(${name} PRIVATE -Wall -Wextra)
+    endmacro()
+    make_viaduck_test_target(commons_test)
 
-    ###
-    if (COMMONS_BASE_ONLY)
-        add_executable(commons_test ${COMMONS_BASE_FILES} ${TEST_BASE_SOURCES} ${TEST_BASE_HEADERS})
-    else()
-        add_executable(commons_test ${COMMONS_BASE_FILES} ${COMMONS_NETWORK_FILES} ${TEST_BASE_FILES} ${TEST_NETWORK_FILES})
-    endif()
+    include(EnableSanitizers)
+    enable_sanitizers_for_target(commons_test)
 
-    # require and enable c++14 support
-    set_target_properties(commons_test PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
-
-    target_compile_definitions(commons PUBLIC CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
-
-    # link to commons and its dependencies
-    target_link_libraries(commons_test commons commons_gen ${GTEST_BOTH_LIBRARIES})
-
-    ## code coverage
-    include(CodeCoverage)
-    if (LCOV_PATH AND NOT ANDROID)
-        # compiler flags for coverage
-        target_compile_options(commons_test PUBLIC -g -O0 --coverage -fexceptions)
-        target_link_libraries(commons_test --coverage)
-        setup_target_for_coverage(commons_coverage commons_test ${CMAKE_CURRENT_BINARY_DIR}/coverage "'${CMAKE_CURRENT_SOURCE_DIR}/*';'${CMAKE_SOURCE_DIR}/external/*';'${CMAKE_SOURCE_DIR}/build/*'")
-    endif()
+    include(EnableCoverage)
+    enable_coverage_for_target(commons_test ${CMAKE_CURRENT_SOURCE_DIR}/../
+        "test/*" "external/*" "${CMAKE_BINARY_DIR}/*" "${GTEST_SRC_DIR}/*")
 endif()
