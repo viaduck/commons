@@ -33,7 +33,6 @@
 
 #include <secure_memory/String.h>
 #include <commons/SQXBase.h>
-#include <commons/ConstexprString.h>
 
 [[[cog
     # foreign includes

@@ -114,4 +114,21 @@ constexpr ConstexprString<Size-1> MakeConstexprString(char const (&src) [Size]) 
     return ConstexprString<Size-1>(src);
 }
 
+template<size_type Sep, size_type Size>
+constexpr auto JoinConstexprStrings(const char (&) [Sep], const char (&src) [Size]) {
+    return MakeConstexprString(src);
+}
+template<size_type Sep, size_type Size>
+constexpr auto JoinConstexprStrings(const char (&) [Sep], ConstexprString<Size> src) {
+    return src;
+}
+template<size_type Sep, size_type Size, typename... Args>
+constexpr auto JoinConstexprStrings(const char (&sep) [Sep], const char (&src) [Size], Args&& ...args) {
+    return MakeConstexprString(src) + MakeConstexprString(sep) + JoinConstexprStrings(sep, args...);
+}
+template<size_type Sep, size_type Size, typename... Args>
+constexpr auto JoinConstexprStrings(const char (&sep) [Sep], ConstexprString<Size> src, Args&& ...args) {
+    return src + MakeConstexprString(sep) + JoinConstexprStrings(sep, args...);
+}
+
 #endif //COMMONS_CONSTEXPRSTRING_H

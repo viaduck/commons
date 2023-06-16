@@ -22,6 +22,7 @@
 
 #include <crypto_sqlite/crypto_sqlite.h>
 #include <sqlite_modern_cpp/crypto_sqlite.h>
+#include <commons/ConstexprString.h>
 #include <commons/util/Except.h>
 
 class SQXBase {
@@ -34,5 +35,10 @@ public:
 protected:
     virtual void process() {};
 };
+
+template<typename... Args>
+constexpr auto makeClause(Args&& ...args) {
+    return JoinConstexprStrings(" ", args...);
+}
 
 #endif //COMMONS_SQXBASE_H
