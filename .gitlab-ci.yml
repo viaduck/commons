@@ -1,4 +1,4 @@
-image: viaduck/ci
+image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/viaduck/ci
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
