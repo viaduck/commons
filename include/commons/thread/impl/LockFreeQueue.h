@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -19,50 +19,40 @@
 #ifndef COMMONS_LOCKFREEMESSAGEQUEUE_H
 #define COMMONS_LOCKFREEMESSAGEQUEUE_H
 
-#include <commons/thread/IMessageQueue.h>
+#include <commons/thread/IQueue.h>
 
 #include <blockingconcurrentqueue.h>
 using namespace moodycamel;
 
 /**
- * Lock free message queue implementation of the IMessageQueue interface.
+ * Lock free queue implementation of the IQueue interface.
  * Note: designed for multi-consumer, multi-producer thread models
  *
- * @tparam M Message type
+ * @tparam T Element type
  */
-template <typename M>
-class LockFreeMessageQueue : public IMessageQueue<M> {
+template <typename T>
+class LockFreeQueue : public IQueue<T> {
 public:
-    ~LockFreeMessageQueue() {
-        M *value;
-        // delete remaining
-        while (mQueue.try_dequeue(value))
-            delete value;
+    void push(const T &value) override {
+        // this will wake up pop_wait
+        T const &vv = value;
+        mQueue.enqueue(vv);
     }
-
-    void push(M *value) override {
+    void push(T &&value) override {
         // this will wake up pop_wait
         mQueue.enqueue(value);
     }
 
-    bool pop(M *&value) override {
+    bool pop(T &value) override {
         return mQueue.try_dequeue(value);
     }
 
-    bool pop_wait(M *&value) override {
-        bool aborted;
-
+    bool pop_wait(T &value) override {
         // wait indefinitely for any value
         mQueue.wait_dequeue(value);
-        aborted = mAborted.load();
 
-        // invalidate value if aborted
-        if (aborted && value != nullptr) {
-            delete value;
-            value = nullptr;
-        }
-
-        return !aborted;
+        // true on success
+        return !mAborted.load();
     }
 
     bool abort() override {
@@ -73,8 +63,13 @@ public:
         // set aborted flag
         mAborted.store(true);
         // wake up pop_wait with empty control message
-        mQueue.enqueue(nullptr);
+        mQueue.enqueue(T());
         return false;
+    }
+
+    void clear() override {
+        T ignored;
+        while (mQueue.try_dequeue(ignored));
     }
 
     size_t sizeApprox() const override {
@@ -82,7 +77,7 @@ public:
     }
 
 protected:
-    BlockingConcurrentQueue<M*> mQueue;
+    BlockingConcurrentQueue<T> mQueue;
     std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);
 };
 

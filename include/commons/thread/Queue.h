@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The ViaDuck Project
+ * Copyright (C) 2020-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -16,18 +16,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef COMMONS_MESSAGEQUEUE_H
-#define COMMONS_MESSAGEQUEUE_H
+#ifndef COMMONS_QUEUE_H
+#define COMMONS_QUEUE_H
 
-#include <commons/thread/impl/LockFreeMessageQueue.h>
-#include <commons/thread/impl/LockingMessageQueue.h>
+#include <commons/thread/impl/LockFreeQueue.h>
+#include <commons/thread/impl/LockingQueue.h>
 
 #if COMMONS_USE_LOCK_FREE_QUEUE
     template<typename T>
-    using MessageQueue_t = LockFreeMessageQueue<T>;
+    using Queue = LockFreeQueue<T>;
 #else
     template<typename T>
-    using MessageQueue_t = LockingMessageQueue<T>;
+    using Queue = LockingQueue<T>;
 #endif
 
-#endif //COMMONS_MESSAGEQUEUE_H
+#endif //COMMONS_QUEUE_H

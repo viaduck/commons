@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -19,13 +19,13 @@
 #ifndef COMMONS_QUEUEWORKER_H
 #define COMMONS_QUEUEWORKER_H
 
-#include <commons/thread/IMessageQueue.h>
+#include <commons/thread/IQueue.h>
 #include <thread>
 
 /**
- * Threaded worker with message queue
+ * Threaded worker with work queue
  *
- * @tparam W Type of messages in the queue (work)
+ * @tparam W Type of work in the queue
  */
 template <typename W>
 class IQueueWorker {
@@ -47,9 +47,8 @@ public:
      * Destructs a worker
      */
     virtual ~IQueueWorker() {
-        /* Intentionally cause exception if stopThread has not been called before destructor */
-        if (mThread.joinable())
-            mQueue->abort();
+        /* Stop thread if stopThread has not been called before destructor */
+        IQueueWorker::stopThread();
     }
 
     /**
@@ -79,7 +78,10 @@ public:
      *
      * @param work Work to process in thread. Takes pointer ownership
      */
-    void enqueue(W *work) {
+    void enqueue(const W &work) {
+        mQueue->push(work);
+    }
+    void enqueue(W &&work) {
         mQueue->push(work);
     }
 
@@ -96,16 +98,16 @@ protected:
     /**
      * Internal thread entry-point
      */
-    void threadEntry() {
+    virtual void threadEntry() {
         // some impls require per-thread init
         initThread();
 
-        W *value;
+        W value;
         while (mQueue->pop_wait(value)) {
-            std::unique_ptr<W> lifetime(value);
             doWork(value);
         }
 
+        // some impls require per-thread resources release
         releaseThread();
     }
 
@@ -114,12 +116,12 @@ protected:
     // optional per-thread platform cleanup
     virtual void releaseThread() { }
     // mandatory work processing
-    virtual void doWork(const W *value) = 0;
+    virtual void doWork(const W &value) = 0;
 
     // internal work thread
     std::thread mThread;
     // internal work queue
-    std::unique_ptr<IMessageQueue<W>> mQueue;
+    std::unique_ptr<IQueue<W>> mQueue;
 };
 
 #endif //COMMONS_QUEUEWORKER_H

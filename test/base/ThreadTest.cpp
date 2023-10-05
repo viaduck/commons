@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <commons/thread/impl/LockFreeMessageQueue.h>
-#include <commons/thread/impl/LockingMessageQueue.h>
+#include <commons/thread/impl/LockFreeQueue.h>
+#include <commons/thread/impl/LockingQueue.h>
 #include <commons/thread/IQueueWorker.h>
 #include "ThreadTest.h"
 
@@ -27,26 +27,24 @@ struct TestMessage {
     int testVal;
 };
 
-void testBasic(IMessageQueue<TestMessage> &queue) {
+void testBasic(IQueue<TestMessage> &queue) {
     for (int i = 0; i < TEST_ITER; i++)
-        queue.push(new TestMessage{i});
+        queue.push(TestMessage{i});
 
-    TestMessage *value;
+    TestMessage value{};
     for (int i = 0; i < TEST_ITER; i++) {
         ASSERT_TRUE(queue.pop(value)) << i;
-        EXPECT_EQ(i, value->testVal) << i;
-        delete value;
+        EXPECT_EQ(i, value.testVal) << i;
     }
     ASSERT_FALSE(queue.pop(value));
 }
 
-void testAdvanced(IMessageQueue<TestMessage> &queue) {
+void testAdvanced(IQueue<TestMessage> &queue) {
     std::thread t([&queue] () {
-        TestMessage *value;
+        TestMessage value{};
         for (int i = 0; i < TEST_ITER; i++) {
             ASSERT_TRUE(queue.pop_wait(value)) << i;
-            EXPECT_EQ(i, value->testVal) << i;
-            delete value;
+            EXPECT_EQ(i, value.testVal) << i;
         }
 
         // infinite wait
@@ -54,7 +52,7 @@ void testAdvanced(IMessageQueue<TestMessage> &queue) {
     });
 
     for (int i = 0; i < TEST_ITER; i++)
-        queue.push(new TestMessage{i});
+        queue.push(TestMessage{i});
 
     // let it wait, abort
     using namespace std::chrono_literals;
@@ -68,21 +66,21 @@ void testAdvanced(IMessageQueue<TestMessage> &queue) {
 void testBasicWorker(IQueueWorker<TestMessage> &worker) {
     worker.startThread();
     for (int i = 0; i < TEST_ITER; i++)
-        worker.enqueue(new TestMessage{i});
+        worker.enqueue(TestMessage{i});
     worker.stopThread();
 }
 
 void testAdvancedWorker(IQueueWorker<TestMessage> &worker) {
     worker.startThread();
     for (int i = 0; i < TEST_ITER / 2; i++)
-        worker.enqueue(new TestMessage{i});
+        worker.enqueue(TestMessage{i});
 
     // let it wait
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(1s);
 
     for (int i = TEST_ITER / 2; i < TEST_ITER / 2; i++)
-        worker.enqueue(new TestMessage{i});
+        worker.enqueue(TestMessage{i});
 
     std::this_thread::sleep_for(100ms);
     worker.stopThread();
@@ -90,17 +88,17 @@ void testAdvancedWorker(IQueueWorker<TestMessage> &worker) {
 
 #define MAKE_QUEUE_TEST(test, impl)             \
     TEST_F(ThreadTest, test##impl) {            \
-        impl##MessageQueue<TestMessage> queue;  \
+        impl##Queue<TestMessage> queue;         \
         test(queue);                            \
     }
 
 #define MAKE_IMPL_WORKER(impl) \
 class impl##TestWorker : public IQueueWorker<TestMessage> { \
 public: \
-    impl##TestWorker() : IQueueWorker(new impl##MessageQueue<TestMessage>()) { } \
+    impl##TestWorker() : IQueueWorker(new impl##Queue<TestMessage>()) { } \
 protected: \
-    void doWork(const TestMessage *value) override { \
-        ASSERT_EQ(mCounter++, value->testVal); \
+    void doWork(const TestMessage &value) override { \
+        ASSERT_EQ(mCounter++, value.testVal); \
     } \
     int mCounter = 0; \
 };

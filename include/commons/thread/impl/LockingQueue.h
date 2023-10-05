@@ -19,7 +19,7 @@
 #ifndef COMMONS_LOCKINGMESSAGEQUEUE_H
 #define COMMONS_LOCKINGMESSAGEQUEUE_H
 
-#include <commons/thread/IMessageQueue.h>
+#include <commons/thread/IQueue.h>
 
 #include <atomic>
 #include <mutex>
@@ -27,41 +27,42 @@
 #include <condition_variable>
 
 /**
- * Lock based message queue implementation of the IMessageQueue interface.
+ * Lock based queue implementation of the IQueue interface.
  * Note: handles any number of consumers and producers
  *
- * @tparam M Message type
+ * @tparam T Element type
  */
-template <typename M>
-class LockingMessageQueue : public IMessageQueue<M> {
+template <typename T>
+class LockingQueue : public IQueue<T> {
 public:
-    ~LockingMessageQueue() {
+    void push(const T &value) override {
         std::unique_lock<std::mutex> lock(mMutex);
-        // delete remaining
-        while (!mQueue.empty()) {
-            delete mQueue.front();
-            mQueue.pop();
-        }
-    }
 
-    void push(M *value) override {
-        // lock, add value, signal
+        // add value, signal
+        mQueue.push(value);
+        mCond.notify_one();
+    }
+    void push(T &&value) override {
         std::unique_lock<std::mutex> lock(mMutex);
+
+        // add value, signal
         mQueue.push(value);
         mCond.notify_one();
     }
 
-    bool pop(M *&value) override {
+    bool pop(T &value) override {
         std::unique_lock<std::mutex> lock(mMutex);
+
         if (!mQueue.empty()) {
             value = mQueue.front();
             mQueue.pop();
             return true;
         }
+
         return false;
     }
 
-    bool pop_wait(M *&value) override {
+    bool pop_wait(T &value) override {
         std::unique_lock<std::mutex> lock(mMutex);
         bool aborted = mAborted.load();
 
@@ -74,6 +75,7 @@ public:
             mQueue.pop();
             return true;
         }
+
         return false;
     }
 
@@ -90,14 +92,22 @@ public:
         return false;
     }
 
+    void clear() override {
+        std::unique_lock<std::mutex> lock(mMutex);
+
+        while (!mQueue.empty())
+            mQueue.pop();
+    }
+
     size_t sizeApprox() const override {
         std::unique_lock<std::mutex> lock(mMutex);
+
         return mQueue.size();
     }
 
 protected:
     mutable std::mutex mMutex;
-    std::queue<M*> mQueue;
+    std::queue<T> mQueue;
     std::condition_variable mCond;
     std::atomic_bool mAborted = ATOMIC_VAR_INIT(false);
 };

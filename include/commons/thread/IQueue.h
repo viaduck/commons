@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -16,27 +16,28 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef COMMONS_IMESSAGEQUEUE_H
-#define COMMONS_IMESSAGEQUEUE_H
+#ifndef COMMONS_IQUEUE_H
+#define COMMONS_IQUEUE_H
 
 #include <cstddef>
 
 /**
- * General interface for the message queue with aborts
+ * General interface for the elements queue with aborts
  *
- * @tparam M Type of messages in the queue
+ * @tparam T Type of elements in the queue
  */
-template <typename M>
-class IMessageQueue {
+template <typename T>
+class IQueue {
 public:
-    virtual ~IMessageQueue() = default;
+    virtual ~IQueue() = default;
 
     /**
      * Pushes the given value to the end of the queue.
      *
-     * @param value Message to push. Will be freed upon consumption.
+     * @param value Element to add to the end of queue
      */
-    virtual void push(M *value) = 0;
+    virtual void push(const T &value) = 0;
+    virtual void push(T &&value) = 0;
 
     /**
      * Pops the front of the queue
@@ -44,7 +45,7 @@ public:
      * @param value Receives the resulting value on success
      * @return False if the queue was empty
      */
-    virtual bool pop(M *&value) = 0;
+    virtual bool pop(T &value) = 0;
 
     /**
      * Waits on empty queues to pop until abort
@@ -52,7 +53,7 @@ public:
      * @param value Receives the resulting value on success
      * @return False if the operation was aborted
      */
-    virtual bool pop_wait(M *&value) = 0;
+    virtual bool pop_wait(T &value) = 0;
 
     /**
      * Invalidates the queue and stops all operations on it.
@@ -62,12 +63,17 @@ public:
     virtual bool abort() = 0;
 
     /**
+     * Clear the queue. The queue will only appear empty after clear if the effects of all producers
+     * have already settled for the calling thread.
+     */
+    virtual void clear() = 0;
+
+    /**
      * Estimates the size of the queue
      *
      * @return Approximate number of queue entries
      */
     virtual size_t sizeApprox() const = 0;
-
 };
 
-#endif //COMMONS_IMESSAGEQUEUE_H
+#endif //COMMONS_IQUEUE_H
