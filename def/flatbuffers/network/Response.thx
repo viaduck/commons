@@ -1,3 +1,0 @@
-import enum/server/ProtocolResult.the
-
-ProtocolResult status

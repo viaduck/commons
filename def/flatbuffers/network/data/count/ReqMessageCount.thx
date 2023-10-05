@@ -1,3 +1,2 @@
 bytes(16) phash
-
 uint64_t  lastMessageID

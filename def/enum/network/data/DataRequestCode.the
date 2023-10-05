@@ -1,0 +1,5 @@
+type uint8_t
+
+SEND_MESSAGE /**< sending a single message */
+GET_MESSAGES  /**< receiving messages */
+COUNT_MESSAGES /**< get message count */

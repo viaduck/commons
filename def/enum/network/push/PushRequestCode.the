@@ -1,0 +1,5 @@
+type uint8_t
+
+SUBSCRIBE /**< subscribe to postboxes */
+UNSUBSCRIBE /**< unsubscribe from postboxes */
+HEARTBEAT /**< request a heartbeat response */

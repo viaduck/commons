@@ -1,0 +1,5 @@
+import enum/network/ResponseStatus.the
+import enum/network/data/DataResponseCode.the
+
+ResponseStatus   status
+DataResponseCode responseCode

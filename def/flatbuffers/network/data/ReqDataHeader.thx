@@ -1,0 +1,5 @@
+import enum/network/ProtocolVersion.the
+import enum/network/data/DataRequestCode.the
+
+ProtocolVersion version
+DataRequestCode requestCode

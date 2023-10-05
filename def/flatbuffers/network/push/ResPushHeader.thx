@@ -1,0 +1,5 @@
+import enum/network/ResponseStatus.the
+import enum/network/push/PushResponseCode.the
+
+ResponseStatus   status
+PushResponseCode responseCode

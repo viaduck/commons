@@ -1,1 +1,2 @@
 uint64_t lastMessageID
+uint64_t messageCount

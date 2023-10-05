@@ -1,0 +1,4 @@
+type uint8_t
+
+MESSAGE_LIST /**< responding with a list of messages */
+MESSAGE_COUNT /**< responding with a message count */

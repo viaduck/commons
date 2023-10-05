@@ -1,0 +1,4 @@
+type uint8_t
+
+HEARTBEAT /**< responding to a heartbeat */
+NOTIFY /**< downstream notification */
