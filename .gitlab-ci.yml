@@ -26,7 +26,7 @@ build:linux:x86_64:full:
 lint:linux:x86_64:full:
     stage: lint
     script:
-        - vd-lint commons $PWD
+        - vd-lint Commons $PWD
     needs:
         - job: build:linux:x86_64:full
           artifacts: false

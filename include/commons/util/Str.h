@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef VIADUCK_STR_H
-#define VIADUCK_STR_H
+#ifndef COMMONS_STR_H
+#define COMMONS_STR_H
 
 #include <string>
 #include <vector>
@@ -80,4 +80,4 @@ public:
     }
 };
 
-#endif //VIADUCK_STR_H
+#endif //COMMONS_STR_H
