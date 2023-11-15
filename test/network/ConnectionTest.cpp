@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,8 +17,6 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unordered_map>
-
 #if defined(__WIN32)
 #undef WINVER
 #define WINVER 0x0600
@@ -26,8 +24,12 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
-#include <network/PushConnection.h>
+#include <network/ConnectionWait.h>
 #include <secure_memory/String.h>
+
+#include <thread>
+#include <unordered_map>
+
 #include "custom_assert.h"
 #include "ConnectionTest.h"
 
@@ -37,15 +39,57 @@
 #include "../../src/network/socket/SSLSocket.h"
 #include "../../src/network/socket/NotifySocket.h"
 
+using namespace std::chrono_literals;
+// retry non-blocking operation while result is zero
+template<typename Rep = int64_t, typename Period = std::milli>
+inline int eventually(const std::function<int()> &fun, const std::chrono::duration<Rep, Period> timeout = 3000ms) {
+    int i = 0, rv = 0, limit = 1000;
+    while (i++ < limit && rv == 0) {
+        rv = fun();
+
+        std::this_thread::sleep_for(timeout / limit);
+    }
+
+    return (i == limit && rv == 0) ? -100: rv;
+}
+
+#define CONNECT_BLOCKING(conn) conn.connect()
+#define CONNECT_NONBLOCKING(conn) eventually([&] () { return conn.connectNonBlocking(); })
+
+template<typename T = int>
+static void internalConnectBlocking(Connection &conn) {
+    if (std::is_same_v<T, int>)
+        EXPECT_NO_THROW(CONNECT_BLOCKING(conn));
+    else
+        EXPECT_THROW(CONNECT_BLOCKING(conn), T);
+}
+template<typename T = int>
+static void internalConnectNonBlocking(Connection &conn, int code) {
+    if (std::is_same_v<T, int>)
+        EXPECT_EQ(code, CONNECT_NONBLOCKING(conn));
+    else
+        EXPECT_THROW(CONNECT_NONBLOCKING(conn), T);
+}
+
+#define EXPECT_CONNECT_RESULT(conn, err_blk, code_nbk, err_nbk) do {    \
+    if (isBlockingMode())                                               \
+        internalConnectBlocking<err_blk>(conn);                         \
+    else                                                                \
+        internalConnectNonBlocking<err_nbk>(conn, code_nbk);            \
+} while(0)
+#define EXPECT_CONNECT_SUCCESS(conn) EXPECT_CONNECT_RESULT(conn, , 1, )
+
 // mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
     return ::testing::UnitTest::GetInstance()->current_test_info()->name();
 }
 
-#define MAKE_MOCK_FUNCTION(fun, ret, ...) std::function<ret(__VA_ARGS__)> fun = [] (__VA_ARGS__)
+// test in blocking and non-blocking mode
+INSTANTIATE_TEST_SUITE_P(BlockingNonBlocking, ConnectionTest, testing::Values(true, false));
 
 // defaults
 struct NativeMock {
+    #define MAKE_MOCK_FUNCTION(fun, ret, ...) std::function<ret(__VA_ARGS__)> fun = [] (__VA_ARGS__)
     MAKE_MOCK_FUNCTION(getaddrinfo, int, const char*, const char*, const addrinfo*, addrinfo**) { return 0; };
     MAKE_MOCK_FUNCTION(socket, int, int, int, int) { return 0; };
     MAKE_MOCK_FUNCTION(connect, int, int, const sockaddr*, socklen_t) { return 0; };
@@ -101,18 +145,19 @@ int ::Native::select(int ndfs, fd_set *_read, fd_set *_write, fd_set *_except, t
     return mocks[currentTestName()].select(ndfs, _read, _write, _except, timeout);
 }
 
-TEST_F(ConnectionTest, noHost) {
+TEST_P(ConnectionTest, noHost) {
     // host does not exist
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **) {
         return EAI_NONAME;
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_THROW(conn.connect(), resolve_error);
-    ASSERT_FALSE(conn.connected());
+    // blk connect: throw resolve_error, nbk connect: non-recoverable error
+    EXPECT_CONNECT_RESULT(conn, resolve_error, -2, );
+    EXPECT_FALSE(conn.connected());
 }
 
-TEST_F(ConnectionTest, hostButNoAddresses) {
+TEST_P(ConnectionTest, hostButNoAddresses) {
     // host can be resolved, but there are no addresses associated. This shouldn't happen under normal operation but
     // testing it just in case
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **outAddr) {
@@ -121,11 +166,12 @@ TEST_F(ConnectionTest, hostButNoAddresses) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_THROW(conn.connect(), resolve_error);
-    ASSERT_FALSE(conn.connected());
+    // blk connect: throw resolve_error, nbk connect: non-recoverable error
+    EXPECT_CONNECT_RESULT(conn, resolve_error, -2, );
+    EXPECT_FALSE(conn.connected());
 }
 
-TEST_F(ConnectionTest, invalidSocket) {
+TEST_P(ConnectionTest, invalidSocket) {
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **outAddr) {
         // define addrinfo used for resolve mock
         struct addrinfo *addr = new addrinfo;
@@ -156,11 +202,12 @@ TEST_F(ConnectionTest, invalidSocket) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_THROW(conn.connect(), socket_error);
-    ASSERT_FALSE(conn.connected());
+    // any connect: throw socket_error
+    EXPECT_CONNECT_RESULT(conn, socket_error, -1, socket_error);
+    EXPECT_FALSE(conn.connected());
 }
 
-TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
+TEST_P(ConnectionTest, successConnect1stAddressIPv4) {
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const addrinfo *, addrinfo **outAddr) {
         // define addrinfo used for resolve mock
         struct addrinfo *addr = new addrinfo;
@@ -195,7 +242,8 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
 #endif
         return -1;
     };
-    mocks[currentTestName()].select = [] (int , fd_set *, fd_set *, fd_set *, timeval *) {
+    mocks[currentTestName()].select = [] (int , fd_set *, fd_set *, fd_set *__exceptfds, timeval *) {
+        FD_ZERO(__exceptfds);
         return 1;
     };
     mocks[currentTestName()].getsockopt = [] (int , int , int , char *optval, socklen_t *) {
@@ -209,12 +257,12 @@ TEST_F(ConnectionTest, successConnect1stAddressIPv4) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_NO_THROW(conn.connect());
-    ASSERT_TRUE(conn.connected());
-    ASSERT_EQ(IPProtocol::IPv4, conn.protocol());
+    EXPECT_CONNECT_SUCCESS(conn);
+    EXPECT_TRUE(conn.connected());
+    EXPECT_EQ(IPProtocol::IPv4, conn.protocol());
 }
 
-TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
+TEST_P(ConnectionTest, successConnect2ndAddressIPv4) {
     mocks[currentTestName()].getaddrinfo = [] (const char *, const char *, const struct addrinfo *, struct addrinfo ** outAddr) {
         // define addrinfo used for resolve mock
         // 1st address is invalid, connection it cannot be established
@@ -264,7 +312,7 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
 
             // emulate connect -> return -1 and set errno / WSAError
 #ifdef WIN32
-            WSASetLastError(WSAEWOULDBLOCK);
+            WSASetLastError(WSAECONNREFUSED);
 #else
             errno = ECONNREFUSED;
 #endif
@@ -275,7 +323,7 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
 
             // emulate connect -> return -1 and set errno / WSAError
 #ifdef WIN32
-            WSASetLastError(WSAECONNREFUSED);
+            WSASetLastError(WSAEWOULDBLOCK);
 #else
             errno = EINPROGRESS;
 #endif
@@ -284,7 +332,8 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
         ADD_FAILURE() << "Should not be reached!";
         return -1;
     };
-    mocks[currentTestName()].select = [] (int , fd_set *, fd_set *, fd_set *, timeval *) {
+    mocks[currentTestName()].select = [] (int , fd_set *, fd_set *, fd_set *__exceptfds, timeval *) {
+        FD_ZERO(__exceptfds);
         return 1;
     };
     mocks[currentTestName()].getsockopt = [] (int , int , int , char *optval, socklen_t *) {
@@ -309,13 +358,20 @@ TEST_F(ConnectionTest, successConnect2ndAddressIPv4) {
     };
 
     Connection conn("localhost", 1337, false);
-    ASSERT_NO_THROW(conn.connect());
+    if (isBlockingMode())
+        EXPECT_NO_THROW(conn.connect());
+    else {
+        EXPECT_EQ(0, conn.connectNonBlocking());
+        EXPECT_EQ(0, conn.connectNonBlocking());
+        EXPECT_EQ(1, conn.connectNonBlocking());
+    }
+
     // do not execute the assert in close if connect was already successful because a successful socket will be closed
     // there too
     checkClose = false;
 
-    ASSERT_TRUE(conn.connected());
-    ASSERT_EQ(IPProtocol::IPv4, conn.protocol());
+    EXPECT_TRUE(conn.connected());
+    EXPECT_EQ(IPProtocol::IPv4, conn.protocol());
 }
 
 void mockReal() {
@@ -336,78 +392,109 @@ void mockReal() {
 #endif
 }
 
-TEST_F(ConnectionTest, realSSL) {
+TEST_P(ConnectionTest, realSSL) {
     // switch to real native calls
     mockReal();
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    ASSERT_NO_THROW(conn.connect());
-    ASSERT_TRUE(conn.connected());
-    ASSERT_TRUE(conn.info().ssl());
+    EXPECT_CONNECT_SUCCESS(conn);
+    EXPECT_TRUE(conn.connected());
+    EXPECT_TRUE(conn.info().ssl());
 }
 
-TEST_F(ConnectionTest, realNoSSL) {
+TEST_P(ConnectionTest, realNoSSL) {
     // switch to real native calls
     mockReal();
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 80, false);
-    ASSERT_NO_THROW(conn.connect());
-    ASSERT_TRUE(conn.connected());
-    ASSERT_FALSE(conn.info().ssl());
+    EXPECT_CONNECT_SUCCESS(conn);
+    EXPECT_TRUE(conn.connected());
+    EXPECT_FALSE(conn.info().ssl());
 }
 
-TEST_F(ConnectionTest, sessionResumption) {
+TEST_P(ConnectionTest, sessionResumption) {
     // switch to real native calls
     mockReal();
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    ASSERT_NO_THROW(conn.connect());
-    ASSERT_TRUE(conn.connected());
-    ASSERT_TRUE(conn.info().ssl());
+    EXPECT_CONNECT_SUCCESS(conn);
+    EXPECT_TRUE(conn.connected());
+    EXPECT_TRUE(conn.info().ssl());
     // this saves SSL session in TLS 1.3
     conn.disconnect();
 
     // following connections should use stored ssl sessions
     Connection conn2("viaduck.org", 443);
-    ASSERT_NO_THROW(conn2.connect());
-    ASSERT_TRUE(conn2.connected());
-    ASSERT_TRUE(conn2.info().ssl());
-    ASSERT_TRUE(((SSLSocket*)conn2.socket())->isReused());
+    EXPECT_CONNECT_SUCCESS(conn2);
+    EXPECT_TRUE(conn2.connected());
+    EXPECT_TRUE(conn2.info().ssl());
+    EXPECT_TRUE(((SSLSocket*)conn2.socket())->isReused());
     conn2.disconnect();
 
-    ASSERT_NO_THROW(conn2.connect());
-    ASSERT_TRUE(conn2.connected());
-    ASSERT_TRUE(conn2.info().ssl());
-    ASSERT_TRUE(((SSLSocket*)conn2.socket())->isReused());
+    EXPECT_CONNECT_SUCCESS(conn2);
+    EXPECT_TRUE(conn2.connected());
+    EXPECT_TRUE(conn2.info().ssl());
+    EXPECT_TRUE(((SSLSocket*)conn2.socket())->isReused());
 }
 
 TEST_F(ConnectionTest, notify) {
     // switch to real native calls
     mockReal();
 
-    NotifySocket notify(ConnectionInfo("", 0));
-    ASSERT_TRUE(notify.connect(nullptr));
-    ASSERT_NO_THROW(notify.notify());
-    ASSERT_NO_THROW(notify.clear());
+    NotifySocket notify;
+    EXPECT_TRUE(notify.connect(nullptr));
+    EXPECT_NO_THROW(notify.notify());
+    EXPECT_NO_THROW(notify.clear());
 }
 
-TEST_F(ConnectionTest, pushConnection) {
+TEST_F(ConnectionTest, connectionWait) {
     // switch to real native calls
     mockReal();
 
-    PushConnection conn(ConnectionInfo("viaduck.org", 443));
-    ASSERT_NO_THROW(conn.connect());
-    ASSERT_TRUE(conn.connected());
-    ASSERT_TRUE(conn.info().ssl());
-
+    ConnectionWait connectionWait;
     // send one notify
-    conn.notify();
-    // should not wait since we have a notify
-    bool readable, notify;
-    ASSERT_TRUE(conn.wait(readable, notify));
-    ASSERT_TRUE(notify);
-    ASSERT_NO_THROW(conn.clearNotify());
+    connectionWait.notify();
+
+    // wait should not wait since we have a notify
+    bool notify = false, connections = false;
+    EXPECT_TRUE(connectionWait.wait(
+        [&] () { return (notify = true); },
+        [&] (const Connection::Ref &, ConnectionWait::State) { return (connections = true); }
+    ));
+
+    // check that notify was registered, connection was not called
+    EXPECT_TRUE(notify);
+    EXPECT_FALSE(connections);
+}
+
+TEST_F(ConnectionTest, connectionWaitRealSSL) {
+    // switch to real native calls
+    mockReal();
+
+    ConnectionWait connectionWait;
+    // tries to establish a non-blocking connection to viaduck servers
+    auto conn = std::make_shared<Connection>("viaduck.org", 443);
+    EXPECT_EQ(0u, conn->connectNonBlocking());
+    connectionWait.registerConnection(conn);
+
+    int rv;
+    do {
+        // only connection events should cause wake-ups
+        bool notify = false, connections = false;
+        EXPECT_TRUE(connectionWait.wait(
+                [&]() { return (notify = true); },
+                [&](const Connection::Ref &, ConnectionWait::State) { return (connections = true); }
+        ));
+        EXPECT_TRUE(connections);
+
+        // advance non-blocking connection, expect no error (>= 0)
+        rv = conn->connectNonBlocking();
+        EXPECT_GE(rv, 0);
+    } while (rv == 0);
+
+    EXPECT_TRUE(conn->connected());
+    EXPECT_TRUE(conn->info().ssl());
 }

@@ -38,7 +38,7 @@ public:
             // gracefully shut down ssl
             if (SSL_shutdown(mSSL.get()) == 0) {
                 // shutdown not yet finished, require SSL_read for bidirectional shutdown
-                read(nullptr, 0);
+                SSLSocket::read(nullptr, 0);
             }
         }
     }
@@ -47,8 +47,34 @@ public:
         return SSL_session_reused(mSSL.get()) == 1;
     }
 
+    int startSSLConnectNonBlocking(addrinfo *addr) {
+        // check for TCP to connect, init connection attempt
+        auto rv = TCPSocket::connectNonBlocking(addr);
+        if (rv > 0) {
+            mConnectSSLActive = true;
+            rv = initSSLConnect();
+        }
+
+        return rv;
+    }
+    int finishSSLConnectNonBlocking() {
+        // finish SSL connect
+        auto rv = finishSSLConnect();
+        if (rv != 0)
+            mConnectSSLActive = false;
+
+        return rv;
+    }
+
+    int connectNonBlocking(addrinfo *addr) override {
+        if (!mConnectSSLActive)
+            return startSSLConnectNonBlocking(addr);
+        else
+            return finishSSLConnectNonBlocking();
+    }
+
     bool connect(addrinfo *addr) override {
-        return TCPSocket::connect(addr) && initSSL();
+        return TCPSocket::connect(addr) && initSSLConnect() > 0;
     }
 
     int64_t read(void *data, uint32_t size) override {
@@ -87,9 +113,10 @@ protected:
         return 1;
     }
 
-    bool initSSL() {
-        // load thread specific ssl context
+    int initSSLConnect() {
         SSLContext &ctx = SSLContext::getInstance();
+
+        // load thread specific ssl context
         ctx.load(mInfo.certPath());
         // register session resumption callbacks
         SSL_CTX_sess_set_new_cb(ctx.get(), saveSession);
@@ -111,27 +138,44 @@ protected:
         if (session)
             L_assert(SSL_set_session(mSSL.get(), session) == 1, ssl_socket_error);
 
+        return finishSSLConnect();
+    }
+    int finishSSLConnect() {
+        SSLContext &ctx = SSLContext::getInstance();
+
         // try to connect
         int ret = SSL_connect(mSSL.get());
-        if (ret != 1 && SSL_get_error(mSSL.get(), ret) == SSL_ERROR_SSL &&
-                ERR_GET_LIB(ERR_peek_last_error()) == ERR_LIB_SSL &&
-                ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_CERTIFICATE_VERIFY_FAILED)
-            throw ssl_verification_error("Certificate verification failed");
-        else if (ret != 1)
-            throw ssl_socket_error("SSL connection failed");
+        if (ret != 1) {
+            // error/shutdown occurred -> check error code
+            int err = SSL_get_error(mSSL.get(), ret);
+            if (err == SSL_ERROR_SSL && ERR_GET_LIB(ERR_peek_last_error()) == ERR_LIB_SSL &&
+                    ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_CERTIFICATE_VERIFY_FAILED)
+                // certificate error -> throw specific
+                throw ssl_verification_error("Certificate verification failed");
+            else if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
+                // non-blocking socket requires action -> return wait
+                return 0;
+            else
+                // other error in SSL -> return error
+                return -1;
+        }
 
 #ifdef TLS1_3_VERSION
         // TLSv1.3: recommends that each SSL_SESSION object only used once
+        auto *session = SSL_get_session(mSSL.get());
         if (session && SSL_version(mSSL.get()) == TLS1_3_VERSION)
             ctx.removeSession(mInfo, session);
 #endif
 
-        // only for chaining in connect
-        return true;
+        // success
+        return 1;
     }
 
     // internal ssl object, not thread-safe
     SSL_ref mSSL;
+
+    // internal non-blocking connect state
+    bool mConnectSSLActive = false;
 };
 
 #endif //COMMONS_SSLSOCKET_H

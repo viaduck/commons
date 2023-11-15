@@ -91,14 +91,23 @@ public:
 
     /// Sends one byte to notify the receiving end
     void notify() {
+        std::unique_lock<std::mutex> lock(mMutex);
+        mNotifyCount++;
+
         uint8_t message = 1;
         L_assert(write(&message, sizeof(message)) == sizeof(message), notify_socket_error);
     }
 
     /// Clears a notification
     void clear() {
-        uint8_t message;
-        L_assert(read(&message, sizeof(message)) == sizeof(message), notify_socket_error);
+        std::unique_lock<std::mutex> lock(mMutex);
+
+        for (uint32_t i = 0; i < mNotifyCount; i++) {
+            uint8_t message;
+            L_assert(read(&message, sizeof(message)) == sizeof(message), notify_socket_error);
+        }
+
+        mNotifyCount = 0;
     }
 
     int64_t read(void *data, uint32_t size) override {
@@ -111,6 +120,9 @@ public:
 
 protected:
     SOCKET mRxSocket = INVALID_SOCKET, mTxSocket = INVALID_SOCKET;
+
+    std::mutex mMutex;
+    uint32_t mNotifyCount = 0;
 };
 
 #endif //COMMONS_NOTIFYSOCKET_H

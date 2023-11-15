@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -42,16 +42,25 @@ public:
             throw resolve_error("Resolve error: " + std::to_string(res));
     }
 
-    bool next(addrinfo *&out) {
+    bool current(addrinfo *&out) {
+        if (!mResult || !mIterator)
+            return false;
+
+        out = mIterator;
+        return true;
+    }
+
+    bool advance() {
         // advance iterator
         if (mResult && !mIterator)
             mIterator = mResult.get();
         else if (mResult && mIterator->ai_next)
             mIterator = mIterator->ai_next;
-        else
+        else {
+            mIterator = nullptr;
             return false;
+        }
 
-        out = mIterator;
         return true;
     }
 

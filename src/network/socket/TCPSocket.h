@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,73 +20,166 @@
 #ifndef COMMONS_TCPSOCKET_H
 #define COMMONS_TCPSOCKET_H
 
+#include <commons/util/Timer.h>
 #include <network/socket/ISocket.h>
+#include "SocketWait.h"
 
 DEFINE_ERROR(socket, base_error);
 
 class TCPSocket : public ISocket {
 public:
+    class NonBlockingScope {
+    public:
+        explicit NonBlockingScope(TCPSocket *socket) : mSocket(socket) {
+            socket->setNonBlocking(true);
+        }
+        ~NonBlockingScope() {
+            mSocket->setNonBlocking(false);
+        }
+
+    protected:
+        TCPSocket *mSocket;
+    };
+
     explicit TCPSocket(const ConnectionInfo &info) : ISocket(info) { }
 
     ~TCPSocket() override {
+        disconnect();
+    }
+
+    void disconnect() {
         if (mSocket != INVALID_SOCKET) {
             // this will gracefully shut down the connection
             Native::shutdown(mSocket, NW__SHUT_RDWR);
             Native::close(mSocket);
         }
+
+        mSocket = INVALID_SOCKET;
     }
 
-    bool connect(addrinfo *addr) override {
+    int initConnect(addrinfo *addr) {
         // try to create socket
         mSocket = Native::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
         L_assert(mSocket != INVALID_SOCKET, socket_error);
 
         // set r/w timeout
         setTimeoutIO(mInfo.timeoutIO());
-        // make socket non-blocking
-        setNonBlocking(true);
         // set IP protocol info
         setProtocol(addr->ai_family);
+        // set non-blocking now, set blocking when leaving scope
+        NonBlockingScope nonBlockingScope(this);
 
         // connect and return immediately
         int res = Native::connect(mSocket, addr->ai_addr, addr->ai_addrlen);
-
         if (res == 0) {
-            // connect success, make socket blocking again
-            setNonBlocking(false);
-            return true;
+            // connect success
+            return 1;
         }
 #ifdef WIN32
         else if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
 #else
         else if (res == SOCKET_ERROR && errno == EINPROGRESS) {
 #endif
-            // create a set of sockets for select, add only our socket
-            fd_set set;
-            FD_ZERO(&set);
-            FD_SET(mSocket, &set);
+            // retry later to complete connect
+            return 0;
+        }
 
-            // timeout in microseconds
-            auto toc = static_cast<int32_t>(mInfo.timeoutConnect());
-            timeval tv = {.tv_sec = toc / 1000, .tv_usec = 1000 * (toc % 1000)};
-            // timeout -> pass NULL to block
-            timeval *ptv = toc > 0 ? &tv : nullptr;
+        // error
+        return -1;
+    }
+    int finishConnect(const std::optional<int32_t> &timeoutMs) {
+        NonBlockingScope nonBlockingScope(this);
 
-            // waits for socket to complete connect (become writeable)
-            if (Native::select(mSocket + 1, nullptr, &set, nullptr, ptv) > 0) {
-                // connect completed - successfully or not
+        SocketWait::Entry waitEntry(mSocket, SocketWait::Events::WRITEABLE | SocketWait::Events::EXCEPT);
+        auto rv = SocketWait::waitOne(waitEntry, timeoutMs);
+        if (rv > 0) {
+            // connect completed - successfully or not
 
-                int error;
-                socklen_t len = sizeof(error);
-                if (Native::getsockopt(mSocket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) == 0 && error == 0) {
-                    // connect success, make socket blocking again
-                    setNonBlocking(false);
-                    return true;
-                }
-            }
+            // exception in socket
+            if (waitEntry.except())
+                return -1;
+
+            // writeable - check socket error
+            if (extractError() != 0)
+                return -1;
+
+            // success
+            return 1;
         }
 
         // timeout or error
+        return rv;
+    }
+
+    int startConnectNonBlocking(addrinfo *addr) {
+        // init connection attempt
+        auto rv = initConnect(addr);
+        if (rv < 0) {
+            // disconnect on error
+            disconnect();
+        }
+        else if (rv == 0) {
+            // now the connection process is active
+            mConnectActive = true;
+            // start timer on "wait" with timeout
+            if (mInfo.timeoutConnect() > 0)
+                mTimeout.start(mInfo.timeoutConnect());
+        }
+
+        return rv;
+    }
+    int continueConnectNonBlocking() {
+        // continue connection attempt
+        auto rv = finishConnect(0);
+        if (rv < 0) {
+            // disconnect on error
+            disconnect();
+        }
+        if (rv != 0) {
+            // success or failure, reset state
+            mTimeout.reset();
+            mConnectActive = false;
+        }
+
+        return rv;
+    }
+    int timeoutConnectNonBlocking() {
+        // timeout in connection attempt, last try to complete connection
+        auto rv = finishConnect(0);
+        if (rv <= 0) {
+            // timeout is an error now
+            disconnect();
+            rv = -1;
+        }
+
+        // reset state
+        mTimeout.reset();
+        mConnectActive = false;
+        return rv;
+    }
+
+    virtual int connectNonBlocking(addrinfo *addr) {
+        if (!mConnectActive)
+            return startConnectNonBlocking(addr);
+        else if (!mTimeout.active() || mTimeout.running())
+            return continueConnectNonBlocking();
+        else
+            return timeoutConnectNonBlocking();
+    }
+
+    bool connect(addrinfo *addr) override {
+        auto rv = initConnect(addr);
+        if (rv == 1) {
+            // immediately connected
+            return true;
+        }
+        else if (rv == 0) {
+            // awaiting result, wait until timeout
+            auto timeoutMs = static_cast<int32_t>(mInfo.timeoutConnect());
+            return finishConnect(timeoutMs == 0 ? std::optional<int32_t>{} : timeoutMs) > 0;
+        }
+
+        // error
         return false;
     }
 
@@ -145,6 +238,16 @@ protected:
         setsockopt(mSocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
     }
 
+    int extractError() const {
+        int error;
+        socklen_t len = sizeof(error);
+
+        if (Native::getsockopt(mSocket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) != 0)
+            return -1;
+
+        return error;
+    }
+
     void setProtocol(int ai_family) {
         if (ai_family == AF_INET)
             mProtocol = IPProtocol::IPv4;
@@ -152,7 +255,12 @@ protected:
             mProtocol = IPProtocol::IPv6;
     }
 
+    // internal socket
     SOCKET mSocket = INVALID_SOCKET;
+
+    // internal non-blocking connect state
+    Timer mTimeout;
+    bool mConnectActive = false;
 };
 
 #endif //COMMONS_TCPSOCKET_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -22,8 +22,11 @@
 
 #include <gtest/gtest.h>
 
-class ConnectionTest : public ::testing::Test {
-
+class ConnectionTest : public ::testing::TestWithParam<bool> {
+public:
+    bool isBlockingMode() const {
+        return GetParam();
+    }
 };
 
 
