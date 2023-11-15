@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,9 +20,10 @@
 #ifndef COMMONS_TIME_H
 #define COMMONS_TIME_H
 
+#include <commons/util/Except.h>
+
 #include <chrono>
 #include <iomanip>
-#include <commons/util/Except.h>
 #include <sstream>
 
 #ifdef WIN32
@@ -38,7 +39,7 @@
 DEFINE_ERROR(time, base_error);
 
 /**
- * Provides a thread-safe, cross-platform way of creating and formatting timestamps.
+ * Provides a thread-safe, cross-platform way of creating and formatting timestamps with millisecond precision.
  */
 class Time {
 public:
@@ -63,9 +64,7 @@ public:
     /**
      * Formats the timestamp in given format. See std::put_time for format specification.
      *
-     * Note:
-     * The maximum resolution of the format is seconds.
-     *
+     * Note: The maximum resolution of the format is seconds.
      * This function is thread-safe.
      */
     std::string format(const char *fmt) {
@@ -79,7 +78,7 @@ public:
     /**
      * Same as format, but c++11-aware.
      * Supports %k for milliseconds and %z for timezone offset.
-     * @param localTime If true, %z resolves to local timezone, otherwise %z resolves to UTC +0000. (defaults to UTC)
+     * If this is non-UTC, %z resolves to local timezone, otherwise %z resolves to UTC +0000.
      *
      * Note: this function is thread-safe.
      */
@@ -180,25 +179,28 @@ protected:
         return fmt;
     }
 
-    static std::string format_z(std::string fmt, long min_offset) {
+    /**
+     * Replaces all instances of "%z" with timezone offset "+-HHMM"
+     */
+    static std::string format_z(std::string fmt, long minuteOffset) {
         // extract minutes and hours of timezone offset
-        bool t_positive = min_offset >= 0;
+        bool isPositive = minuteOffset >= 0;
+        if (!isPositive) minuteOffset *= -1;
 
-        if (!t_positive) min_offset *= -1;
-        int t_mins = min_offset % 60;
-        int t_hours = min_offset / 60;
+        long tMinutes = minuteOffset % 60;
+        long tHours = minuteOffset / 60;
 
         // build +-HHMM offset
         std::stringstream bruce;
-        bruce << (t_positive ? '+' : '-')
-              << std::setfill('0') << std::setw(2) << t_hours
-              << std::setfill('0') << std::setw(2) << t_mins;
-        std::string tz_offset = bruce.str();
+        bruce << (isPositive ? '+' : '-')
+              << std::setfill('0') << std::setw(2) << tHours
+              << std::setfill('0') << std::setw(2) << tMinutes;
+        std::string tzOffset = bruce.str();
 
         // while %z exists in fmt, replace it with tz_offset
         size_t z_k;
         while ((z_k = scan_x(fmt, 'z')) != std::string::npos)
-            fmt = replace_at(fmt, z_k, tz_offset);
+            fmt = replace_at(fmt, z_k, tzOffset);
 
         return fmt;
     }
@@ -219,7 +221,7 @@ protected:
      * Searches the string for "%x", but ignores "%%x"
      *
      * @param fmt The format string to search
-     * @return Index of first %k match or npos
+     * @return Index of first %x match or npos
      */
     static size_t scan_x(const std::string &fmt, char x) {
         size_t count_percent = 0;
@@ -241,7 +243,7 @@ protected:
         using namespace std::chrono;
 
         // save millis
-        mMillis = timestamp % 1000;
+        mMillis = static_cast<int>(timestamp % 1000);
 
         // convert millis to a system_clock timepoint, store in s_time
         milliseconds t_millis(timestamp);
@@ -256,7 +258,7 @@ protected:
     }
 
     // date and time with seconds precision
-    tm mTime;
+    tm mTime {};
     // additional millis
     int mMillis = 0;
     // local or UTC time?
