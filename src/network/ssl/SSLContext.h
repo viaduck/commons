@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -68,7 +68,7 @@ public:
      * @param session Native OpenSSL SSL context
      */
     void saveSession(const ConnectionInfo &info, SSL_SESSION *session) {
-        mSessions.emplace(info.hash(), SSL_SESSION_ref(session, &SSL_SESSION_free));
+        mSessions.emplace(info, SSL_SESSION_ref(session, &SSL_SESSION_free));
     }
 
     /**
@@ -78,7 +78,7 @@ public:
      * @return Saved session to resume
      */
     SSL_SESSION *getSession(const ConnectionInfo &info) {
-        auto elem = mSessions.find(info.hash());
+        auto elem = mSessions.find(info);
         return elem == mSessions.end() ? nullptr : elem->second.get();
     }
 
@@ -88,7 +88,7 @@ public:
      * @param info Associated connection information
      */
     void removeSession(const ConnectionInfo &info, SSL_SESSION *session) {
-        auto range = mSessions.equal_range(info.hash());
+        auto range = mSessions.equal_range(info);
         auto it = std::find_if(range.first, range.second, [&] (const auto &it) { return it.second.get() == session; });
 
         if (it != range.second)
@@ -116,7 +116,7 @@ protected:
     // ssl data index for custom data
     int mDataIndex;
     // saved sessions for resumption
-    std::unordered_multimap<size_t, SSL_SESSION_ref> mSessions;
+    std::unordered_multimap<ConnectionInfo, SSL_SESSION_ref> mSessions;
 };
 
 #endif //COMMONS_SSLCONTEXT_H

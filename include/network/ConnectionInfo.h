@@ -24,6 +24,9 @@
 
 class ConnectionInfo {
 public:
+    /// Constructs an empty ConnectionInfo
+    explicit ConnectionInfo() : ConnectionInfo("", 0) { }
+
     /**
      * Constructs a ConnectionInfo
      *
@@ -70,8 +73,13 @@ public:
     uint32_t timeoutIO() const { return mTimeoutIO; }
     void timeoutIO(uint32_t value) { mTimeoutIO = value; }
 
-    size_t hash() const {
-        return (std::hash<std::string>()(mHost) + 0x9e3779b9) ^ std::hash<uint16_t>()(mPort);
+    bool operator==(const ConnectionInfo &other) const {
+        // we consider two infos equal only by host and port
+        return mHost == other.mHost && mPort == other.mPort;
+    }
+    bool operator<(const ConnectionInfo &other) const {
+        // compare two infos only by host and port
+        return std::tie(mHost, mPort) < std::tie(other.mHost, other.mPort);
     }
 
 private:
@@ -88,6 +96,23 @@ private:
     // timeouts
     uint32_t mTimeoutConnect;
     uint32_t mTimeoutIO;
+};
+
+// structure specializations required by STL collections for custom key types
+
+template<>
+struct std::hash<ConnectionInfo> {
+    std::size_t operator()(const ConnectionInfo &connectionInfo) const {
+        return (std::hash<std::string>()(connectionInfo.host()) + 0x9e3779b9)
+                ^ std::hash<uint16_t>()(connectionInfo.port());
+
+    }
+};
+template<>
+struct std::less<ConnectionInfo> {
+    bool operator()(const ConnectionInfo &info1, const ConnectionInfo &info2) const {
+        return info1.operator<(info2);
+    }
 };
 
 #endif //COMMONS_CONNECTIONINFO_H

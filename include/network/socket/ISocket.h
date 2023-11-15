@@ -27,7 +27,8 @@ struct addrinfo;
 
 class ISocket {
 public:
-    explicit ISocket(const ConnectionInfo &info) : mInfo(info) { };
+    explicit ISocket() = default;
+    explicit ISocket(ConnectionInfo info) : mInfo(std::move(info)) { };
     virtual ~ISocket() = default;
 
     virtual bool connect(addrinfo *addr) = 0;
@@ -40,7 +41,7 @@ public:
 
 protected:
     // constant connection information
-    const ConnectionInfo &mInfo;
+    ConnectionInfo mInfo;
     // current IP protocol used
     IPProtocol mProtocol = IPProtocol::VALUE_INVALID;
 };

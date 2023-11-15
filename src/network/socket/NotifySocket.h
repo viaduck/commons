@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -26,11 +26,16 @@ DEFINE_ERROR(notify_socket, base_error);
 
 class NotifySocket : public ISocket {
 public:
-    explicit NotifySocket(const ConnectionInfo &info) : ISocket(info) { }
+    explicit NotifySocket() = default;
 
     ~NotifySocket() override {
         Native::close(mRxSocket);
         Native::close(mTxSocket);
+    }
+
+    /// @return Underlying rx socket
+    SOCKET fd() const {
+        return mRxSocket;
     }
 
 #ifdef WIN32
@@ -84,17 +89,13 @@ public:
     }
 #endif
 
-    /**
-     * Sends one byte to notify the receiving end
-     */
+    /// Sends one byte to notify the receiving end
     void notify() {
         uint8_t message = 1;
         L_assert(write(&message, sizeof(message)) == sizeof(message), notify_socket_error);
     }
 
-    /**
-     * Clears a notification
-     */
+    /// Clears a notification
     void clear() {
         uint8_t message;
         L_assert(read(&message, sizeof(message)) == sizeof(message), notify_socket_error);
@@ -106,13 +107,6 @@ public:
 
     int64_t write(const void *data, uint32_t size) override {
         return Native::send(mTxSocket, data, size);
-    }
-
-    /**
-     * @return Underlying rx socket
-     */
-    SOCKET fd() const {
-        return mRxSocket;
     }
 
 protected:
