@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Commons.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.13...3.27)
 project(commons)
 
 # options
@@ -25,8 +25,6 @@ option(COMMONS_USE_LOCK_FREE_QUEUE "Enable lock-free instead of locking message 
 # add additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/secure_memory/cmake-modules")
 
-# python used to auto generate files
-find_package(PythonInterp 3.4 REQUIRED)
 # platform specific thread library
 find_package(Threads REQUIRED)
 

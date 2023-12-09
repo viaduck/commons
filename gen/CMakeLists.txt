@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 The ViaDuck Project
+# Copyright (C) 2018-2023 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -15,10 +15,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Commons.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1...3.27)
 
-## flatbuffers
+# python used to auto generate files
+find_package(Python3 3.4 REQUIRED)
 
+# provide flatbuffers compiler
 if (SYSTEM_FLATC)
     # use system provided flatc
     find_program(FLATC_PROGRAM flatc)
@@ -53,29 +55,41 @@ endif()
 
 # output directory
 set(GEN_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+# cache to extend scope
+set(Python3_EXECUTABLE ${Python3_EXECUTABLE} CACHE INTERNAL "" FORCE)
 
 function(gen_add TARGET DEF_DIR)
     set(GEN_INCLUDES ${CMAKE_BINARY_DIR}/include)
 
     # get list of headers that need to be generated
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
-            ${GEN_DIR}/generator.py list ${DEF_DIR} ${GEN_INCLUDES}
-            WORKING_DIRECTORY ${GEN_DIR}
-            OUTPUT_VARIABLE GEN_HEADERS)
+    execute_process(COMMAND ${Python3_EXECUTABLE}
+        ${GEN_DIR}/generator.py list ${DEF_DIR} ${GEN_INCLUDES}
+        WORKING_DIRECTORY ${GEN_DIR}
+        OUTPUT_VARIABLE GEN_HEADERS
+        RESULT_VARIABLE GEN_RESULT
+    )
+    if (GEN_RESULT AND NOT GEN_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed generating header list with: ${GEN_RESULT}")
+    endif()
 
     # get list of source files to depend on
-    execute_process(COMMAND ${PYTHON_EXECUTABLE}
-            ${GEN_DIR}/generator.py depend ${DEF_DIR} ${GEN_INCLUDES}
-            WORKING_DIRECTORY ${GEN_DIR}
-            OUTPUT_VARIABLE GEN_DEPENDS)
+    execute_process(COMMAND ${Python3_EXECUTABLE}
+        ${GEN_DIR}/generator.py depend ${DEF_DIR} ${GEN_INCLUDES}
+        WORKING_DIRECTORY ${GEN_DIR}
+        OUTPUT_VARIABLE GEN_DEPENDS
+        RESULT_VARIABLE GEN_RESULT
+    )
+    if (GEN_RESULT AND NOT GEN_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed generating depends list with: ${GEN_RESULT}")
+    endif()
 
     # custom command for actually generating the headers using the spec files
     add_custom_command(
-            OUTPUT ${GEN_HEADERS}
-            COMMAND ${PYTHON_EXECUTABLE}
-            ${GEN_DIR}/generator.py generate ${DEF_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
-            WORKING_DIRECTORY ${GEN_DIR}
-            DEPENDS ${GEN_DEPENDS}
+        OUTPUT ${GEN_HEADERS}
+        COMMAND ${Python3_EXECUTABLE}
+        ${GEN_DIR}/generator.py generate ${DEF_DIR} ${GEN_INCLUDES} ${FLATC_PROGRAM}
+        WORKING_DIRECTORY ${GEN_DIR}
+        DEPENDS ${GEN_DEPENDS}
     )
 
     # add targets
