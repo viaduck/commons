@@ -20,10 +20,27 @@
 #ifndef COMMONS_CONNECTIONINFO_H
 #define COMMONS_CONNECTIONINFO_H
 
+#include <commons/util/Except.h>
 #include <network/ssl/CertStore.h>
+
+DEFINE_ERROR(parse, base_error);
 
 class ConnectionInfo {
 public:
+    /**
+     * Creates a ConnectionInfo from the components of the specified connect URI
+     *
+     * @param uriStr URI connect string
+     * The URI should follow the format "vd://net/?[option=value]...", where:
+     * - "vd" is the protocol identifier (ViaDuck), "net" signifies a network connection URI
+     * - "h" is the mandatory host parameter specifying the IP or hostname.
+     * - "p" is the optional port parameter (defaults to defaultPort if not specified or "0").
+     * - "s" is the optional SSL parameter specifying whether SSL should be used (defaults to true)
+     * @param defaultPort Fallback port to default to in case there is no port specified in the URI (or it is "0")
+     * @return Populated ConnectionInfo on success
+     */
+    static ConnectionInfo parseConnectURI(const std::string &uriStr, uint16_t defaultPort);
+
     /// Constructs an empty ConnectionInfo
     explicit ConnectionInfo() : ConnectionInfo("", 0) { }
 
@@ -47,6 +64,8 @@ public:
             mTimeoutConnect(timeoutConnect), mTimeoutIO(timeoutIO) {
 
     }
+
+    bool empty() const;
 
     const std::string &host() const { return mHost; }
     void host(const std::string &value) { mHost = value; }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2023 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -17,20 +17,13 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMMONS_ISOCKETFACTORY_H
-#define COMMONS_ISOCKETFACTORY_H
+#ifndef COMMONS_URITEST_H
+#define COMMONS_URITEST_H
 
-#include <network/socket/ISocket.h>
-#include <network/component/ConnectionInfo.h>
+#include <gtest/gtest.h>
 
-class ISocketFactory {
-public:
-    virtual ~ISocketFactory() = default;
+class UriTest : public ::testing::Test {
 
-    /**
-     * Creates instance of socket implementation as specified in connection info
-     */
-    virtual ISocket *create(const ConnectionInfo &info) = 0;
 };
 
-#endif //COMMONS_ISOCKETFACTORY_H
+#endif //COMMONS_URITEST_H

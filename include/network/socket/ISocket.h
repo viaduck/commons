@@ -21,7 +21,7 @@
 #define COMMONS_ISOCKET_H
 
 #include <enum/network/IPProtocol.h>
-#include <network/ConnectionInfo.h>
+#include <network/component/ConnectionInfo.h>
 
 struct addrinfo;
 

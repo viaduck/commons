@@ -21,7 +21,7 @@
 #define COMMONS_SSLCONTEXT_H
 
 #include <unordered_map>
-#include <network/ConnectionInfo.h>
+#include <network/component/ConnectionInfo.h>
 
 /**
  * Wrapper class for OpenSSL's SSL_CTX. Each thread has one static singleton SSLContext assigned to save the
