@@ -21,6 +21,7 @@ project(commons)
 # options
 option(COMMONS_BASE_ONLY "Skip compiling network code" OFF)
 option(COMMONS_USE_LOCK_FREE_QUEUE "Enable lock-free instead of locking message queues" OFF)
+option(COMMONS_BUILD_TESTS "Enable test compilation for commons" OFF)
 
 # add additional cmake modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external/secure_memory/cmake-modules")
@@ -88,7 +89,9 @@ target_compile_options(commons PRIVATE -Wall -Wextra)
 target_compile_definitions(commons PUBLIC -DCOMMONS_USE_LOCK_FREE_QUEUE=$<BOOL:${COMMONS_USE_LOCK_FREE_QUEUE}>)
 
 # tests
-add_subdirectory(test)
+if (COMMONS_BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 # doxygen
 include(Doxygen)

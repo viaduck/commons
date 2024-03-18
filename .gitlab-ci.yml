@@ -16,7 +16,7 @@ build:linux:x86_64:full:
     script:
         - mkdir build
         - cd build
-        - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux -DGTEST_SRC_DIR=/usr/src/googletest/
+        - cmake -GNinja ../ -DPREBUILT_BRANCH=x86_64-linux -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
         expire_in: 2h
@@ -46,7 +46,7 @@ build:linux:x86_64:full:system-openssl:
     script:
         - mkdir build
         - cd build
-        - cmake -GNinja ../ -DSYSTEM_OPENSSL=ON -DGTEST_SRC_DIR=/usr/src/googletest/
+        - cmake -GNinja ../ -DSYSTEM_OPENSSL=ON -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
         expire_in: 2h
@@ -68,7 +68,7 @@ build:linux:x86_64:base-only:
     script:
         - mkdir build
         - cd build
-        - cmake -GNinja ../ -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/
+        - cmake -GNinja ../ -DCOMMONS_BASE_ONLY=ON -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/
         - ninja
     artifacts:
         expire_in: 2h
@@ -116,7 +116,7 @@ build:windows:x86_64:full:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
         - peldd test/commons_test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
@@ -132,7 +132,7 @@ build:windows:x86_64:base-only:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
 
 test:windows:x86_64:full:
@@ -153,7 +153,7 @@ build:android:arm64-v8a:full:
     script:
         - mkdir build-android-arm64-v8a
         - cd build-android-arm64-v8a
-        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=arm64-v8a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=arm64-v8a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=arm64-v8a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=arm64-v8a-android -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
         expire_in: 2h
@@ -166,7 +166,7 @@ build:android:armeabi-v7a:full:
     script:
         - mkdir build-android-armeabi-v7a
         - cd build-android-armeabi-v7a
-        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=armeabi-v7a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=armeabi-v7a-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=armeabi-v7a -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=armeabi-v7a-android -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
         expire_in: 2h
@@ -179,7 +179,7 @@ build:android:x86_64:full:
     script:
         - mkdir build-android-x86_64
         - cd build-android-x86_64
-        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86_64 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=x86_64-android -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DANDROID_PLATFORM=$ANDROID_PLATFORM -DANDROID_ABI=x86_64 -DANDROID_TOOLCHAIN=clang -DANDROID_NDK=$ANDROID_NDK -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DPREBUILT_BRANCH=x86_64-android -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
     artifacts:
         expire_in: 2h
