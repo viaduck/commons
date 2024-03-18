@@ -165,7 +165,7 @@ TEST_F(CertStoreTest, check) {
     using EVP_PKEY_ref = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
     using BIO_ref = std::unique_ptr<BIO, decltype(&BIO_free)>;
 
-    EVP_PKEY_ref key0EVP(EVP_PKEY_new(), &EVP_PKEY_free);
+    EVP_PKEY_ref key0EVP(nullptr, &EVP_PKEY_free);
     {
         /* Internal OpenSSL stuff */
 
@@ -179,13 +179,11 @@ TEST_F(CertStoreTest, check) {
         ASSERT_FALSE(res < 0 || static_cast<uint32_t>(res) != key0.size()) << "Internal BIO error";
 
         // parse the PEM private key data
-        CertStore::RSA_ref key0RSA(PEM_read_bio_RSA_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr), &RSA_free);
-        ASSERT_TRUE(!!key0RSA) << "Internal BIO error";
-
-        EVP_PKEY_set1_RSA(key0EVP.get(), key0RSA.get());
+        key0EVP.reset(PEM_read_bio_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr));
+        ASSERT_TRUE(!!key0EVP) << "Internal BIO error";
     }
 
-    EVP_PKEY_ref key1EVP(EVP_PKEY_new(), &EVP_PKEY_free);
+    EVP_PKEY_ref key1EVP(nullptr, &EVP_PKEY_free);
     {
         // create memory bio
         BIO_ref pubKeyBIO(BIO_new(BIO_s_mem()), &BIO_free);
@@ -197,13 +195,11 @@ TEST_F(CertStoreTest, check) {
         ASSERT_FALSE(res < 0 || static_cast<uint32_t>(res) != key0.size()) << "Internal BIO error";
 
         // parse the PEM private key data
-        CertStore::RSA_ref key0RSA(PEM_read_bio_RSA_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr), &RSA_free);
-        ASSERT_TRUE(!!key0RSA) << "Internal BIO error";
-
-        EVP_PKEY_set1_RSA(key1EVP.get(), key0RSA.get());
+        key1EVP.reset(PEM_read_bio_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr));
+        ASSERT_TRUE(!!key1EVP) << "Internal BIO error";
     }
 
-    EVP_PKEY_ref keyUnknownEVP(EVP_PKEY_new(), &EVP_PKEY_free);
+    EVP_PKEY_ref keyUnknownEVP(nullptr, &EVP_PKEY_free);
     {
         // create memory bio
         BIO_ref pubKeyBIO(BIO_new(BIO_s_mem()), &BIO_free);
@@ -215,10 +211,8 @@ TEST_F(CertStoreTest, check) {
         ASSERT_FALSE(res < 0 || static_cast<uint32_t>(res) != key0.size()) << "Internal BIO error";
 
         // parse the PEM private key data
-        CertStore::RSA_ref key0RSA(PEM_read_bio_RSA_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr), &RSA_free);
-        ASSERT_TRUE(!!key0RSA) << "Internal BIO error";
-
-        EVP_PKEY_set1_RSA(keyUnknownEVP.get(), key0RSA.get());
+        keyUnknownEVP.reset(PEM_read_bio_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr));
+        ASSERT_TRUE(!!keyUnknownEVP) << "Internal BIO error";
     }
 
     EXPECT_EQ(1, mStore.verify(0, key0EVP.get()));

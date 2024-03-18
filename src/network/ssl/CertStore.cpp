@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2024 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -23,7 +23,6 @@
 CertStore CertStore::mInstance;
 
 using BIO_ref = std::unique_ptr<BIO, decltype(&BIO_free)>;
-using EVP_PKEY_ref = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 
 uint16_t CertStore::addKey(const Buffer &key, CertStore::Mode mode) {
     // create memory bio
@@ -34,15 +33,15 @@ uint16_t CertStore::addKey(const Buffer &key, CertStore::Mode mode) {
     int res = BIO_write(pubKeyBIO.get(), key.const_data(), key.size());
     L_assert(res >= 0 && static_cast<uint32_t>(res) == key.size(), cert_error);
 
-    // parse the PEM private key data
-    RSA_ref pubKeyRSA(PEM_read_bio_RSA_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr), &RSA_free);
-    L_assert(pubKeyRSA, cert_error);
+    // parse the PEM public key data
+    EVP_PKEY_ref pubKey(PEM_read_bio_PUBKEY(pubKeyBIO.get(), nullptr, nullptr, nullptr), &EVP_PKEY_free);
+    L_assert(pubKey, cert_error);
 
     // operations on key container and key id need to be guarded
     std::lock_guard<std::mutex> guard(mLock);
 
     uint16_t id = mNextID++;
-    PublicKey storedKey(mode, pubKeyRSA);
+    PublicKey storedKey(mode, pubKey);
     mPublicKeys.insert(std::make_pair(id, std::move(storedKey)));
     return id;
 }
@@ -83,14 +82,14 @@ void CertStore::removeKey(uint16_t id) {
     mPublicKeys.erase(elem);
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && !defined(EVP_PKEY_cmp)
+    #define EVP_PKEY_cmp EVP_PKEY_eq
+#endif
+
 bool CertStore::verify(bool pre, const EVP_PKEY *key) const {
     for (auto &publicKey : mPublicKeys) {
-        // wrap the key in a EVP_PKEY
-        EVP_PKEY_ref evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
-        EVP_PKEY_set1_RSA(evpKey.get(), publicKey.second.data.get());
-
-        // compare it to the given key
-        if (EVP_PKEY_cmp(key, evpKey.get()) == 1) {
+        // compare publicKey to the given key
+        if (EVP_PKEY_cmp(key, publicKey.second.key.get()) == 1) {
             switch (publicKey.second.mode) {
                 case Mode::DENY:
                     return false;
@@ -100,9 +99,8 @@ bool CertStore::verify(bool pre, const EVP_PKEY *key) const {
                     return pre;
             }
         }
-        else
-            // do not match, different key types, unsupported
-            continue;
+
+        // does not match, different key types, unsupported
     }
 
     // default: pre

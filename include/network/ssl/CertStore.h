@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 The ViaDuck Project
+ * Copyright (C) 2015-2024 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -24,7 +24,7 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <openssl/rsa.h>
+#include <openssl/evp.h>
 
 #include <commons/util/Except.h>
 #include <secure_memory/Buffer.h>
@@ -36,7 +36,7 @@ DEFINE_ERROR(cert, base_error);
  */
 class CertStore {
 public:
-    using RSA_ref = std::unique_ptr<RSA, decltype(&RSA_free)>;
+    using EVP_PKEY_ref = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 
     /**
      * Operational mode
@@ -58,25 +58,25 @@ public:
         /**
          * Key data as OpenSSL structure
          */
-        RSA_ref data;
+        EVP_PKEY_ref key;
 
         /**
          * Creates an empty PublicKey with nullptr data
          */
-        PublicKey() : mode(Mode::UNDECIDED), data(nullptr, &RSA_free) { }
+        PublicKey() : mode(Mode::UNDECIDED), key(nullptr, &EVP_PKEY_free) { }
 
         /**
          * Creates an PublicKey with supplied data
          * @param mode Operational mode
          * @param data Key data as OpenSSL structure
          */
-        PublicKey(Mode mode, RSA_ref &data) : mode(mode), data(std::move(data)) { }
+        PublicKey(Mode mode, EVP_PKEY_ref &data) : mode(mode), key(std::move(data)) { }
 
         /**
          * Move constructor to support map insertion operations
          * @param other Other public key, data is set to nullptr
          */
-        PublicKey(PublicKey &&other) noexcept : mode(other.mode), data(std::move(other.data)) { }
+        PublicKey(PublicKey &&other) noexcept : mode(other.mode), key(std::move(other.key)) { }
     };
 
     /**

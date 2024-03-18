@@ -69,7 +69,6 @@ else()
         target_link_libraries(commons PRIVATE Threads::Threads dl)
     endif()
     # OpenSSL related options
-    target_compile_definitions(commons PUBLIC OPENSSL_API_COMPAT=0x10100000L)
     if (SYSTEM_OPENSSL)
         target_compile_definitions(commons PUBLIC COMMONS_SYSTEM_OPENSSL)
     endif()
