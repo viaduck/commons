@@ -58,9 +58,11 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error);
 
 #define L_assert_eq(e, a, error)      \
     do {                              \
-        if (!(e == a)) {              \
-            Log::err << "Assert failed: expected " << (e) << ", got " << (a) << " in " __FILE__ ":" VD_LINE; \
-            throw error("Assert failed: in " __FILE__ ":" VD_LINE);                                          \
+        auto _e = (e);                \
+        auto _a = (a);                \
+        if (_e != _a) {               \
+            Log::err << "Assert failed: expected " << _e << ", got " << _a << " in " __FILE__ ":" VD_LINE; \
+            throw error("Assert failed: in " __FILE__ ":" VD_LINE);                                        \
         }                             \
     } while(false)
 
