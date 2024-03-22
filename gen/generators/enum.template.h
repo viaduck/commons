@@ -28,6 +28,7 @@
 ]]]
 [[[end]]]
 
+#include <cinttypes>
 #include <iostream>
 #include <sstream>
 #include <string>

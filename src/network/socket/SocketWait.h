@@ -22,6 +22,8 @@
 
 #include <network/socket/ISocket.h>
 
+#include <optional>
+
 class SocketWait {
 public:
     /**
