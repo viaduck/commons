@@ -29,6 +29,10 @@ class Timer {
 public:
     Timer() = default;
 
+    explicit Timer(int64_t durationMillis) {
+        start(durationMillis);
+    }
+
     /// start timer with specified number of milliseconds, move to "active" state
     void start(int64_t durationMillis) {
         mStartTime = steadyNow();
