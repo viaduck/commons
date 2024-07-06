@@ -20,6 +20,7 @@
 #include "native/Native.h"
 #include "socket/DefaultSocketFactory.h"
 #include "Resolve.h"
+#include "secure_memory/String.h"
 
 #include <network/Connection.h>
 
