@@ -27,16 +27,31 @@
  */
 class Timer {
 public:
+    enum class begin {
+        now,
+        deferred
+    };
+
+    /// create empty timer
     Timer() = default;
 
-    explicit Timer(int64_t durationMillis) {
-        start(durationMillis);
+    /// create timer with specified duration, do not start timer yet
+    explicit Timer(int64_t durationMillis) : mDurationMillis(durationMillis) { }
+    /// create timer with specified start type and duration, start timer if requested
+    explicit Timer(begin st, int64_t durationMillis = 0) : Timer(durationMillis) {
+        if (st == begin::now)
+            start();
+    }
+
+    /// start timer with previously specified duration, move to "active" state
+    void start() {
+        mStartTime = steadyNow();
     }
 
     /// start timer with specified number of milliseconds, move to "active" state
     void start(int64_t durationMillis) {
-        mStartTime = steadyNow();
         mDurationMillis = durationMillis;
+        start();
     }
 
     /// reset timer to "not running" state
