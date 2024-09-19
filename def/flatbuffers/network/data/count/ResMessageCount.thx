@@ -1,1 +1,1 @@
-uint32_t messageCount
+uint64_t messageCount
