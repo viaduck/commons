@@ -1,3 +1,3 @@
-uint64_t lastMessageID
-uint64_t newestMessageID
+string   newLastMessageID
+string   newestMessageID
 uint64_t messageCount
