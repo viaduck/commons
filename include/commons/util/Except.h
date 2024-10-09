@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2024 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -41,36 +41,59 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 #define VD_LINE STRINGIZE(__LINE__)
 
-// asserts a condition, throws err on fail
-#define L_assert_internal(condition, error, loglevel)    \
-    do {                              \
-        if (!(condition)) {           \
-            Log::loglevel << "Assert failed: \"" #condition "\" in " __FILE__ ":" VD_LINE;  \
-            throw error("Assert failed: \"" #condition "\" in " __FILE__ ":" VD_LINE); \
-        }                             \
-    } while(false)
+// thread-local management of error reporting
+class Except {
+public:
+    static void enableReporting() { mReporting = true; }
+    static void disableReporting() { mReporting = false; }
+    static void toggleReporting() { mReporting = !mReporting; }
+    static bool reporting() { return mReporting; }
 
+protected:
+    thread_local static bool mReporting;
+};
+inline thread_local bool Except::mReporting = true;
+
+// checks a condition, logs message to loglevel and executes rt on error
+#define L_check_internal_ex(condition, message, rt, loglevel)    \
+    do {                                                         \
+        if (!(condition)) {                                      \
+            std::stringstream _message;                          \
+            _message << message << " in " __FILE__ ":" VD_LINE;  \
+                                                                 \
+            if (Except::reporting()) {                           \
+                Log::loglevel << _message.str();                 \
+            }                                                    \
+                                                                 \
+            rt;                                                  \
+        }                                                        \
+    } while(false)
+#define L_assert_internal(condition, message, error, loglevel) \
+    L_check_internal_ex(condition, message, throw error(_message.str()), loglevel)
+#define L_expect_internal(condition, message, loglevel) \
+    L_check_internal_ex(condition, message, ,loglevel)
+#define L_assert_ex(condition, message, error) \
+    L_assert_internal(condition, message, error, err)
+#define L_expect_ex(condition, message) \
+    L_expect_internal(condition, message, err)
 #define L_assert(condition, error) \
-    L_assert_internal(condition, error, dbg)
+    L_assert_ex(condition, "Assert failed: \"" #condition "\"", error)
+#define L_expect(condition) \
+    L_expect_ex(condition, "Expect failed: \"" #condition "\"")
 
-#define L_assert_low(condition, error) \
-    L_assert_internal(condition, error, trac)
-
-#define L_assert_eq(e, a, error)      \
-    do {                              \
-        auto _e = (e);                \
-        auto _a = (a);                \
-        if (_e != _a) {               \
-            Log::err << "Assert failed: expected " << _e << ", got " << _a << " in " __FILE__ ":" VD_LINE; \
-            throw error("Assert failed: in " __FILE__ ":" VD_LINE);                                        \
-        }                             \
+// checks (a op b) using single evaluation, logs message to loglevel and executes rt on error
+#define L_check_op_internal(a, b, op, message, rt, loglevel) \
+    do {                                            \
+        auto _a = (a);                              \
+        auto _b = (b);                              \
+        L_check_internal_ex(_a op _b, message, rt, loglevel);\
     } while(false)
-
-// expects a condition, logs errors
-#define L_expect(condition)           \
-    do {                              \
-        if (!(condition))             \
-            Log::err << "Assert failed: \"" #condition "\" in " __FILE__ ":" VD_LINE; \
-    } while(false)
+#define L_assert_op_internal(a, b, op, error, loglevel) \
+    L_check_op_internal(a, b, op, "Assert failed: (" #a " " #op " " #b ")," \
+        " got " << _a << " and " << _b << " instead", throw error(_message.str()), loglevel)
+#define L_assert_eq(a, b, error) \
+    L_assert_op_internal(a, b, ==, error, err)
+#define L_assert_ne(a, b, error) \
+    L_assert_op_internal(a, b, !=, error, err)
 
 #endif //COMMONS_EXCEPT_H

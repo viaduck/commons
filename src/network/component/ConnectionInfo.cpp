@@ -25,8 +25,8 @@ ConnectionInfo ConnectionInfo::parseConnectURI(const std::string &uriStr, uint16
     Uri uri(uriStr);
 
     // check scheme and host
-    L_assert(uri.schema() == "vd", parse_error);
-    L_assert(uri.host() == "net", parse_error);
+    L_assert_eq("vd", uri.schema(), parse_error);
+    L_assert_eq("net", uri.host(), parse_error);
 
     // mandatory host
     auto host = uri.queryValue("h", "");

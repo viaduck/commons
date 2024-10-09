@@ -127,16 +127,16 @@ protected:
         mSSL.reset(SSL_new(ctx.get()));
         L_assert(mSSL, ssl_socket_error);
         // set hostname for verification
-        L_assert(SSL_set_tlsext_host_name(mSSL.get(), mInfo.host().c_str()) == 1, ssl_socket_error);
+        L_assert_eq(1, SSL_set_tlsext_host_name(mSSL.get(), mInfo.host().c_str()), ssl_socket_error);
         // store this pointer to access later
         SSL_set_ex_data(mSSL.get(), ctx.dataIndex(), this);
         // pass socket to ssl
-        L_assert(SSL_set_fd(mSSL.get(), mSocket) == 1, ssl_socket_error);
+        L_assert_eq(1, SSL_set_fd(mSSL.get(), mSocket), ssl_socket_error);
 
         // try to resume session
         SSL_SESSION *session = ctx.getSession(mInfo);
         if (session)
-            L_assert(SSL_set_session(mSSL.get(), session) == 1, ssl_socket_error);
+            L_assert_eq(1, SSL_set_session(mSSL.get(), session), ssl_socket_error);
 
         return finishSSLConnect();
     }

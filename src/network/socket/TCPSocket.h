@@ -60,7 +60,7 @@ public:
     int initConnect(addrinfo *addr) {
         // try to create socket
         mSocket = Native::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-        L_assert(mSocket != INVALID_SOCKET, socket_error);
+        L_assert_ne(mSocket, INVALID_SOCKET, socket_error);
 
         // set r/w timeout
         setTimeoutIO(mInfo.timeoutIO());

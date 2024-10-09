@@ -42,11 +42,11 @@ public:
     bool connect(addrinfo *) override {
         // temporary listen socket
         SOCKET sock = Native::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        L_assert(sock != INVALID_SOCKET, notify_socket_error);
+        L_assert_ne(sock, INVALID_SOCKET, notify_socket_error);
 
         // enable reusing old sockaddr
         int value = 1;
-        L_assert(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)) == 0, notify_socket_error);
+        L_assert_eq(0, setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value)), notify_socket_error);
 
         // listen for a single connection on IPv4 loopback, any port
         sockaddr_in inaddr {};
@@ -54,23 +54,23 @@ public:
         inaddr.sin_family = AF_INET;
         inaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         inaddr.sin_port = 0;
-        L_assert(bind(sock, (sockaddr*)&inaddr, sizeof(inaddr)) == 0, notify_socket_error);
-        L_assert(listen(sock, 1) == 0, notify_socket_error);
+        L_assert_eq(0, bind(sock, (sockaddr*)&inaddr, sizeof(inaddr)), notify_socket_error);
+        L_assert_eq(0, listen(sock, 1), notify_socket_error);
 
         // get listen socket address for connect
         sockaddr addr {};
         memset(&addr, 0, sizeof(addr));
         int len = sizeof(addr);
-        L_assert(getsockname(sock, &addr, &len) == 0, notify_socket_error);
+        L_assert_eq(0, getsockname(sock, &addr, &len), notify_socket_error);
 
         // connect RX socket
         mRxSocket = Native::socket(AF_INET, SOCK_STREAM, 0);
-        L_assert(mRxSocket != INVALID_SOCKET, notify_socket_error);
-        L_assert(Native::connect(mRxSocket, &addr, len) == 0, notify_socket_error);
+        L_assert_ne(mRxSocket, INVALID_SOCKET, notify_socket_error);
+        L_assert_eq(0, Native::connect(mRxSocket, &addr, len), notify_socket_error);
 
         // accept TX socket
         mTxSocket = accept(sock, nullptr, nullptr);
-        L_assert(mTxSocket != INVALID_SOCKET, notify_socket_error);
+        L_assert_ne(mTxSocket, INVALID_SOCKET, notify_socket_error);
 
         // clean up temp socket
         Native::close(sock);
@@ -80,7 +80,7 @@ public:
     bool connect(addrinfo *) override {
         SOCKET fds[2];
         // create the two connected sockets
-        L_assert(socketpair(AF_UNIX, SOCK_STREAM, 0, fds) == 0, notify_socket_error);
+        L_assert_eq(0, socketpair(AF_UNIX, SOCK_STREAM, 0, fds), notify_socket_error);
 
         // save descriptors
         mRxSocket = fds[0];
@@ -95,7 +95,7 @@ public:
         mNotifyCount++;
 
         uint8_t message = 1;
-        L_assert(write(&message, sizeof(message)) == sizeof(message), notify_socket_error);
+        L_assert_eq(static_cast<long>(sizeof(message)), write(&message, sizeof(message)), notify_socket_error);
     }
 
     /// Clears a notification
@@ -104,7 +104,7 @@ public:
 
         for (uint32_t i = 0; i < mNotifyCount; i++) {
             uint8_t message;
-            L_assert(read(&message, sizeof(message)) == sizeof(message), notify_socket_error);
+            L_assert_eq(static_cast<long>(sizeof(message)), read(&message, sizeof(message)), notify_socket_error);
         }
 
         mNotifyCount = 0;
