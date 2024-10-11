@@ -41,19 +41,6 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 #define VD_LINE STRINGIZE(__LINE__)
 
-// thread-local management of error reporting
-class Except {
-public:
-    static void enableReporting() { mReporting = true; }
-    static void disableReporting() { mReporting = false; }
-    static void toggleReporting() { mReporting = !mReporting; }
-    static bool reporting() { return mReporting; }
-
-protected:
-    thread_local static bool mReporting;
-};
-inline thread_local bool Except::mReporting = true;
-
 // checks a condition, logs message to loglevel and executes rt on error
 #define L_check_internal_ex(condition, message, rt, loglevel)    \
     do {                                                         \
@@ -95,5 +82,52 @@ inline thread_local bool Except::mReporting = true;
     L_assert_op_internal(a, b, ==, error, err)
 #define L_assert_ne(a, b, error) \
     L_assert_op_internal(a, b, !=, error, err)
+
+// thread-local management of error reporting
+class Except {
+public:
+    static bool enableReporting() {
+        bool oldReporting = mReporting;
+        mReporting = true;
+
+        return oldReporting;
+    }
+    static bool disableReporting() {
+        bool oldReporting = mReporting;
+        mReporting = false;
+
+        return oldReporting;
+    }
+    static bool toggleReporting() {
+        bool oldReporting = mReporting;
+        mReporting = !mReporting;
+
+        return oldReporting;
+    }
+
+    static bool reporting() { return mReporting; }
+    static void setReporting(bool value) { mReporting = value; }
+
+protected:
+    thread_local static bool mReporting;
+};
+inline thread_local bool Except::mReporting = true;
+
+class ScopedEnableReporting {
+public:
+    ScopedEnableReporting() : mReporting(Except::enableReporting()) { }
+    ~ScopedEnableReporting() { Except::setReporting(mReporting); }
+
+protected:
+    bool mReporting;
+};
+class ScopedDisableReporting {
+public:
+    ScopedDisableReporting() : mReporting(Except::disableReporting()) { }
+    ~ScopedDisableReporting() { Except::setReporting(mReporting); }
+
+protected:
+    bool mReporting;
+};
 
 #endif //COMMONS_EXCEPT_H
