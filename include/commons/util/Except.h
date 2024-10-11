@@ -41,18 +41,26 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error);
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 #define VD_LINE STRINGIZE(__LINE__)
 
+// report a message unconditionally to loglevel, execute rt
+#define L_report_message_ex(message, rt, loglevel)           \
+    do {                                                     \
+        std::stringstream _message;                          \
+        _message << message << " in " __FILE__ ":" VD_LINE;  \
+                                                             \
+        if (Except::reporting()) {                           \
+            Log::loglevel << _message.str();                 \
+        }                                                    \
+                                                             \
+        rt;                                                  \
+    } while(false)
+#define L_report_error(message, error) \
+    L_report_message_ex(message, throw error(_message.str()), err)
+
 // checks a condition, logs message to loglevel and executes rt on error
 #define L_check_internal_ex(condition, message, rt, loglevel)    \
     do {                                                         \
         if (!(condition)) {                                      \
-            std::stringstream _message;                          \
-            _message << message << " in " __FILE__ ":" VD_LINE;  \
-                                                                 \
-            if (Except::reporting()) {                           \
-                Log::loglevel << _message.str();                 \
-            }                                                    \
-                                                                 \
-            rt;                                                  \
+            L_report_message_ex(message, rt, loglevel);          \
         }                                                        \
     } while(false)
 #define L_assert_internal(condition, message, error, loglevel) \
