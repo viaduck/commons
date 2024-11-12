@@ -85,7 +85,7 @@ DEFINE_ERROR_FQ(base, runtime_error, std::runtime_error);
     } while(false)
 #define L_assert_op_internal(a, b, op, error, loglevel) \
     L_check_op_internal(a, b, op, "Assert failed: (" #a " " #op " " #b ")," \
-        " got " << _a << " and " << _b << " instead", throw error(_message.str()), loglevel)
+        " got " << _a << " vs " << _b << " instead", throw error(_message.str()), loglevel)
 #define L_assert_eq(a, b, error) \
     L_assert_op_internal(a, b, ==, error, err)
 #define L_assert_ne(a, b, error) \
