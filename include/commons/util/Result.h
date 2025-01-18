@@ -55,6 +55,30 @@
 
 DEFINE_ERROR(result, base_error);
 
+// clang-format off
+// @formatter:off
+
+#define RESULT_MAKE_MAPPING_INTERNAL(name, target)                              \
+    template<typename Ret, typename... Args>                                    \
+    struct name<Ret (*)(Args...)> : public target<Ret (Args...)> { };           \
+                                                                                \
+    template<typename Ret, typename Cls, typename... Args>                      \
+    struct name<Ret (Cls::*)(Args...)> : public target<Ret (Args...)> { };      \
+                                                                                \
+    template<typename Ret, typename Cls, typename... Args>                      \
+    struct name<Ret (Cls::*)(Args...) const> : public target<Ret (Args...)> { };
+#define RESULT_MAKE_MAPPING(name)                                               \
+    template<typename Func>                                                     \
+    struct name;                                                                \
+                                                                                \
+    RESULT_MAKE_MAPPING_INTERNAL(name, name)
+#define RESULT_MAP_TO_IMPL(name)                                                \
+    template<typename Func>                                                     \
+    struct name : public impl::name<decltype(&Func::operator())> { };           \
+                                                                                \
+    RESULT_MAKE_MAPPING_INTERNAL(name, impl::name)
+
+namespace result {
 namespace types {
     template<typename T>
     struct Ok {
@@ -85,34 +109,10 @@ namespace types {
     };
 }
 
-namespace result {
-    template<typename T, typename E>
-    class Result;
-}
-
-#define RESULT_MAKE_MAPPING_INTERNAL(name, target)                              \
-    template<typename Ret, typename... Args>                                    \
-    struct name<Ret (*)(Args...)> : public target<Ret (Args...)> { };           \
-                                                                                \
-    template<typename Ret, typename Cls, typename... Args>                      \
-    struct name<Ret (Cls::*)(Args...)> : public target<Ret (Args...)> { };      \
-                                                                                \
-    template<typename Ret, typename Cls, typename... Args>                      \
-    struct name<Ret (Cls::*)(Args...) const> : public target<Ret (Args...)> { };
-#define RESULT_MAKE_MAPPING(name)                                               \
-    template<typename Func>                                                     \
-    struct name;                                                                \
-                                                                                \
-    RESULT_MAKE_MAPPING_INTERNAL(name, name)
-#define RESULT_MAP_TO_IMPL(name)                                                \
-    template<typename Func>                                                     \
-    struct name : public impl::name<decltype(&Func::operator())> { };           \
-                                                                                \
-    RESULT_MAKE_MAPPING_INTERNAL(name, impl::name)
+template<typename T, typename E>
+class Result;
 
 namespace details {
-    using namespace result;
-
     template<typename ...>
     struct void_t {
         using type = void;
@@ -672,217 +672,221 @@ namespace concepts {
 
 } // namespace concepts
 
-namespace result {
-    template<typename T, typename E>
-    class [[nodiscard]] Result {
-        static_assert(!std::is_same<E, void>::value, "void error type is not allowed");
+template<typename T, typename E>
+class [[nodiscard]] Result {
+    static_assert(!std::is_same<E, void>::value, "void error type is not allowed");
 
-        using storage_type = details::Storage<T, E>;
-        using constructor_type = details::Constructor<T, E>;
-    public:
+    using storage_type = details::Storage<T, E>;
+    using constructor_type = details::Constructor<T, E>;
 
-        using value_type = T;
-        using error_type = E;
+public:
+    using value_type = T;
+    using error_type = E;
 
-        /// result with value
-        Result(types::Ok<T> ok) : has_val_(true) { // NOLINT(*-explicit-constructor)
-            storage_.construct(std::move(ok));
+    /// result with value
+    Result(types::Ok<T> ok) : has_val_(true) { // NOLINT(*-explicit-constructor)
+        storage_.construct(std::move(ok));
+    }
+
+    /// result with error
+    Result(types::Err<E> err) : has_val_(false) { // NOLINT(*-explicit-constructor)
+        storage_.construct(std::move(err));
+    }
+
+    /// copy result
+    Result(const Result &other) {
+        if (other.has_val_) {
+            constructor_type::copy(other.storage_, storage_, details::ok_tag());
+            has_val_ = true;
+        } else {
+            constructor_type::copy(other.storage_, storage_, details::err_tag());
+            has_val_ = false;
         }
+    }
 
-        /// result with error
-        Result(types::Err<E> err) : has_val_(false) { // NOLINT(*-explicit-constructor)
-            storage_.construct(std::move(err));
+    /// move result
+    Result(Result &&other) noexcept {
+        if (other.has_val_) {
+            constructor_type::move(std::move(other.storage_), storage_, details::ok_tag());
+            has_val_ = true;
+        } else {
+            constructor_type::move(std::move(other.storage_), storage_, details::err_tag());
+            has_val_ = false;
         }
+    }
 
-        /// copy result
-        Result(const Result &other) {
-            if (other.has_val_) {
-                constructor_type::copy(other.storage_, storage_, details::ok_tag());
-                has_val_ = true;
-            } else {
-                constructor_type::copy(other.storage_, storage_, details::err_tag());
-                has_val_ = false;
-            }
-        }
+    ~Result() {
+        if (has_val_)
+            storage_.destroy(details::ok_tag());
+        else
+            storage_.destroy(details::err_tag());
+    }
 
-        /// move result
-        Result(Result &&other) noexcept {
-            if (other.has_val_) {
-                constructor_type::move(std::move(other.storage_), storage_, details::ok_tag());
-                has_val_ = true;
-            } else {
-                constructor_type::move(std::move(other.storage_), storage_, details::err_tag());
-                has_val_ = false;
-            }
-        }
+    // operator->, operator*
 
-        ~Result() {
-            if (has_val_)
-                storage_.destroy(details::ok_tag());
-            else
-                storage_.destroy(details::err_tag());
-        }
+    template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
+    const T *operator->() const noexcept {
+        return &storage_.template get<T>();
+    }
+    template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
+    T *operator->() noexcept {
+        return &storage_.template get<T>();
+    }
+    template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
+    const T &operator*() const& noexcept {
+        return storage_.template get<T>();
+    }
+    template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
+    T &operator*() & noexcept {
+        return storage_.template get<T>();
+    }
 
-        // operator->, operator*
+    inline operator bool() const noexcept { // NOLINT(*-explicit-constructor)
+        return has_value();
+    }
 
-        template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
-        const T *operator->() const noexcept {
-            return &storage_.template get<T>();
-        }
-        template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
-        T *operator->() noexcept {
-            return &storage_.template get<T>();
-        }
-        template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
-        const T &operator*() const& noexcept {
-            return storage_.template get<T>();
-        }
-        template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
-        T &operator*() & noexcept {
-            return storage_.template get<T>();
-        }
+    // accessors
 
-        inline operator bool() const noexcept { // NOLINT(*-explicit-constructor)
-            return has_value();
-        }
+    /// true if Result contains value, false otherwise
+    [[nodiscard]] bool has_value() const noexcept {
+        return has_val_;
+    }
 
-        // accessors
+    /// returns value if has_value(), throws otherwise
+    template<typename U = T>
+    const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value() const {
+        if (has_value())
+            return storage_.template get<U>();
 
-        /// true if Result contains value, false otherwise
-        [[nodiscard]] bool has_value() const noexcept {
-            return has_val_;
-        }
-
-        /// returns value if has_value(), throws otherwise
-        template<typename U = T>
-        const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value() const {
-            if (has_value())
-                return storage_.template get<U>();
-
+        throw result_error("Attempting to call value() on an error Result");
+    }
+    /// no-op if has_value(), throws otherwise
+    template<typename U = T>
+    typename std::enable_if_t<std::is_same_v<U, void>, U> value() const {
+        if (!has_value())
             throw result_error("Attempting to call value() on an error Result");
-        }
-        /// no-op if has_value(), throws otherwise
-        template<typename U = T>
-        typename std::enable_if_t<std::is_same_v<U, void>, U> value() const {
-            if (!has_value())
-                throw result_error("Attempting to call value() on an error Result");
-        }
-
-        /// throws if has_value(), returns error otherwise
-        const error_type &error() const {
-            if (!has_value())
-                return storage_.template get<error_type>();
-
-            throw result_error("Attempting to call error() on an ok Result");
-        }
-
-        /// returns value if has_value(), returns default_value otherwise
-        template<typename U = T>
-        const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value_or(const U &default_value) const {
-            if (has_value())
-                return storage_.template get<U>();
-
-            return default_value;
-        }
-
-        /// returns default_value if has_value(), returns error otherwise
-        const error_type &error_or(const error_type &default_value) const {
-            if (!has_value())
-                return storage_.template get<error_type>();
-
-            return default_value;
-        }
-
-        // chaining functions
-
-        /// calls `void func(T)` with current value, then returns current result unchanged
-        template<typename Func>
-        Result<value_type, error_type> if_then(Func func) const {
-            return details::if_then(*this, func);
-        }
-        /// calls `void func(E)` with current error, then returns current result unchanged
-        template<typename Func>
-        Result<value_type, error_type> else_then(Func func) const {
-            return details::else_then(*this, func);
-        }
-
-        /// if has_value: calls `<void, any U> func(T)` with current value, then propagates func result
-        /// else: propagates current error
-        template<typename Func,
-                typename Ret = Result<
-                        typename details::result_ok_type<
-                                typename std::invoke_result_t<Func, value_type>
-                        >::type,
-                        error_type
-                >
-        >
-        Ret transform(Func func) const {
-            return details::transform(*this, func);
-        }
-        /// if has_value: propagates current value
-        /// else: calls `<any F> func(E)` with current error, then returns func result
-        template<typename Func,
-                typename Ret = Result<value_type,
-                        typename details::result_error_type<
-                                typename std::invoke_result_t<Func, error_type>
-                        >::type
-                >
-        >
-        Ret transform_error(Func func) const {
-            return details::transform_error(*this, func);
-        }
-
-        /// if has_value: calls `Result<any U, E> func(T)` with current value, then returns func result
-        /// else: propagates current error
-        template<typename Func,
-                typename Ret = Result<
-                        typename details::result_ok_type<
-                                typename std::invoke_result_t<Func, value_type>
-                        >::type,
-                        error_type
-                >
-        >
-        Ret and_then(Func func) const {
-            return details::and_then(*this, func);
-        }
-        /// if has_value: propagates current value
-        /// else: calls `Result<T, any F> func(E)` with current error, then returns func result
-        template<typename Func,
-                typename Ret = Result<value_type,
-                        typename details::result_error_type<
-                                typename std::invoke_result_t<Func, error_type>
-                        >::type
-                >
-        >
-        Ret or_else(Func func) const {
-            return details::or_else(*this, func);
-        }
-
-    private:
-        bool has_val_;
-        storage_type storage_;
-    };
-
-    template<typename T = void, typename CleanT = typename std::decay<T>::type>
-    inline types::Ok<CleanT> Ok(T &&val) {
-        return types::Ok<CleanT>(std::forward<T>(val));
     }
 
-    inline types::Ok<void> Ok() {
-        return { };
+    /// throws if has_value(), returns error otherwise
+    const error_type &error() const {
+        if (!has_value())
+            return storage_.template get<error_type>();
+
+        throw result_error("Attempting to call error() on an ok Result");
     }
 
-    template<typename E, typename CleanE = typename std::decay<E>::type>
-    inline types::Err<CleanE> Err(E &&val) {
-        return types::Err<CleanE>(std::forward<E>(val));
+    /// returns value if has_value(), returns default_value otherwise
+    template<typename U = T>
+    const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value_or(const U &default_value) const {
+        if (has_value())
+            return storage_.template get<U>();
+
+        return default_value;
     }
+
+    /// returns default_value if has_value(), returns error otherwise
+    const error_type &error_or(const error_type &default_value) const {
+        if (!has_value())
+            return storage_.template get<error_type>();
+
+        return default_value;
+    }
+
+    // chaining functions
+
+    /// calls `void func(T)` with current value, then returns current result unchanged
+    template<typename Func>
+    Result<value_type, error_type> if_then(Func func) const {
+        return details::if_then(*this, func);
+    }
+    /// calls `void func(E)` with current error, then returns current result unchanged
+    template<typename Func>
+    Result<value_type, error_type> else_then(Func func) const {
+        return details::else_then(*this, func);
+    }
+
+    /// if has_value: calls `\<void, any U> func(T)` with current value, then propagates func result
+    /// else: propagates current error
+    template<typename Func,
+            typename Ret = Result<
+                    typename details::result_ok_type<
+                            typename std::invoke_result_t<Func, value_type>
+                    >::type,
+                    error_type
+            >
+    >
+    Ret transform(Func func) const {
+        return details::transform(*this, func);
+    }
+    /// if has_value: propagates current value
+    /// else: calls `\<any F> func(E)` with current error, then returns func result
+    template<typename Func,
+            typename Ret = Result<value_type,
+                    typename details::result_error_type<
+                            typename std::invoke_result_t<Func, error_type>
+                    >::type
+            >
+    >
+    Ret transform_error(Func func) const {
+        return details::transform_error(*this, func);
+    }
+
+    /// if has_value: calls `Result\<any U, E> func(T)` with current value, then returns func result
+    /// else: propagates current error
+    template<typename Func,
+            typename Ret = Result<
+                    typename details::result_ok_type<
+                            typename std::invoke_result_t<Func, value_type>
+                    >::type,
+                    error_type
+            >
+    >
+    Ret and_then(Func func) const {
+        return details::and_then(*this, func);
+    }
+    /// if has_value: propagates current value
+    /// else: calls `Result\<T, any F> func(E)` with current error, then returns func result
+    template<typename Func,
+            typename Ret = Result<value_type,
+                    typename details::result_error_type<
+                            typename std::invoke_result_t<Func, error_type>
+                    >::type
+            >
+    >
+    Ret or_else(Func func) const {
+        return details::or_else(*this, func);
+    }
+
+private:
+    bool has_val_;
+    storage_type storage_;
+};
+
+template<typename T = void, typename CleanT = typename std::decay<T>::type>
+inline types::Ok<CleanT> Ok(T &&val) {
+    return types::Ok<CleanT>(std::forward<T>(val));
+}
+
+inline types::Ok<void> Ok() {
+    return { };
+}
+
+template<typename E, typename CleanE = typename std::decay<E>::type>
+inline types::Err<CleanE> Err(E &&val) {
+    return types::Err<CleanE>(std::forward<E>(val));
+}
 
 } //namespace result
 
+// @formatter:on
+// clang-format on
+
 template<typename T, typename E>
 bool operator==(const result::Result<T, E>& lhs, const result::Result<T, E>& rhs) {
-    static_assert(concepts::EqualityComparable<T>::value, "T must be EqualityComparable for Result to be comparable");
-    static_assert(concepts::EqualityComparable<E>::value, "E must be EqualityComparable for Result to be comparable");
+    static_assert(result::concepts::EqualityComparable<T>::value,
+            "T must be EqualityComparable for Result to be comparable");
+    static_assert(result::concepts::EqualityComparable<E>::value,
+            "E must be EqualityComparable for Result to be comparable");
 
     if (lhs.has_value() && rhs.has_value())
         return lhs.value() == rhs.value();
@@ -893,8 +897,9 @@ bool operator==(const result::Result<T, E>& lhs, const result::Result<T, E>& rhs
 }
 
 template<typename T, typename E>
-bool operator==(const result::Result<T, E>& lhs, types::Ok<T> ok) {
-    static_assert(concepts::EqualityComparable<T>::value, "T must be EqualityComparable for Result to be comparable");
+bool operator==(const result::Result<T, E>& lhs, result::types::Ok<T> ok) {
+    static_assert(result::concepts::EqualityComparable<T>::value,
+            "T must be EqualityComparable for Result to be comparable");
 
     if (lhs.has_value())
         return lhs.value() == ok.val;
@@ -903,13 +908,14 @@ bool operator==(const result::Result<T, E>& lhs, types::Ok<T> ok) {
 }
 
 template<typename E>
-bool operator==(const result::Result<void, E>& lhs, types::Ok<void>) {
+bool operator==(const result::Result<void, E>& lhs, result::types::Ok<void>) {
     return lhs.has_value();
 }
 
 template<typename T, typename E>
-bool operator==(const result::Result<T, E>& lhs, types::Err<E> err) {
-    static_assert(concepts::EqualityComparable<E>::value, "E must be EqualityComparable for Result to be comparable");
+bool operator==(const result::Result<T, E>& lhs, result::types::Err<E> err) {
+    static_assert(result::concepts::EqualityComparable<E>::value,
+            "E must be EqualityComparable for Result to be comparable");
 
     if (!lhs.has_value())
         return lhs.error() == err.val;
