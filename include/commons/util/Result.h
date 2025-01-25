@@ -740,10 +740,18 @@ bool operator==(const result::Result<T, E>& lhs, result::types::Ok<T> ok) {
 
     return false;
 }
+template<typename T, typename E>
+bool operator==(result::types::Ok<T> ok, const result::Result<T, E>& rhs) {
+    return rhs == ok;
+}
 
 template<typename E>
 bool operator==(const result::Result<void, E>& lhs, result::types::Ok<void>) {
     return lhs.has_value();
+}
+template<typename E>
+bool operator==(result::types::Ok<void> ok, const result::Result<void, E>& rhs) {
+    return rhs == ok;
 }
 
 template<typename T, typename E>
@@ -755,6 +763,10 @@ bool operator==(const result::Result<T, E>& lhs, result::types::Err<E> err) {
         return lhs.error() == err.val;
 
     return false;
+}
+template<typename T, typename E>
+bool operator==(result::types::Err<E> err, const result::Result<T, E>& rhs) {
+    return rhs == err;
 }
 
 #endif //COMMONS_RESULT_H
