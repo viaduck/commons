@@ -50,6 +50,7 @@
 #include <iostream>
 #include <functional>
 #include <type_traits>
+#include <variant>
 
 #include "Except.h"
 
@@ -520,143 +521,6 @@ namespace details {
         return Or::Else<Func>::or_else(result, func);
     }
 
-    struct ok_tag { };
-    struct err_tag { };
-
-    template<typename T, typename E>
-    struct Storage {
-        static constexpr size_t Size = sizeof(T) > sizeof(E) ? sizeof(T) : sizeof(E);
-        static constexpr size_t Align = sizeof(T) > sizeof(E) ? alignof(T) : alignof(E);
-
-        using type = typename std::aligned_storage<Size, Align>::type;
-
-        Storage() : initialized_(false) { }
-
-        void construct(types::Ok<T> ok) {
-            new (&storage_) T(ok.val);
-            initialized_ = true;
-        }
-
-        void construct(types::Err<E> err) {
-            new (&storage_) E(err.val);
-            initialized_ = true;
-        }
-
-        template<typename U>
-        void rawConstruct(U&& val) {
-            using CleanU = typename std::decay<U>::type;
-
-            new (&storage_) CleanU(std::forward<U>(val));
-            initialized_ = true;
-        }
-
-        template<typename U>
-        const U& get() const& {
-            return *reinterpret_cast<const U *>(&storage_);
-        }
-        template<typename U>
-        U& get() {
-            return *reinterpret_cast<U *>(&storage_);
-        }
-
-        void destroy(ok_tag) {
-            if (initialized_) {
-                get<T>().~T();
-                initialized_ = false;
-            }
-        }
-
-        void destroy(err_tag) {
-            if (initialized_) {
-                get<E>().~E();
-                initialized_ = false;
-            }
-        }
-
-        type storage_;
-        bool initialized_;
-    };
-
-    template<typename E>
-    struct Storage<void, E> {
-        using type = typename std::aligned_storage<sizeof(E), alignof(E)>::type;
-
-        void construct(types::Ok<void>) {
-            initialized_ = true;
-        }
-
-        void construct(types::Err<E> err) {
-            new (&storage_) E(err.val);
-            initialized_ = true;
-        }
-
-        template<typename U>
-        void rawConstruct(U&& val) {
-            using CleanU = typename std::decay<U>::type;
-
-            new (&storage_) CleanU(std::forward<U>(val));
-            initialized_ = true;
-        }
-
-        void destroy(ok_tag) { initialized_ = false; }
-        void destroy(err_tag) {
-            if (initialized_) {
-                get<E>().~E();
-                initialized_ = false;
-            }
-        }
-
-        template<typename U>
-        const U& get() const {
-            return *reinterpret_cast<const U *>(&storage_);
-        }
-
-        template<typename U>
-        U& get() {
-            return *reinterpret_cast<U *>(&storage_);
-        }
-
-        type storage_;
-        bool initialized_;
-    };
-
-    template<typename T, typename E>
-    struct Constructor {
-        static void move(Storage<T, E>&& src, Storage<T, E>& dst, ok_tag) {
-            dst.rawConstruct(std::move(src.template get<T>()));
-            src.destroy(ok_tag());
-        }
-
-        static void copy(const Storage<T, E>& src, Storage<T, E>& dst, ok_tag) {
-            dst.rawConstruct(src.template get<T>());
-        }
-
-        static void move(Storage<T, E>&& src, Storage<T, E>& dst, err_tag) {
-            dst.rawConstruct(std::move(src.template get<E>()));
-            src.destroy(err_tag());
-        }
-
-        static void copy(const Storage<T, E>& src, Storage<T, E>& dst, err_tag) {
-            dst.rawConstruct(src.template get<E>());
-        }
-    };
-
-    template<typename E>
-    struct Constructor<void, E> {
-        static void move(Storage<void, E>&&, Storage<void, E>&, ok_tag) { }
-
-        static void copy(const Storage<void, E>&, Storage<void, E>&, ok_tag) { }
-
-        static void move(Storage<void, E>&& src, Storage<void, E>& dst, err_tag) {
-            dst.rawConstruct(std::move(src.template get<E>()));
-            src.destroy(err_tag());
-        }
-
-        static void copy(const Storage<void, E>& src, Storage<void, E>& dst, err_tag) {
-            dst.rawConstruct(src.template get<E>());
-        }
-    };
-
 } // namespace details
 
 namespace concepts {
@@ -676,69 +540,39 @@ template<typename T, typename E>
 class [[nodiscard]] Result {
     static_assert(!std::is_same<E, void>::value, "void error type is not allowed");
 
-    using storage_type = details::Storage<T, E>;
-    using constructor_type = details::Constructor<T, E>;
-
 public:
     using value_type = T;
     using error_type = E;
 
     /// result with value
-    Result(types::Ok<T> ok) : has_val_(true) { // NOLINT(*-explicit-constructor)
-        storage_.construct(std::move(ok));
+    Result(types::Ok<T> &&ok) : has_val_(true), // NOLINT(*-explicit-constructor)
+            storage_(std::in_place_index<0>, std::move(ok.val)) {
+
     }
 
     /// result with error
-    Result(types::Err<E> err) : has_val_(false) { // NOLINT(*-explicit-constructor)
-        storage_.construct(std::move(err));
-    }
+    Result(types::Err<E> &&err) : has_val_(false), // NOLINT(*-explicit-constructor)
+            storage_(std::in_place_index<1>, std::move(err.val)) {
 
-    /// copy result
-    Result(const Result &other) {
-        if (other.has_val_) {
-            constructor_type::copy(other.storage_, storage_, details::ok_tag());
-            has_val_ = true;
-        } else {
-            constructor_type::copy(other.storage_, storage_, details::err_tag());
-            has_val_ = false;
-        }
-    }
-
-    /// move result
-    Result(Result &&other) noexcept {
-        if (other.has_val_) {
-            constructor_type::move(std::move(other.storage_), storage_, details::ok_tag());
-            has_val_ = true;
-        } else {
-            constructor_type::move(std::move(other.storage_), storage_, details::err_tag());
-            has_val_ = false;
-        }
-    }
-
-    ~Result() {
-        if (has_val_)
-            storage_.destroy(details::ok_tag());
-        else
-            storage_.destroy(details::err_tag());
     }
 
     // operator->, operator*
 
     template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
     const T *operator->() const noexcept {
-        return &storage_.template get<T>();
+        return &std::get<0>(storage_);
     }
     template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
     T *operator->() noexcept {
-        return &storage_.template get<T>();
+        return &std::get<0>(storage_);
     }
     template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
     const T &operator*() const& noexcept {
-        return storage_.template get<T>();
+        return std::get<0>(storage_);
     }
     template<typename U = T, std::enable_if_t<!std::is_same<U, void>::value>* = nullptr>
     T &operator*() & noexcept {
-        return storage_.template get<T>();
+        return std::get<0>(storage_);
     }
 
     inline operator bool() const noexcept { // NOLINT(*-explicit-constructor)
@@ -754,9 +588,9 @@ public:
 
     /// returns value if has_value(), throws otherwise
     template<typename U = T>
-    const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value() const {
+    [[nodiscard]] const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value() const {
         if (has_value())
-            return storage_.template get<U>();
+            return std::get<0>(storage_);
 
         throw result_error("Attempting to call value() on an error Result");
     }
@@ -768,26 +602,26 @@ public:
     }
 
     /// throws if has_value(), returns error otherwise
-    const error_type &error() const {
+    [[nodiscard]] const error_type &error() const {
         if (!has_value())
-            return storage_.template get<error_type>();
+            return std::get<1>(storage_);
 
         throw result_error("Attempting to call error() on an ok Result");
     }
 
     /// returns value if has_value(), returns default_value otherwise
     template<typename U = T>
-    const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value_or(const U &default_value) const {
+    [[nodiscard]] const typename std::enable_if_t<!std::is_same_v<U, void>, U> &value_or(const U &default_value) const {
         if (has_value())
-            return storage_.template get<U>();
+            return std::get<0>(storage_);
 
         return default_value;
     }
 
     /// returns default_value if has_value(), returns error otherwise
-    const error_type &error_or(const error_type &default_value) const {
+    [[nodiscard]] const error_type &error_or(const error_type &default_value) const {
         if (!has_value())
-            return storage_.template get<error_type>();
+            return std::get<1>(storage_);
 
         return default_value;
     }
@@ -859,7 +693,7 @@ public:
 
 private:
     bool has_val_;
-    storage_type storage_;
+    std::variant<T, E> storage_;
 };
 
 template<typename T = void, typename CleanT = typename std::decay<T>::type>
