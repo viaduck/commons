@@ -35,49 +35,9 @@
 
 // private include
 #include "../src/network/native/Native.h"
-#include "../../src/network/Resolve.h"
+#include "../../src/network/component/Resolver.h"
 #include "../../src/network/socket/SSLSocket.h"
 #include "../../src/network/socket/NotifySocket.h"
-
-using namespace std::chrono_literals;
-// retry non-blocking operation while result is zero
-template<typename Rep = int64_t, typename Period = std::milli>
-inline int eventually(const std::function<int()> &fun, const std::chrono::duration<Rep, Period> timeout = 3000ms) {
-    int i = 0, rv = 0, limit = 1000;
-    while (i++ < limit && rv == 0) {
-        rv = fun();
-
-        std::this_thread::sleep_for(timeout / limit);
-    }
-
-    return (i == limit && rv == 0) ? -100: rv;
-}
-
-#define CONNECT_BLOCKING(conn) conn.connect()
-#define CONNECT_NONBLOCKING(conn) eventually([&] () { return conn.connectNonBlocking(); })
-
-template<typename T = int>
-static void internalConnectBlocking(Connection &conn) {
-    if (std::is_same_v<T, int>)
-        EXPECT_NO_THROW(CONNECT_BLOCKING(conn));
-    else
-        EXPECT_THROW(CONNECT_BLOCKING(conn), T);
-}
-template<typename T = int>
-static void internalConnectNonBlocking(Connection &conn, int code) {
-    if (std::is_same_v<T, int>)
-        EXPECT_EQ(code, CONNECT_NONBLOCKING(conn));
-    else
-        EXPECT_THROW(CONNECT_NONBLOCKING(conn), T);
-}
-
-#define EXPECT_CONNECT_RESULT(conn, err_blk, code_nbk, err_nbk) do {    \
-    if (isBlockingMode())                                               \
-        internalConnectBlocking<err_blk>(conn);                         \
-    else                                                                \
-        internalConnectNonBlocking<err_nbk>(conn, code_nbk);            \
-} while(0)
-#define EXPECT_CONNECT_SUCCESS(conn) EXPECT_CONNECT_RESULT(conn, , 1, )
 
 // mock the socket functions to emulate network behavior
 inline const char *currentTestName() {
@@ -152,8 +112,10 @@ TEST_P(ConnectionTest, noHost) {
     };
 
     Connection conn("localhost", 1337, false);
-    // blk connect: throw resolve_error, nbk connect: non-recoverable error
-    EXPECT_CONNECT_RESULT(conn, resolve_error, -2, );
+    // blocking connect: expect throw resolve_error
+    testConnectBlocking<resolve_error>(conn);
+    // non-blocking connect: expect not connectable error
+    testConnectNonBlocking(conn, NetworkResolveError(0));
     EXPECT_FALSE(conn.connected());
 }
 
@@ -166,8 +128,10 @@ TEST_P(ConnectionTest, hostButNoAddresses) {
     };
 
     Connection conn("localhost", 1337, false);
-    // blk connect: throw resolve_error, nbk connect: non-recoverable error
-    EXPECT_CONNECT_RESULT(conn, resolve_error, -2, );
+    // blocking connect: expect throw resolve_error
+    testConnectBlocking<connection_error>(conn);
+    // non-blocking connect: expect not connectable error
+    testConnectNonBlocking(conn, NetworkNotConnectableError());
     EXPECT_FALSE(conn.connected());
 }
 
@@ -203,7 +167,7 @@ TEST_P(ConnectionTest, invalidSocket) {
 
     Connection conn("localhost", 1337, false);
     // any connect: throw socket_error
-    EXPECT_CONNECT_RESULT(conn, socket_error, -1, socket_error);
+    testConnect<socket_error>(conn);
     EXPECT_FALSE(conn.connected());
 }
 
@@ -257,7 +221,7 @@ TEST_P(ConnectionTest, successConnect1stAddressIPv4) {
     };
 
     Connection conn("localhost", 1337, false);
-    EXPECT_CONNECT_SUCCESS(conn);
+    testConnect(conn);
     EXPECT_TRUE(conn.connected());
     EXPECT_EQ(IPProtocol::IPv4, conn.protocol());
 }
@@ -361,9 +325,9 @@ TEST_P(ConnectionTest, successConnect2ndAddressIPv4) {
     if (isBlockingMode())
         EXPECT_NO_THROW(conn.connect());
     else {
-        EXPECT_EQ(0, conn.connectNonBlocking());
-        EXPECT_EQ(0, conn.connectNonBlocking());
-        EXPECT_EQ(1, conn.connectNonBlocking());
+        EXPECT_EQ(NetworkResult(NetworkResultType::RETRY), conn.connectNonBlocking());
+        EXPECT_EQ(NetworkResult(NetworkResultType::WAIT_EVENT), conn.connectNonBlocking());
+        EXPECT_EQ(NetworkResult(NetworkResultType::SUCCESS), conn.connectNonBlocking());
     }
 
     // do not execute the assert in close if connect was already successful because a successful socket will be closed
@@ -398,7 +362,7 @@ TEST_P(ConnectionTest, realSSL) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    EXPECT_CONNECT_SUCCESS(conn);
+    testConnect(conn);
     EXPECT_TRUE(conn.connected());
     EXPECT_TRUE(conn.info().ssl());
 }
@@ -409,7 +373,7 @@ TEST_P(ConnectionTest, realNoSSL) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 80, false);
-    EXPECT_CONNECT_SUCCESS(conn);
+    testConnect(conn);
     EXPECT_TRUE(conn.connected());
     EXPECT_FALSE(conn.info().ssl());
 }
@@ -420,7 +384,7 @@ TEST_P(ConnectionTest, sessionResumption) {
 
     // tries to establish a connection to viaduck servers
     Connection conn("viaduck.org", 443);
-    EXPECT_CONNECT_SUCCESS(conn);
+    testConnect(conn);
     EXPECT_TRUE(conn.connected());
     EXPECT_TRUE(conn.info().ssl());
     // this saves SSL session in TLS 1.3
@@ -428,13 +392,13 @@ TEST_P(ConnectionTest, sessionResumption) {
 
     // following connections should use stored ssl sessions
     Connection conn2("viaduck.org", 443);
-    EXPECT_CONNECT_SUCCESS(conn2);
+    testConnect(conn2);
     EXPECT_TRUE(conn2.connected());
     EXPECT_TRUE(conn2.info().ssl());
     EXPECT_TRUE(((SSLSocket*)conn2.socket())->isReused());
     conn2.disconnect();
 
-    EXPECT_CONNECT_SUCCESS(conn2);
+    testConnect(conn2);
     EXPECT_TRUE(conn2.connected());
     EXPECT_TRUE(conn2.info().ssl());
     EXPECT_TRUE(((SSLSocket*)conn2.socket())->isReused());
@@ -477,10 +441,10 @@ TEST_F(ConnectionTest, connectionWaitRealSSL) {
     ConnectionWait connectionWait;
     // tries to establish a non-blocking connection to viaduck servers
     auto conn = std::make_shared<Connection>("viaduck.org", 443);
-    EXPECT_EQ(0u, conn->connectNonBlocking());
+    EXPECT_EQ(NetworkResult(NetworkResultType::WAIT_EVENT), conn->connectNonBlocking());
     connectionWait.registerConnection(conn);
 
-    int rv;
+    NetworkResult rv = NetworkResultType::SUCCESS;
     do {
         // only connection events should cause wake-ups
         bool notify = false, connections = false;
@@ -490,10 +454,10 @@ TEST_F(ConnectionTest, connectionWaitRealSSL) {
         ));
         EXPECT_TRUE(connections);
 
-        // advance non-blocking connection, expect no error (>= 0)
+        // advance non-blocking connection, expect no error
         rv = conn->connectNonBlocking();
-        EXPECT_GE(rv, 0);
-    } while (rv == 0);
+        EXPECT_TRUE(rv);
+    } while (rv.isDeferred());
 
     EXPECT_TRUE(conn->connected());
     EXPECT_TRUE(conn->info().ssl());

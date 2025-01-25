@@ -24,8 +24,54 @@
 
 class ConnectionTest : public ::testing::TestWithParam<bool> {
 public:
-    bool isBlockingMode() const {
+    static bool isBlockingMode() {
         return GetParam();
+    }
+
+    template<typename exp_err = int>
+    void testConnectBlocking(Connection &conn) {
+        if (isBlockingMode()) {
+            if (std::is_same_v<exp_err, int>)
+                EXPECT_NO_THROW(conn.connect());
+            else
+                EXPECT_THROW(conn.connect(), exp_err);
+        }
+    }
+    template<typename exp_err = int>
+    void testConnectNonBlocking(Connection &conn, const NetworkResult &expected = NetworkResultType::SUCCESS) {
+        if (!isBlockingMode()) {
+            if (std::is_same_v<exp_err, int>)
+                EXPECT_EQ(expected, eventually([&] ()  { return conn.connectNonBlocking(); }));
+            else
+                EXPECT_THROW(eventually([&] ()  { return conn.connectNonBlocking(); }), exp_err);
+        }
+    }
+
+    template<typename exp_err = int>
+    void testConnect(Connection &conn, const NetworkResult &expected = NetworkResultType::SUCCESS) {
+        if (isBlockingMode())
+            testConnectBlocking<exp_err>(conn);
+        else
+            testConnectNonBlocking<exp_err>(conn, expected);
+    }
+
+protected:
+    // retry non-blocking operation while result is wait/retry
+    template<typename Rep = int64_t, typename Period = std::milli>
+    NetworkResult eventually(const std::function<NetworkResult()> &fun,
+            const std::chrono::duration<Rep, Period> timeout = std::chrono::milliseconds(3000)) {
+        NetworkResult result = NetworkResultType::WAIT_EVENT;
+        int i = 0, limit = 1000;
+
+        while (i++ < limit && result.isDeferred()) {
+            result = fun();
+
+            std::this_thread::sleep_for(timeout / limit);
+        }
+
+        if (i == limit && result.isDeferred())
+            return NetworkTimeoutError();
+        return result;
     }
 };
 

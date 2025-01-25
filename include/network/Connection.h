@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2023 The ViaDuck Project
+ * Copyright (C) 2015-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -23,9 +23,13 @@
 #include <secure_memory/Buffer.h>
 #include <commons/util/Except.h>
 
+#include <network/component/NetworkResult.h>
 #include <network/socket/ISocketFactory.h>
 
 DEFINE_ERROR(connection, base_error);
+DEFINE_ERROR(resolve, connection_error);
+
+class Resolver;
 
 /**
  * Platform independent TCP/SSL client
@@ -39,18 +43,18 @@ public:
     virtual ~Connection();
 
     /// @return Connection information
-    const ConnectionInfo &info() const {
+    [[nodiscard]] const ConnectionInfo &info() const {
         return mInfo;
     }
 
     /// @return Current connection status
-    bool connected() const;
+    [[nodiscard]] bool connected() const;
 
     /// @return IP protocol used for connection
-    IPProtocol protocol() const;
+    [[nodiscard]] IPProtocol protocol() const;
 
     /// @return Underlying socket. Only valid when connected
-    ISocket *socket();
+    [[nodiscard]] ISocket *socket();
 
     /**
      * Set the socket factory used when establishing a connection
@@ -67,14 +71,8 @@ public:
      *
      * Call this method again and again until the connection is established.
      * Not all socket types support non-blocking connect.
-     *
-     * @return
-     *    1 if the connection was established,
-     *    0 if the connection was initiated but not completed (call again),
-     *   -1 if a connection error occurred (call again to retry),
-     *   -2 if a non-recoverable error occurred (call again later)
      */
-    int connectNonBlocking();
+    NetworkResult connectNonBlocking();
     /**
      * Establish a connection (blocking until timeout).
      *
@@ -104,9 +102,8 @@ public:
      *
      * @param buffer Target buffer, reuse this between calls for append/resume reading
      * @param size Maximum number of bytes to read
-     * @return 1 if any data was read, 0 if no data was available, -1 if an error/disconnect occurred
      */
-    int readNonBlocking(Buffer &buffer, uint32_t size);
+    NetworkResult readNonBlocking(Buffer &buffer, uint32_t size);
 
     /**
      * Write to connection
@@ -157,27 +154,28 @@ public:
      * @param buffer Reusable target buffer.
      * @param serializable the protocol generated class to be read from connection,
      * must have T::deserialize(const Buffer&, uint32_t &missing)
-     * @return 1 if the serializable was successfully read, 0 if not enough data is available (retry later),
-     * -1 if an error/disconnect occurred
      */
     template <typename T>
-    int readSerializableNonBlocking(Buffer &buffer, T& serializable) {
+    NetworkResult readSerializableNonBlocking(Buffer &buffer, T& serializable) {
         // try to deserialize, read missing bytes non-blocking
         uint32_t missing = 0;
         while (!serializable.deserialize(buffer, *&missing)) {
             // no bytes missing, but cannot be deserialized -> error
             if (missing == 0)
-                return -1;
+                return NetworkInternalError();
 
-            // read error
-            int read = readNonBlocking(buffer, missing);
-            if (read <= 0)
-                return read;
+            // read success, try to deserialize the next part of the serializable
+            NetworkResult rv = readNonBlocking(buffer, missing);
+            if (rv == NetworkResultType::SUCCESS)
+                continue;
+
+            // read deferred or error
+            return rv;
         }
 
         // reset buffer for next read
         buffer.clear();
-        return 1;
+        return NetworkResultType::SUCCESS;
     }
 
 protected:
@@ -189,9 +187,8 @@ protected:
     std::unique_ptr<ISocketFactory> mSocketFactory;
     // current socket
     std::unique_ptr<ISocket> mSocket;
-    // internal socket state
-    class State;
-    std::unique_ptr<State> mState;
+    // internal hostname resolver
+    std::unique_ptr<Resolver> mResolver;
 };
 
 #endif //COMMONS_CONNECTION_H
