@@ -85,15 +85,13 @@ namespace types {
     struct Ok {
         /// only for default constructible T
         template<std::enable_if_t<std::is_default_constructible_v<T>>* = nullptr>
-        explicit Ok() { }
+        Ok() { }
         /// only if T can be constructed from Args
         template<typename... Args, std::enable_if_t<std::is_constructible_v<T, Args &&...>>* = nullptr>
-        explicit Ok(std::in_place_t, Args &&...args) : val(args...) { }
+        Ok(std::in_place_t, Args &&...args) : val(args...) { } // NOLINT(*-explicit-constructor)
 
-        /// copy ctor
-        explicit Ok(const T& val) : val(val) { }
-        /// move ctor
-        explicit Ok(T&& val) : val(std::move(val)) { }
+        Ok(const T& val) : val(val) { } // NOLINT(*-explicit-constructor)
+        Ok(T&& val) : val(std::move(val)) { } // NOLINT(*-explicit-constructor)
 
         T val;
     };
@@ -103,8 +101,8 @@ namespace types {
 
     template<typename E>
     struct Err {
-        explicit Err(const E& val) : val(val) { }
-        explicit Err(E&& val) : val(std::move(val)) { }
+        Err(const E& val) : val(val) { } // NOLINT(*-explicit-constructor)
+        Err(E&& val) : val(std::move(val)) { } // NOLINT(*-explicit-constructor)
 
         E val;
     };
