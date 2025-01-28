@@ -67,12 +67,12 @@ public:
 
     /// @returns True if timer is in "active" state and not elapsed
     bool running() const {
-        return active() && runningMillis() <= mDurationMillis;
+        return active() && runningMillis() < mDurationMillis;
     }
 
     /// @returns True if timer is in "active" state and elapsed
     bool elapsed() const {
-        return active() && runningMillis() > mDurationMillis;
+        return active() && runningMillis() >= mDurationMillis;
     }
 
     /// @returns Number of milliseconds since start of timer if "active", otherwise 0.
