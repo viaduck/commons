@@ -17,9 +17,9 @@
  * along with Commons.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "component/Resolver.h"
 #include "native/Native.h"
 #include "socket/DefaultSocketFactory.h"
-#include "Resolve.h"
 #include "secure_memory/String.h"
 
 #include <network/Connection.h>
@@ -29,48 +29,8 @@ Native::Init gInit;
 // thread specific SSL context
 thread_local SSLContext SSLContext::mInstance;
 
-class Connection::State {
-public:
-    int getCurrentAddr(const ConnectionInfo &info, addrinfo *&out) {
-        if (!resolve) {
-            // create resolve and advance to first addr if not exists
-            try {
-                resolve = std::make_unique<Resolve>(info.host(), info.port());
-                resolve->advance();
-            }
-            catch (const resolve_error &) {
-                // unrecoverable error: resolving failed
-                resolve.reset();
-                return -2;
-            }
-        }
-        // try to get the current addr from resolve
-        if (!resolve->current(out)) {
-            // error if current is null
-            resolve.reset();
-            return -1;
-        }
-
-        return 1;
-    }
-
-    int advanceNextAddr() {
-        // try to advance to the next resolved addr
-        if (!resolve->advance()) {
-            // error if no more addr in list
-            resolve.reset();
-            return -1;
-        }
-
-        return 1;
-    }
-
-    // state of resolve
-    std::unique_ptr<Resolve> resolve;
-};
-
-Connection::Connection(ConnectionInfo connectionInfo)
-        : mInfo(std::move(connectionInfo)), mSocketFactory(new DefaultSocketFactory), mState(new State()) {
+Connection::Connection(ConnectionInfo connectionInfo) : mInfo(std::move(connectionInfo)),
+        mSocketFactory(std::make_unique<DefaultSocketFactory>()), mResolver(std::make_unique<Resolver>()) {
 
 }
 Connection::Connection(const std::string &host, uint16_t port, bool ssl)
@@ -91,15 +51,18 @@ ISocket *Connection::socket() {
     return mSocket.get();
 }
 
-int Connection::connectNonBlocking() {
+NetworkResult Connection::connectNonBlocking() {
     if (connected())
-        return 1;
+        return NetworkResultType::SUCCESS;
 
-    // create resolve if needed, get current addr
+    // resolve and try to get current address
     addrinfo *addr;
-    int rv = mState->getCurrentAddr(mInfo, addr);
-    if (rv < 0)
+    if (auto rv = mResolver->resolve(mInfo.host(), mInfo.port()); !rv)
         return rv;
+    if (!mResolver->current(addr)) {
+        mResolver->reset();
+        return NetworkNotConnectableError();
+    }
 
     // create socket if needed
     if (!mSocket)
@@ -108,50 +71,50 @@ int Connection::connectNonBlocking() {
     // non-blocking connect only supported by TCPSocket and subclasses
     if (auto *tcpSocket = dynamic_cast<TCPSocket*>(mSocket.get())) {
         // try to connect
-        rv = tcpSocket->connectNonBlocking(addr);
-        if (rv > 0) {
+        NetworkResult rv = tcpSocket->connectNonBlocking(addr);
+        if (rv == NetworkResultType::SUCCESS) {
             // connect success
+            mResolver->reset();
             mConnected = true;
-            mState->resolve.reset();
         }
-        else if (rv < 0) {
-            // connect failure, try to advance resolve address
-            rv = mState->advanceNextAddr();
-            if (rv < 0)
-                // no more resolvable addresses -> error
-                return -1;
+        else if (!rv) {
+            // connect failure, advance resolve address
+            mResolver->advance();
 
-            // return 0 leads to trying the next addr
-            rv = 0;
+            // retry to connect to the next address
+            return NetworkResultType::RETRY;
         }
 
-        // 1 or 0
+        // success or deferred
         return rv;
     }
 
     // unrecoverable error: socket unsupported
-    return -2;
+    return NetworkUnsupportedSocketError();
 }
 
 void Connection::connect() {
     if (connected())
         return;
 
-    // resolve hostname
-    Resolve resolve(mInfo.host(), mInfo.port());
+    // resolve hostname to ip addresses
+    if (Resolver resolver; resolver.resolve(mInfo.host(), mInfo.port())) {
+        // try to connect to each
+        for (addrinfo *it; resolver.current(it); resolver.advance()) {
+            // try to connect to socket
+            if (std::unique_ptr<ISocket> socket(mSocketFactory->create(mInfo)); socket->connect(it)) {
+                mSocket = std::move(socket);
+                mConnected = true;
 
-    // try to connect to each
-    for (addrinfo *it; resolve.advance() && resolve.current(it); ) {
-        std::unique_ptr<ISocket> socket(mSocketFactory->create(mInfo));
-
-        if (socket->connect(it)) {
-            mSocket = std::move(socket);
-            mConnected = true;
-            return;
+                return;
+            }
         }
+
+        throw connection_error("No resolved address was connectable for " +
+                mInfo.host() + ":" + std::to_string(mInfo.port()));
     }
 
-    throw connection_error("No connectable address could be resolved");
+    throw resolve_error("Hostname resolution failed for " + mInfo.host() + ":" + std::to_string(mInfo.port()));
 }
 
 bool Connection::tryConnect() {
@@ -194,9 +157,9 @@ bool Connection::read(Buffer &buffer, uint32_t size) {
     return total == size;
 }
 
-int Connection::readNonBlocking(Buffer &buffer, uint32_t size) {
+NetworkResult Connection::readNonBlocking(Buffer &buffer, uint32_t size) {
     if (!connected())
-        return -1;
+        return NetworkInternalError();
 
     // only tcp+ is supported
     auto tcp_sock = dynamic_cast<TCPSocket*>(socket());
@@ -215,17 +178,17 @@ int Connection::readNonBlocking(Buffer &buffer, uint32_t size) {
     }
     tcp_sock->setNonBlocking(false);
 
-    // no data available -> retry, we read some data -> success, error/disconnect -> error
+    // no data available -> wait, we read some data -> success, error/disconnect -> error
 #ifdef _WIN32
     if (read == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK)
 #else
     if (read == SOCKET_ERROR && (errno == EINPROGRESS || errno == EAGAIN))
 #endif
-        return 0;
+        return NetworkResultType::WAIT_EVENT;
     else if (read > 0)
-        return 1;
-    else
-        return -1;
+        return NetworkResultType::SUCCESS;
+
+    return NetworkOSError();
 }
 
 bool Connection::write(const Buffer &buffer) {

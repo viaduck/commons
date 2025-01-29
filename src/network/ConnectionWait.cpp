@@ -82,7 +82,7 @@ bool ConnectionWait::wait(const NotifyCallback &notifyCallback, const Connection
     });
 
     // indefinite wait for one of sockets to become readable or a connection to succeed/fail
-    if (SocketWait::wait(entries) > 0) {
+    if (SocketWait::wait(entries) == NetworkResultType::SUCCESS) {
         // clear and call notify cb if notify was set
         if (entries.at(0).readable()) {
             clearNotify();

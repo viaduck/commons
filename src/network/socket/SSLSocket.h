@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The ViaDuck Project
+ * Copyright (C) 2019-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -43,30 +43,30 @@ public:
         }
     }
 
-    bool isReused() const {
+    [[nodiscard]] bool isReused() const {
         return SSL_session_reused(mSSL.get()) == 1;
     }
 
-    int startSSLConnectNonBlocking(addrinfo *addr) {
+    NetworkResult startSSLConnectNonBlocking(addrinfo *addr) {
         // check for TCP to connect, init connection attempt
         auto rv = TCPSocket::connectNonBlocking(addr);
-        if (rv > 0) {
+        if (rv == NetworkResultType::SUCCESS) {
             mConnectSSLActive = true;
             rv = initSSLConnect();
         }
 
         return rv;
     }
-    int finishSSLConnectNonBlocking() {
+    NetworkResult finishSSLConnectNonBlocking() {
         // finish SSL connect
         auto rv = finishSSLConnect();
-        if (rv != 0)
+        if (!rv || rv == NetworkResultType::SUCCESS)
             mConnectSSLActive = false;
 
         return rv;
     }
 
-    int connectNonBlocking(addrinfo *addr) override {
+    NetworkResult connectNonBlocking(addrinfo *addr) override {
         if (!mConnectSSLActive)
             return startSSLConnectNonBlocking(addr);
         else
@@ -74,7 +74,7 @@ public:
     }
 
     bool connect(addrinfo *addr) override {
-        return TCPSocket::connect(addr) && initSSLConnect() > 0;
+        return TCPSocket::connect(addr) && initSSLConnect() == NetworkResultType::SUCCESS;
     }
 
     int64_t read(void *data, uint32_t size) override {
@@ -113,7 +113,7 @@ protected:
         return 1;
     }
 
-    int initSSLConnect() {
+    NetworkResult initSSLConnect() {
         SSLContext &ctx = SSLContext::getInstance();
 
         // load thread specific ssl context
@@ -140,7 +140,7 @@ protected:
 
         return finishSSLConnect();
     }
-    int finishSSLConnect() {
+    NetworkResult finishSSLConnect() {
         SSLContext &ctx = SSLContext::getInstance();
 
         // try to connect
@@ -150,14 +150,14 @@ protected:
             int err = SSL_get_error(mSSL.get(), ret);
             if (err == SSL_ERROR_SSL && ERR_GET_LIB(ERR_peek_last_error()) == ERR_LIB_SSL &&
                     ERR_GET_REASON(ERR_peek_last_error()) == SSL_R_CERTIFICATE_VERIFY_FAILED)
-                // certificate error -> throw specific
-                throw ssl_verification_error("Certificate verification failed");
+                // certificate error -> return specific
+                return NetworkSSLVerificationError();
             else if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
                 // non-blocking socket requires action -> return wait
-                return 0;
+                return NetworkResultType::WAIT_EVENT;
             else
                 // other error in SSL -> return error
-                return -1;
+                return NetworkSSLError();
         }
 
 #ifdef TLS1_3_VERSION
@@ -167,8 +167,7 @@ protected:
             ctx.removeSession(mInfo, session);
 #endif
 
-        // success
-        return 1;
+        return NetworkResultType::SUCCESS;
     }
 
     // internal ssl object, not thread-safe

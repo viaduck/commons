@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ViaDuck Project
+ * Copyright (C) 2023-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -20,6 +20,7 @@
 #ifndef COMMONS_SOCKETWAIT_H
 #define COMMONS_SOCKETWAIT_H
 
+#include <network/component/NetworkResult.h>
 #include <network/socket/ISocket.h>
 
 #include <optional>
@@ -70,10 +71,10 @@ public:
      * If an entry fd is INVALID_SOCKET, it will be skipped entirely.
      * @param timeoutMs Optional number of milliseconds after which to stop waiting
      * if no requested event was raised for any valid entry. Defaults to indefinite.
-     * @return 1 on success, 0 on timeout, -1 on error
+     * @return NetworkResult containing SUCCESS or a network error
      * @throws std::out_of_range if any entry fd does not fit in a FD_SET
      */
-    static int wait(std::vector<Entry> &entries, const std::optional<int32_t> &timeoutMs = std::nullopt) {
+    static NetworkResult wait(std::vector<Entry> &entries, const std::optional<int32_t> &timeoutMs = std::nullopt) {
         // create a set of sockets for select
         fd_set setR, setW, setE;
         FD_ZERO(&setR);
@@ -135,11 +136,13 @@ public:
             }
 
             // success
-            return 1;
+            return NetworkResultType::SUCCESS;
         }
 
-        // 0 for timeout or -1 on error
-        return rv;
+        // rv is 0 for timeout or SOCKET_ERROR on error
+        if (rv == 0)
+            return NetworkTimeoutError();
+        return NetworkOSError();
     }
 
     /**
@@ -147,11 +150,11 @@ public:
      *
      * @see SocketWait::wait
      */
-    static int waitOne(Entry &entry, const std::optional<int32_t> &timeoutMs = std::nullopt) {
+    static NetworkResult waitOne(Entry &entry, const std::optional<int32_t> &timeoutMs = std::nullopt) {
         std::vector<Entry> entries = { entry };
 
         auto rv = wait(entries, timeoutMs);
-        if (rv > 0)
+        if (rv == NetworkResultType::SUCCESS)
             entry = entries[0];
 
         return rv;

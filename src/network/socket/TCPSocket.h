@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 The ViaDuck Project
+ * Copyright (C) 2019-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -28,12 +28,12 @@ DEFINE_ERROR(socket, base_error);
 
 class TCPSocket : public ISocket {
 public:
-    class NonBlockingScope {
+    class NonBlockingGuard {
     public:
-        explicit NonBlockingScope(TCPSocket *socket) : mSocket(socket) {
+        [[maybe_unused]] explicit NonBlockingGuard(TCPSocket *socket) : mSocket(socket) {
             socket->setNonBlocking(true);
         }
-        ~NonBlockingScope() {
+        ~NonBlockingGuard() {
             mSocket->setNonBlocking(false);
         }
 
@@ -57,7 +57,7 @@ public:
         mSocket = INVALID_SOCKET;
     }
 
-    int initConnect(addrinfo *addr) {
+    NetworkResult initConnect(addrinfo *addr) {
         // try to create socket
         mSocket = Native::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
         L_assert_ne(mSocket, INVALID_SOCKET, socket_error);
@@ -67,98 +67,107 @@ public:
         // set IP protocol info
         setProtocol(addr->ai_family);
         // set non-blocking now, set blocking when leaving scope
-        NonBlockingScope nonBlockingScope(this);
+        [[maybe_unused]] NonBlockingGuard nonBlocking(this);
 
         // connect and return immediately
         int res = Native::connect(mSocket, addr->ai_addr, addr->ai_addrlen);
         if (res == 0) {
             // connect success
-            return 1;
+            return NetworkResultType::SUCCESS;
         }
 #ifdef WIN32
         else if (res == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK) {
 #else
         else if (res == SOCKET_ERROR && errno == EINPROGRESS) {
 #endif
-            // retry later to complete connect
-            return 0;
+            // wait for writeable event
+            return NetworkResultType::WAIT_EVENT;
         }
 
         // error
-        return -1;
+        return NetworkOSError();
     }
-    int finishConnect(const std::optional<int32_t> &timeoutMs) {
-        NonBlockingScope nonBlockingScope(this);
+    NetworkResult finishConnect(const std::optional<int32_t> &timeoutMs) {
+        [[maybe_unused]] NonBlockingGuard nonBlocking(this);
 
         SocketWait::Entry waitEntry(mSocket, SocketWait::Events::WRITEABLE | SocketWait::Events::EXCEPT);
         auto rv = SocketWait::waitOne(waitEntry, timeoutMs);
-        if (rv > 0) {
-            // connect completed - successfully or not
+        if (rv == NetworkResultType::SUCCESS) {
+            // connect completed: successfully or not
 
-            // exception in socket
+            // exception in socket: should never happen
             if (waitEntry.except())
-                return -1;
+                return NetworkInternalError();
 
-            // writeable - check socket error
-            if (extractError() != 0)
-                return -1;
+            // writeable: check socket error
+            if (int errorCode = extractError(); errorCode != 0)
+                return NetworkOSError(errorCode);
 
             // success
-            return 1;
+            return NetworkResultType::SUCCESS;
         }
 
-        // timeout or error
+        // timeout error or underlying error
         return rv;
     }
 
-    int startConnectNonBlocking(addrinfo *addr) {
+    NetworkResult startConnectNonBlocking(addrinfo *addr) {
         // init connection attempt
-        auto rv = initConnect(addr);
-        if (rv < 0) {
-            // disconnect on error
+        auto rv = initConnect(addr)
+                // map timeout error to "wait" result
+                .timeoutToWait();
+
+        if (!rv) {
+            // error: disconnect
             disconnect();
         }
-        else if (rv == 0) {
-            // now the connection process is active
+        else if (rv.isDeferred()) {
+            // wait/retry: now the connection process is active
             mConnectActive = true;
-            // start timer on "wait" with timeout
+            // start timer for timeout if specified
             if (mInfo.timeoutConnect() > 0)
                 mTimeout.start(mInfo.timeoutConnect());
         }
 
+        // success or error
         return rv;
     }
-    int continueConnectNonBlocking() {
+    NetworkResult continueConnectNonBlocking() {
         // continue connection attempt
-        auto rv = finishConnect(0);
-        if (rv < 0) {
-            // disconnect on error
+        auto rv = finishConnect(0)
+                // map timeout error to "wait" result
+                .timeoutToWait();
+
+        if (!rv) {
+            // error: disconnect
             disconnect();
         }
-        if (rv != 0) {
-            // success or failure, reset state
+        if (!rv || rv == NetworkResultType::SUCCESS) {
+            // error, success: reset state
             mTimeout.reset();
             mConnectActive = false;
         }
 
+        // success, timeout or error
         return rv;
     }
-    int timeoutConnectNonBlocking() {
+    NetworkResult timeoutConnectNonBlocking() {
         // timeout in connection attempt, last try to complete connection
         auto rv = finishConnect(0);
-        if (rv <= 0) {
-            // timeout is an error now
+
+        // rv timeout is considered an error now
+        if (!rv) {
+            // error: disconnect
             disconnect();
-            rv = -1;
         }
 
-        // reset state
+        // in any case: reset state
         mTimeout.reset();
         mConnectActive = false;
         return rv;
     }
 
-    virtual int connectNonBlocking(addrinfo *addr) {
+    virtual NetworkResult connectNonBlocking(addrinfo *addr) {
         if (!mConnectActive)
             return startConnectNonBlocking(addr);
         else if (!mTimeout.active() || mTimeout.running())
@@ -169,14 +178,14 @@ public:
 
     bool connect(addrinfo *addr) override {
         auto rv = initConnect(addr);
-        if (rv == 1) {
+        if (rv == NetworkResultType::SUCCESS) {
             // immediately connected
             return true;
         }
-        else if (rv == 0) {
+        else if (rv.isDeferred()) {
             // awaiting result, wait until timeout
             auto timeoutMs = static_cast<int32_t>(mInfo.timeoutConnect());
-            return finishConnect(timeoutMs == 0 ? std::optional<int32_t>{} : timeoutMs) > 0;
+            return finishConnect(timeoutMs == 0 ? std::optional<int32_t>{} : timeoutMs) == NetworkResultType::SUCCESS;
         }
 
         // error
@@ -196,7 +205,7 @@ public:
      *
      * @param value True for non-blocking, false for blocking
      */
-    void setNonBlocking(bool value) {
+    void setNonBlocking(bool value) const {
 #ifdef WIN32
         u_long mode = value ? 1 : 0;
         ioctlsocket(mSocket, FIONBIO, &mode);
@@ -213,7 +222,7 @@ public:
     /**
      * @return Underlying socket
      */
-    SOCKET fd() const {
+    [[nodiscard]] SOCKET fd() const {
         return mSocket;
     }
 
@@ -223,7 +232,7 @@ protected:
      *
      * @param t Timeout in milliseconds
      */
-    void setTimeoutIO(uint32_t t) {
+    void setTimeoutIO(uint32_t t) const {
         if (t == 0)
             return;
 
@@ -238,7 +247,7 @@ protected:
         setsockopt(mSocket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&tv), sizeof(tv));
     }
 
-    int extractError() const {
+    [[nodiscard]] int extractError() const {
         int error;
         socklen_t len = sizeof(error);
 
