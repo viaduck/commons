@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 The ViaDuck Project
+ * Copyright (C) 2015-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -19,8 +19,8 @@
 
 #include "UtilTest.h"
 
-#include <commons/util/Time.h>
 #include <commons/util/Str.h>
+#include <commons/util/Time.h>
 
 template<typename T>
 void assertHelperVectorEq(const std::vector<T> &va, const std::vector<T> &vb) {
@@ -32,15 +32,6 @@ void assertHelperVectorEq(const std::vector<T> &va, const std::vector<T> &vb) {
 
 #define ASSERT_VECTOR_EQ(...) \
     ASSERT_NO_FATAL_FAILURE(assertHelperVectorEq(__VA_ARGS__))
-
-TEST_F(UtilTest, testTime) {
-    EXPECT_EQ("2018-02-03T21:55:13.160Z", Time(1517694913160).formatIso8601());
-    EXPECT_EQ("6 02.03.2018 21:55:13", Time(1517694913160).format("%w %m.%d.%Y %H:%M:%S"));
-    EXPECT_EQ("6 02.03.2018 21:55:13", Time(1517694913160).formatFull("%w %m.%d.%Y %H:%M:%S"));
-    EXPECT_EQ("6 02.03.2018 21:55:13.160", Time(1517694913160).formatFull("%w %m.%d.%Y %H:%M:%S.%k"));
-    EXPECT_EQ("6 02.03.2018 21:55:13.001", Time(1517694913001).formatFull("%w %m.%d.%Y %H:%M:%S.%k"));
-    EXPECT_EQ("6 02.03.2018 21:55:13.001+0000", Time(1517694913001).formatFull("%w %m.%d.%Y %H:%M:%S.%k%z"));
-}
 
 TEST_F(UtilTest, testStrSplit) {
     ASSERT_VECTOR_EQ({}, Str::splitAll("Hello World", ""));
@@ -61,4 +52,13 @@ TEST_F(UtilTest, testStrJoin) {
     ASSERT_EQ("::e:", Str::joinAll({"", "", "e:"}, ":"));
     ASSERT_EQ("::e:", Str::joinAll({"", ":e:"}, ":"));
     ASSERT_EQ("::e:", Str::joinAll({"::e:"}, ":"));
+}
+
+TEST_F(UtilTest, testTime) {
+    EXPECT_EQ("2018-02-03T21:55:13.160Z", Time(1517694913160).formatIso8601());
+    EXPECT_EQ("6 02.03.2018 21:55:13", Time(1517694913160).format("%w %m.%d.%Y %H:%M:%S"));
+    EXPECT_EQ("6 02.03.2018 21:55:13", Time(1517694913160).formatFull("%w %m.%d.%Y %H:%M:%S"));
+    EXPECT_EQ("6 02.03.2018 21:55:13.160", Time(1517694913160).formatFull("%w %m.%d.%Y %H:%M:%S.%k"));
+    EXPECT_EQ("6 02.03.2018 21:55:13.001", Time(1517694913001).formatFull("%w %m.%d.%Y %H:%M:%S.%k"));
+    EXPECT_EQ("6 02.03.2018 21:55:13.001+0000", Time(1517694913001).formatFull("%w %m.%d.%Y %H:%M:%S.%k%z"));
 }
