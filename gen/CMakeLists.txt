@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2023 The ViaDuck Project
+# Copyright (C) 2018-2025 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -40,7 +40,7 @@ else()
     endif()
     
     if (NOT FLATC_VERSION)
-        set(FLATC_VERSION "24.3.25")
+        set(FLATC_VERSION "25.1.24")
     endif()
 
     # only download if needed
