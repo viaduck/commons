@@ -116,7 +116,7 @@ build:windows:x86_64:full:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/x86_64-w64-mingw32.cmake -DPREBUILT_BRANCH=x86_64-w64-mingw32 -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
         - peldd -p "external/openssl-cmake/openssl-prefix/src/openssl/usr/local/bin" test/commons_test.exe | grep -vE '\.exe$' | xargs cp -t .
     artifacts:
@@ -132,7 +132,7 @@ build:windows:x86_64:base-only:
         - update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         - mkdir build-windows-x86_64
         - cd build-windows-x86_64
-        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../external/secure_memory/cmake-modules/toolchains/mingw64-x86_64.cmake -DCOMMONS_BASE_ONLY=ON -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
+        - cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/x86_64-w64-mingw32.cmake -DCOMMONS_BASE_ONLY=ON -DCOMMONS_BUILD_TESTS=ON -DGTEST_SRC_DIR=/usr/src/googletest/ ../
         - ninja
 
 test:windows:x86_64:full:
