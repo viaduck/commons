@@ -21,12 +21,12 @@ from os.path import basename, splitext
 from common import CogBase, DefBase, suggested_type, bits_type, comment_pattern, type_bits
 
 # matches
-# "squeeze_name(bits)"
-line_matcher = re.compile(r"(?P<name>[a-zA-Z0-9_]*)\s?\((?P<size>\d+)\)" + comment_pattern)
-# matches "type <type>"
-type_matcher = re.compile(r"type\s+(?P<type>[a-z0-9_]*)" + comment_pattern)
-# matches "import bit/path/to/BitfieldName.btx"
-import_matcher = re.compile(r"^import\s(?P<path>bit.+)$")
+# 'squeeze_name(bits)'
+line_matcher = re.compile(r'(?P<name>[a-zA-Z0-9_]*)\s?\((?P<size>\d+)\)' + comment_pattern)
+# matches 'type <type>'
+type_matcher = re.compile(r'type\s+(?P<type>[a-z0-9_]*)' + comment_pattern)
+# matches 'import bit/path/to/BitfieldName.btx'
+import_matcher = re.compile(r'^import\s(?P<path>bit.+)$')
 
 
 # a single squeeze element
@@ -61,9 +61,9 @@ class BitDef(DefBase, CogBase):
         self.type = self.s_type if self.type is None else self.type
         # ensure given type is not smaller than suggested
         if type_bits(self.type) < type_bits(self.s_type):
-            raise Exception("Given type too small " + self.type + ", required " + self.s_type)
+            raise Exception('Given type too small ' + self.type + ', required ' + self.s_type)
         # include path for bitfield imports
-        self.import_path = splitext(filename)[0] + ".h"
+        self.import_path = splitext(filename)[0] + '.h'
 
     def parse_line(self, line):
         line_match = line_matcher.match(line)
@@ -79,11 +79,11 @@ class BitDef(DefBase, CogBase):
 
             # check required fields
             if len(name) == 0:
-                raise Exception("Parsing error in line: " + line)
+                raise Exception('Parsing error in line: ' + line)
 
             return [BitElem(name, size)]
 
-        raise Exception("parse error on line: " + line)
+        raise Exception('parse error on line: ' + line)
 
 
 def bit_import(base_dir, line):

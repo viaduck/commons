@@ -1,5 +1,5 @@
 
-# Copyright (C) 2018-2023 The ViaDuck Project
+# Copyright (C) 2018-2025 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -25,23 +25,23 @@ from collections import OrderedDict
 
 # maps c++ types to its bit size
 types = OrderedDict([
-    ("int64_t", 64),
-    ("uint64_t", 64),
-    ("int32_t", 32),
-    ("uint32_t", 32),
-    ("int16_t", 16),
-    ("uint16_t", 16),
-    ("int8_t", 8),
-    ("uint8_t", 8),
-    ("bool", 1),
+    ('int64_t', 64),
+    ('uint64_t', 64),
+    ('int32_t', 32),
+    ('uint32_t', 32),
+    ('int16_t', 16),
+    ('uint16_t', 16),
+    ('int8_t', 8),
+    ('uint8_t', 8),
+    ('bool', 1),
 ])
 
 # matches in-line comment
-comment_pattern = r"\s*(?:#.*)?$"
-# matches "escaped" curly braces \{ or \}
-matcher_escaped_braces = re.compile(r"\\([{}])")
-# matches "unescaped" curly braces { or }
-matcher_unescaped_braces = re.compile(r"(?:^|[^\\])([{}])")
+comment_pattern = r'\s*(?:#.*)?$'
+# matches 'escaped' curly braces \{ or \}
+matcher_escaped_braces = re.compile(r'\\([{}])')
+# matches 'unescaped' curly braces { or }
+matcher_unescaped_braces = re.compile(r'(?:^|[^\\])([{}])')
 
 
 class SafeDict(dict):
@@ -54,18 +54,18 @@ class CogBase:
 
     def _format_with_vars(self, s, **kwargs):
         while matcher_unescaped_braces.search(s) is not None:
-            # protect "escaped" braces by doubling them before string format
-            sf = matcher_escaped_braces.sub(r"\\\1\1", s)
+            # protect 'escaped' braces by doubling them before string format
+            sf = matcher_escaped_braces.sub(r'\\\1\1', s)
             s = sf.format(**SafeDict(vars(self), **kwargs))
 
         # remove escape sequences before using the string
-        return matcher_escaped_braces.sub(r"\1", s)
+        return matcher_escaped_braces.sub(r'\1', s)
 
     def _try_print_with_vars(self, s, pcb, **kwargs):
         try:
             pcb(self._format_with_vars(s, **kwargs))
         except Exception as e:
-            print(f"Formatting error: '{s}'", e)
+            print(f'Formatting error: "{s}"', e)
             raise e
 
     def out(self, s, **kwargs):
@@ -74,9 +74,9 @@ class CogBase:
     def outl(self, s, **kwargs):
         self._try_print_with_vars(s, cog.outl, **kwargs)
 
-    def lout(self, s, sep=", ", **kwargs):
+    def lout(self, s, sep=', ', **kwargs):
         # list out - output comma
-        cog.out("" if CogBase._first_element else sep)
+        cog.out('' if CogBase._first_element else sep)
         CogBase._first_element = False
         self.out(s, **kwargs)
 
@@ -94,7 +94,7 @@ class DefBase:
         # split input
         self.initial, self.body = read_definition(os.path.join(base_dir, filename))
         # reassemble doxygen comment
-        self.doxygen = "".join(self.initial)
+        self.doxygen = ''.join(self.initial)
         # placeholder
         self.elements = []
         self.includes = []
@@ -116,14 +116,14 @@ def read_definition(filename):
     initial = []
     body = []
 
-    with open(filename, "r") as f:
+    with open(filename, 'r') as f:
         for line in f:
             # comment and empty
             if line[0] in ('#', '\n'):
                 continue
 
             # split initial (optional)
-            elif line[0] == "-":
+            elif line[0] == '-':
                 initial, body = body, []
 
             # general line
@@ -140,7 +140,7 @@ def suggested_type(count):
 
 
 def bits_type(bits):
-    # default to largest type
+    # default to the largest type
     s_type, s_bits = list(types.items())[0]
 
     # try to find the smallest type having bits

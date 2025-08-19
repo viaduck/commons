@@ -19,17 +19,17 @@
 import re
 from enum import Enum
 from os.path import basename, splitext
-from common import CogBase, DefBase, read_definition
+from common import CogBase, DefBase
 
 from generators.gen_enum import enum_import
 from generators.gen_bit import bit_import
 
-# matches "foreign Type name ON CASCADE SET NULL"
-fk_matcher = re.compile(r"foreign (?P<path>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*")
-# matches "table|index SQL CLAUSE"
-sql_matcher = re.compile(r"(?P<type>table|index)\s+(?P<clause>.*)")
-# matches "Type name"
-line_matcher = re.compile(r"(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s*#?.*")
+# matches 'foreign Type name ON CASCADE SET NULL'
+fk_matcher = re.compile(r'foreign (?P<path>[a-zA-Z0-9_/]+)\s+(?P<name>[a-z_0-9A-Z]+)\s*(?P<constraints>[A-Z ]+)#?.*')
+# matches 'table|index SQL CLAUSE'
+sql_matcher = re.compile(r'(?P<type>table|index)\s+(?P<clause>.*)')
+# matches 'Type name'
+line_matcher = re.compile(r'(?P<type>[a-zA-Z0-9_:]*)\s*(?P<name>[a-z_0-9A-Z]*)\s*#?.*')
 
 
 class SQXValueType(CogBase):
@@ -39,7 +39,7 @@ class SQXValueType(CogBase):
         self.cpp_ref_t = cpp_t
         self.cpp_const_ref_t = cpp_t
         # how the type is stored in SQL
-        self.sql_t = "INTEGER" if sql_t is None else sql_t
+        self.sql_t = 'INTEGER' if sql_t is None else sql_t
         # type used by sqlite
         self.sql_ref_t = self.cpp_ref_t if sql_ref_t is None else sql_ref_t
 
@@ -75,8 +75,8 @@ class SQXReferenceType(SQXValueType):
     def __init__(self, cpp_t, sql_t, sql_ref_t=None):
         super().__init__(cpp_t, sql_t, sql_ref_t)
         # pass reference types by reference
-        self.cpp_ref_t = cpp_t + " &"
-        self.cpp_const_ref_t = "const " + cpp_t + " &"
+        self.cpp_ref_t = cpp_t + ' &'
+        self.cpp_const_ref_t = 'const ' + cpp_t + ' &'
         # type used by sqlite
         self.sql_ref_t = self.cpp_const_ref_t if sql_ref_t is None else sql_ref_t
 
@@ -88,7 +88,7 @@ class SQXReferenceType(SQXValueType):
 
 class SQXBoolType(SQXValueType):
     def __init__(self):
-        super().__init__("bool", "INTEGER", "uint8_t")
+        super().__init__('bool', 'INTEGER', 'uint8_t')
 
         # when loading bool, convert from uint8_t to bool
         self.load = '{member_name} = static_cast<bool>({name});'
@@ -101,7 +101,7 @@ class SQXBoolType(SQXValueType):
 
 class SQXBlobType(SQXReferenceType):
     def __init__(self, cpp_t):
-        super().__init__(cpp_t, "BLOB", "const sqlite::blob_t &")
+        super().__init__(cpp_t, 'BLOB', 'const sqlite::blob_t &')
 
         # when loading from sqlite, convert sqlite::blob (pair of ptr and size) to underlying type
         self.load = '{member_name}.clear(); {member_name}.write({name}.first, {name}.second, 0);'
@@ -116,15 +116,15 @@ class SQXBlobType(SQXReferenceType):
 
 class SQXForeignType(SQXReferenceType):
     def __init__(self, cpp_t):
-        super().__init__(cpp_t, "INTEGER", "const std::unique_ptr<int64_t> &")
+        super().__init__(cpp_t, 'INTEGER', 'const std::unique_ptr<int64_t> &')
 
         # use unique_ptr for foreign types
         self.cpp_ref_t = 'std::unique_ptr<' + cpp_t + '> &'
         self.cpp_const_ref_t = 'const ' + self.cpp_ref_t
 
-        # when loading from sqlite, convert "null" values to -1
+        # when loading from sqlite, convert 'null' values to -1
         self.load = '{member_name}_id = {name} ? *{name} : -1;'
-        # when storing to sqlite, convert -1 to "null"
+        # when storing to sqlite, convert -1 to 'null'
         self.store = '({member_name}_id >=0 ? std::make_unique<int64_t>({member_name}_id) : std::unique_ptr<int64_t>())'
 
         # one member for foreign id, one for the type (using unique_ptr to allow null)
@@ -138,7 +138,7 @@ class SQXForeignType(SQXReferenceType):
 
 class SQXEnumType(SQXValueType):
     def __init__(self, cpp_t, enum_t):
-        super().__init__(cpp_t, "INTEGER", enum_t)
+        super().__init__(cpp_t, 'INTEGER', enum_t)
 
         # when loading from sqlite, convert from enum_t to cpp_t
         self.load = '{member_name} = to{type.cpp_t}({name});'
@@ -151,7 +151,7 @@ class SQXEnumType(SQXValueType):
 
 class SQXBitfieldType(SQXReferenceType):
     def __init__(self, cpp_t, bit_t):
-        super().__init__(cpp_t, "INTEGER", bit_t)
+        super().__init__(cpp_t, 'INTEGER', bit_t)
 
         # when loading from sqlite, convert from bit_t to cpp_t
         self.load = '{member_name}.value({name});'
@@ -250,7 +250,7 @@ class SQXDef(DefBase, CogBase):
             sql_type = match.group('type').strip()
             sql_clause = match.group('clause').strip()
 
-            if sql_type == "table":
+            if sql_type == 'table':
                 self.table_mods.append(sql_clause)
             else:
                 self.index_mods.append(sql_clause)
@@ -272,5 +272,5 @@ class SQXDef(DefBase, CogBase):
 
             return [SQXElem(elem_name, elem_type)]
 
-        raise Exception("parse error on line: " + line)
+        raise Exception('parse error on line: ' + line)
 

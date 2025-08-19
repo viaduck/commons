@@ -23,9 +23,9 @@ from sys import executable, argv
 generators = ['enum', 'flatbuffers', 'sqx', 'bit']
 allowed_exts = ['.the', '.thx', '.sqx', '.btx']
 
-rel_definitions = "{generator}/"
-rel_template = "generators/{generator}.template.h"
-rel_generator = "generators/gen_{generator}.py"
+rel_definitions = '{generator}/'
+rel_template = 'generators/{generator}.template.h'
+rel_generator = 'generators/gen_{generator}.py'
 
 
 def generate(def_base_dir, infile, template, outfile):
@@ -34,22 +34,22 @@ def generate(def_base_dir, infile, template, outfile):
         # quote to avoid platform issues
         '"' + executable + '"',
         # run cogapp module
-        "-m cogapp",
+        '-m cogapp',
         # delete [[[cog]]] lines from outfile
-        "-d",
-        # pass "def_base_dir" global variable to cog script
-        "-D def_base_dir=" + def_base_dir,
-        # pass "def_file" global variable to cog script
-        "-D def_file=" + infile,
-        # pass "out_file" global variable to cog script
-        "-D out_file=" + outfile,
+        '-d',
+        # pass 'def_base_dir' global variable to cog script
+        '-D def_base_dir=' + def_base_dir,
+        # pass 'def_file' global variable to cog script
+        '-D def_file=' + infile,
+        # pass 'out_file' global variable to cog script
+        '-D out_file=' + outfile,
         # outfile name
-        "-o " + outfile,
+        '-o ' + outfile,
         # cog template file
         template]
 
     # call generator on shell to generate an instance of the template
-    subprocess.check_call(" ".join(shell_args), shell=True)
+    subprocess.check_call(' '.join(shell_args), shell=True)
 
 
 def generate_fbs(flatc, infile, outdir):
@@ -58,16 +58,16 @@ def generate_fbs(flatc, infile, outdir):
         # quote to avoid platform issues
         '"' + flatc + '"',
         # generate c++
-        "--cpp",
+        '--cpp',
         # include directory (of definition files)
-        "-I " + os.path.dirname(infile),
+        '-I ' + os.path.dirname(infile),
         # output the cpp files
-        "-o " + outdir,
+        '-o ' + outdir,
         # fbs definition file
         infile]
 
     # call generator on shell to generate an instance of the template
-    subprocess.check_call(" ".join(shell_args), shell=True)
+    subprocess.check_call(' '.join(shell_args), shell=True)
 
 
 def list_files(gen_dir, out_dir):
@@ -103,7 +103,7 @@ def list_files(gen_dir, out_dir):
                     def_rel_base = os.path.relpath(def_file_base, gen_def_dir)
 
                     # transfer it to out dir
-                    out_file = os.path.join(gen_out_dir, def_rel_base) + ".h"
+                    out_file = os.path.join(gen_out_dir, def_rel_base) + '.h'
 
                     # add to result
                     result.append({
@@ -113,17 +113,17 @@ def list_files(gen_dir, out_dir):
                         'out': out_file
                     })
 
-                    if generator == "flatbuffers":
-                        result[-1]['fbs'] = os.path.join(gen_out_dir, def_rel_base) + ".fbs"
+                    if generator == 'flatbuffers':
+                        result[-1]['fbs'] = os.path.join(gen_out_dir, def_rel_base) + '.fbs'
                         result[-1]['outdir'] = os.path.dirname(out_file)
 
     return result
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # at least a verb and two paths must be supplied
     if len(argv) < 4:
-        raise Exception("Invalid arguments")
+        raise Exception('Invalid arguments')
 
     # extract args
     _verb, _gen_dir, _out_dir = argv[1], argv[2], argv[3]
@@ -131,28 +131,28 @@ if __name__ == "__main__":
     # all source files, their templates and respective output files
     file_list = list_files(_gen_dir, _out_dir)
 
-    if _verb == "list":
+    if _verb == 'list':
         # only list the output files, don't actually do anything
-        # also, use CMake list format "a;b;c"
-        print(";".join(f['out'] for f in file_list), end="")
+        # also, use CMake list format 'a;b;c'
+        print(';'.join(f['out'] for f in file_list), end='')
 
-    elif _verb == "depend":
+    elif _verb == 'depend':
         # build a list of all the dependencies of the output files
         dep_files = \
             [f['src'] for f in file_list] + \
             [f['template'] for f in file_list] + \
             [f['generator'] for f in file_list]
-        # also, use CMake list format "a;b;c"
-        print(";".join(dep_files), end="")
+        # also, use CMake list format 'a;b;c'
+        print(';'.join(dep_files), end='')
 
-    elif _verb == "generate":
+    elif _verb == 'generate':
         # actually generate the files
         for f in file_list:
             generate(_gen_dir, f['src'], f['template'], f['out'])
 
             # optionally generate fbs
-            if "fbs" in f:
+            if 'fbs' in f:
                 generate_fbs(argv[4], f['fbs'], f['outdir'])
 
     else:
-        raise Exception("Unknown verb")
+        raise Exception('Unknown verb')

@@ -21,24 +21,24 @@ from os.path import basename, splitext
 from common import CogBase, DefBase, read_definition, suggested_type, comment_pattern, type_bits
 
 # matches
-# "enum_name"
-# "enum_name, comment"
-line_matcher = re.compile(r"(?P<name>[a-zA-Z0-9_]*)\s*,?(?P<comment>[^#]+)?" + comment_pattern)
-# matches "type <type> [flags]"
-type_matcher = re.compile(r"type\s+(?P<type>[a-z0-9_]+)\s*(?P<flags>flags)?" + comment_pattern)
-# matches "import enum/path/to/EnumName.the"
-import_matcher = re.compile(r"^import\s(?P<path>enum.+)$")
+# 'enum_name'
+# 'enum_name, comment'
+line_matcher = re.compile(r'(?P<name>[a-zA-Z0-9_]*)\s*,?(?P<comment>[^#]+)?' + comment_pattern)
+# matches 'type <type> [flags]'
+type_matcher = re.compile(r'type\s+(?P<type>[a-z0-9_]+)\s*(?P<flags>flags)?' + comment_pattern)
+# matches 'import enum/path/to/EnumName.the'
+import_matcher = re.compile(r'^import\s(?P<path>enum.+)$')
 
 
 # a single enum element
 class EnumElem(CogBase):
-    def __init__(self, name, comment, value=""):
+    def __init__(self, name, comment, value=''):
         self.name = name
         self.comment = comment
         self.value = value
 
         # strip optional field
-        self.comment = "" if self.comment is None else self.comment.strip()
+        self.comment = '' if self.comment is None else self.comment.strip()
 
 
 # all enum definitions
@@ -53,11 +53,11 @@ class EnumDef(DefBase, CogBase):
         self.parse()
         # handle ALL flags element
         if self.flags:
-            self.elements.insert(0, EnumElem("FLAGS_NONE", "/**< enum value for none of the flags */", " = 0"))
-            self.elements.append(EnumElem("FLAGS_ALL", "/**< enum value for all flags */", f" = {self.flag_val*2-1}"))
+            self.elements.insert(0, EnumElem('FLAGS_NONE', '/**< enum value for none of the flags */', ' = 0'))
+            self.elements.append(EnumElem('FLAGS_ALL', '/**< enum value for all flags */', f' = {self.flag_val*2-1}'))
         else:
             # add element for invalid enum value
-            self.elements.append(EnumElem("VALUE_INVALID", "/**< invalid enum values are mapped to this */"))
+            self.elements.append(EnumElem('VALUE_INVALID', '/**< invalid enum values are mapped to this */'))
 
         # name enum after basename of the file
         self.name = splitext(basename(filename))[0]
@@ -67,17 +67,17 @@ class EnumDef(DefBase, CogBase):
         self.type = self.s_type if self.type is None else self.type
         # ensure given type is not smaller than suggested
         if type_bits(self.type) < type_bits(self.s_type):
-            raise Exception("Given type too small " + self.type + ", required " + self.s_type)
+            raise Exception('Given type too small ' + self.type + ', required ' + self.s_type)
         # include path for enum imports
-        self.import_path = splitext(filename)[0] + ".h"
+        self.import_path = splitext(filename)[0] + '.h'
 
         self.max_val = len(self.elements) - 1
         self.elem_invalid_val = self.elements[0 if self.flags else -1].name
 
     def next_flag(self):
-        v = ""
+        v = ''
         if self.flags:
-            v = f" = {self.flag_val}"
+            v = f' = {self.flag_val}'
             self.flag_val *= 2
         return v
 
@@ -95,12 +95,12 @@ class EnumDef(DefBase, CogBase):
 
             # check required fields, strip optional fields
             if len(name) == 0:
-                raise Exception("Parsing error in line: " + line)
+                raise Exception('Parsing error in line: ' + line)
 
-            comment = "" if comment is None else comment.strip()
+            comment = '' if comment is None else comment.strip()
             return [EnumElem(name, comment, self.next_flag())]
 
-        raise Exception("parse error on line: " + line)
+        raise Exception('parse error on line: ' + line)
 
 
 def enum_import(base_dir, line):
