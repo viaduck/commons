@@ -1,5 +1,5 @@
 
-# Copyright (C) 2018 The ViaDuck Project
+# Copyright (C) 2018-2025 The ViaDuck Project
 #
 # This file is part of Commons.
 #
@@ -51,7 +51,9 @@ class SQXValueType(CogBase):
         self.store = '{member_name}'
 
         # basic member
-        self.member = '{type.cpp_t} {member_name};'
+        self.member = '{type.cpp_t} {member_name}{assign_default};'
+        # basic default
+        self.default = '0'
         # basic getter
         self.getter = ['basic']
         # basic setter
@@ -78,6 +80,8 @@ class SQXReferenceType(SQXValueType):
         # type used by sqlite
         self.sql_ref_t = self.cpp_const_ref_t if sql_ref_t is None else sql_ref_t
 
+        # no default required
+        self.default = None
         # add reference setter
         self.setter.append('ref')
 
@@ -90,6 +94,9 @@ class SQXBoolType(SQXValueType):
         self.load = '{member_name} = static_cast<bool>({name});'
         # when storing bool, convert from bool to uint8_t
         self.store = 'static_cast<uint8_t>({member_name})'
+
+        # default to false
+        self.default = 'false'
 
 
 class SQXBlobType(SQXReferenceType):
@@ -138,6 +145,9 @@ class SQXEnumType(SQXValueType):
         # when storing to sqlite, convert from cpp_t to enum_t
         self.store = 'toInt({member_name})'
 
+        # default to invalid value
+        self.default = '{type.cpp_t}::VALUE_INVALID'
+
 
 class SQXBitfieldType(SQXReferenceType):
     def __init__(self, cpp_t, bit_t):
@@ -184,6 +194,7 @@ class SQXElemFK(CogBase):
 
         self.sqx_type = ElemType.Foreign
         self.type = SQXForeignType(basename(self.path))
+        self.assign_default = ''
 
         # mSQXFoo
         self.member_name = 'mSQX' + self.name[0].upper() + self.name[1:]
@@ -196,6 +207,7 @@ class SQXElem(CogBase):
 
         self.sqx_type = ElemType.Column
         self.type = SQLiteTypes[typename]
+        self.assign_default = ' = ' + self.type.default if self.type.default is not None else ''
 
         # mSQXFoo
         self.member_name = 'mSQX' + self.name[0].upper() + self.name[1:]
