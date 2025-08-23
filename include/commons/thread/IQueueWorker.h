@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 The ViaDuck Project
+ * Copyright (C) 2019-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -19,7 +19,9 @@
 #ifndef COMMONS_QUEUEWORKER_H
 #define COMMONS_QUEUEWORKER_H
 
+#include <commons/log/Log.h>
 #include <commons/thread/IQueue.h>
+#include <functional>
 #include <thread>
 
 /**
@@ -47,8 +49,14 @@ public:
      * Destructs a worker
      */
     virtual ~IQueueWorker() {
-        /* Stop thread if stopThread has not been called before destructor */
-        IQueueWorker::stopThread();
+        /*
+         * There is no proper way to stop the thread here without causing a bunch of lifetime issues.
+         * Require that the thread was already stopped and the thread ended by the time this destructor is called.
+         */
+        if (!mQueue->abort() || threadActive()) {
+            Log::err << "IQueueWorker destructor called while thread was still active";
+            std::terminate();
+        }
     }
 
     /**
@@ -99,22 +107,37 @@ protected:
      * Internal thread entry-point
      */
     virtual void threadEntry() {
-        // some impls require per-thread init
-        initThread();
+        threadInit();
 
         W value;
         while (mQueue->pop_wait(value)) {
-            doWork(value);
+            try {
+                doWork(value);
+            } catch (const std::exception &e) {
+                Log::err << "[" << std::this_thread::get_id() << "] Thread caught exception: " << e.what();
+            } catch (...) {
+                Log::err << "[" << std::this_thread::get_id() << "] Thread caught unspecified error";
+            }
         }
 
-        // some impls require per-thread resources release
-        releaseThread();
+        threadRelease();
     }
 
-    // optional per-thread platform initialization
-    virtual void initThread() { }
-    // optional per-thread platform cleanup
-    virtual void releaseThread() { }
+    void threadInit() const {
+        Log::trac << "[" << std::this_thread::get_id() << "] Thread init";
+
+        // some impls require per-thread init
+        if (mInitThread)
+            mInitThread();
+    }
+    void threadRelease() const {
+        // some impls require per-thread resources release
+        if (mReleaseThread)
+            mReleaseThread();
+
+        Log::trac << "[" << std::this_thread::get_id() << "] Thread release";
+    }
+
     // mandatory work processing
     virtual void doWork(const W &value) = 0;
 
@@ -122,6 +145,9 @@ protected:
     std::thread mThread;
     // internal work queue
     std::unique_ptr<IQueue<W>> mQueue;
+
+    // optional per-thread init/release hooks
+    std::function<void()> mInitThread, mReleaseThread;
 };
 
 #endif //COMMONS_QUEUEWORKER_H
