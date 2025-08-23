@@ -138,9 +138,9 @@ namespace details {
     };
 
     template<typename R>
-    struct is_result : public std::false_type { };
+    struct is_result : std::false_type { };
     template<typename T, typename E>
-    struct is_result<Result<T, E>> : public std::true_type { };
+    struct is_result<Result<T, E>> : std::true_type { };
 
     namespace Ok {
         namespace impl {

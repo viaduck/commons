@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 The ViaDuck Project
+ * Copyright (C) 2020-2025 The ViaDuck Project
  *
  * This file is part of Commons.
  *
@@ -33,7 +33,7 @@ public:
     explicit ThreadLocal(const factory_t &factory) : mFactory(factory)  { }
 
     ~ThreadLocal() {
-        std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+        std::unique_lock lock(mMutex);
         mMap.clear();
     }
 
@@ -43,7 +43,7 @@ public:
 
     T &load() {
         auto tid = std::this_thread::get_id();
-        std::shared_lock<std::shared_timed_mutex> lock(mMutex);
+        std::shared_lock lock(mMutex);
 
         // if factory set, create object just-in-time
         if (mFactory && mMap.count(tid) == 0) {
@@ -58,24 +58,24 @@ public:
 
     void store(const T &value) {
         auto tid = std::this_thread::get_id();
-        std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+        std::unique_lock lock(mMutex);
 
         mMap[tid] = value;
     }
 
     void store(T &&value) {
         auto tid = std::this_thread::get_id();
-        std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+        std::unique_lock lock(mMutex);
 
         mMap[tid] = std::move(value);
     }
 
-    ThreadLocal<T> &operator =(T &&rhs) {
+    ThreadLocal &operator =(T &&rhs) {
         store(std::move(rhs));
         return *this;
     }
 
-    ThreadLocal<T> &operator =(const T &rhs) {
+    ThreadLocal &operator =(const T &rhs) {
         store(rhs);
         return *this;
     }

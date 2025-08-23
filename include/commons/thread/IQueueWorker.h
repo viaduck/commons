@@ -41,7 +41,7 @@ public:
     /**
      * Move constructor
      */
-    IQueueWorker(IQueueWorker<W> &&) noexcept = default;
+    IQueueWorker(IQueueWorker &&) noexcept = default;
 
     /**
      * Destructs a worker
