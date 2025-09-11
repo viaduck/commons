@@ -72,15 +72,17 @@ void testBasicWorker(IQueueWorker<TestMessage> &worker) {
 
 void testAdvancedWorker(IQueueWorker<TestMessage> &worker) {
     worker.startThread();
-    for (int i = 0; i < TEST_ITER / 2; i++)
-        worker.enqueue(TestMessage{i});
+
+    int i = 0;
+    while (i < TEST_ITER / 2)
+        worker.enqueue(TestMessage{i++});
 
     // let it wait
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(1s);
 
-    for (int i = TEST_ITER / 2; i < TEST_ITER / 2; i++)
-        worker.enqueue(TestMessage{i});
+    while (i < TEST_ITER)
+        worker.enqueue(TestMessage{i++});
 
     std::this_thread::sleep_for(100ms);
     worker.stopThread();
