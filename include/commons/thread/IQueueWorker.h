@@ -24,6 +24,9 @@
 #include <functional>
 #include <thread>
 
+#define TAG_QUEUE_WORKER "[Thread/" << std::this_thread::get_id() << \
+    (mName.empty() ? "" : "/" +  mName) + "] "
+
 /**
  * Threaded worker with work queue
  *
@@ -32,13 +35,12 @@
 template <typename W>
 class IQueueWorker {
 public:
-    /**
-     * Constructs new QueueWorker
-     *
-     * @tparam Q Type of message queue implementation
-     */
+    /// create worker with specified queue
     template <template<class> class Q>
-    explicit IQueueWorker(Q<W> *queue) : mQueue(queue) { }
+    explicit IQueueWorker(Q<W> *queue) : IQueueWorker("", queue) { }
+    /// create worker with specified thread name and queue
+    template <template<class> class Q>
+    explicit IQueueWorker(const std::string &name, Q<W> *queue) : mName(name), mQueue(queue) { }
 
     /**
      * Move constructor
@@ -114,9 +116,9 @@ protected:
             try {
                 doWork(value);
             } catch (const std::exception &e) {
-                Log::err << "[" << std::this_thread::get_id() << "] Thread caught exception: " << e.what();
+                Log::err << TAG_QUEUE_WORKER << "Thread caught exception: " << e.what();
             } catch (...) {
-                Log::err << "[" << std::this_thread::get_id() << "] Thread caught unspecified error";
+                Log::err << TAG_QUEUE_WORKER << "Thread caught unspecified error";
             }
         }
 
@@ -124,7 +126,7 @@ protected:
     }
 
     void threadInit() const {
-        Log::trac << "[" << std::this_thread::get_id() << "] Thread init";
+        Log::trac << TAG_QUEUE_WORKER << "Thread init";
 
         // some impls require per-thread init
         if (mInitThread)
@@ -135,11 +137,14 @@ protected:
         if (mReleaseThread)
             mReleaseThread();
 
-        Log::trac << "[" << std::this_thread::get_id() << "] Thread release";
+        Log::trac << TAG_QUEUE_WORKER << "Thread release";
     }
 
     // mandatory work processing
     virtual void doWork(const W &value) = 0;
+
+    // internal thread name for debugging
+    std::string mName;
 
     // internal work thread
     std::thread mThread;
