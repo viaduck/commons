@@ -40,7 +40,7 @@ else()
     endif()
     
     if (NOT FLATC_VERSION)
-        set(FLATC_VERSION "25.9.23")
+        set(FLATC_VERSION "25.12.19")
     endif()
 
     # only download if needed
